@@ -54,7 +54,7 @@ public class VeloChatX extends WaterPlugin {
         logger.info(Color.paint("blue","| | | | |  __|  | |     | | | | | |     |  _  |   / / | |   | |     }  {   "));
         logger.info(Color.paint("blue","| |_| | | |___  | |___  | |_| | | |___  | | | |  / /  | |   | |    / /\\ \\  "));
         logger.info(Color.paint("blue","|_____/ |_____| |_____| \\_____/ \\_____| |_| |_| /_/   |_|   |_|   /_/  \\_\\ "));
-        logger.info(Color.paint("green",String.format("VelochatX V%s  Author:%s",getPluginData().get("version"),getPluginData().get("author"))) );
+        logger.info(Color.paint("blue",String.format("VelochatX V%s  Author:%s",getPluginData().get("version"),getPluginData().get("author"))) );
     }
     public ProxyServer getProxyServer(){
         return server;
