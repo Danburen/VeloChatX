@@ -1,0 +1,6 @@
+name: DeloChatX
+version: 1.0
+author: waterwood
+main: site.hjfunny.velochatx.VeloChatX
+description: A plugin for velocity that all backend servers cross server chat
+commands:

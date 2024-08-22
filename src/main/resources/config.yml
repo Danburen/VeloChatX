@@ -1,0 +1,18 @@
+# VelochatX 1.0beta
+# build java version: JE 17
+# author: waterwood
+
+ConfigVersion: 1.0
+
+# use like {xxx} to parse values for your chat text
+# Group: return the Group DisplayName for the player
+# Prefix/Suffix: return pre/suffix of the player
+# Server: return which server player is in;
+# player: return player's name
+# Message: player's chat text
+# NOTE : SERVER && MESSAGE && PlayName are both required,necessity.
+# if one of them is missing, it will use default chat format:[{Server}]{PlayerName}: {Message}
+# you can use like §x to change the text color(covering original display color of luckperms)
+chat-format: "[{Group}][{Server}]{Prefix}{Player}{Suffix}§8:§r {Message}"
+
+opp: 1
