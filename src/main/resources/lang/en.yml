@@ -1,3 +1,4 @@
+##FILE_START:config.yml
 # VelochatX 1.0beta
 # build java version: JE 17
 # author: waterwood
@@ -33,5 +34,13 @@ log-text:
 server-display:
   enable: true
   display:
-    lobby: "[§d大厅服§r]"
-    server2: "[§2生存服§r]"
+    lobby: "[§dLobby§r]"
+    server2: "[§2Survivor§r]"
+
+##FILE_END
+
+
+##FILE_START:message.yml
+# use like chat format. {xxx} value is acceptable.
+play-join-server:
+play-leave-server:

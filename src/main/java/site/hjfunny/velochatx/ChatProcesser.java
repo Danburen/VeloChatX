@@ -3,11 +3,10 @@ package site.hjfunny.velochatx;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.api.LuckPermsAPI;
-import me.waterwood.common.basics;
+import me.waterwood.common.Basics;
 import me.waterwood.config.FileConfiguration;
 import me.waterwood.plugin.WaterPlugin;
 
-import java.awt.*;
 import java.util.Map;
 
 public abstract class ChatProcesser extends LuckPermsAPI {
@@ -59,7 +58,7 @@ public abstract class ChatProcesser extends LuckPermsAPI {
                 .replace("{group}",GroupDisplayName)
                 .replace("{message}",message);
         out = out.replace("&","§");// the mc can't convert "&" code tested sometimes.
-        if(config.getBoolean("log-text.enable")) WaterPlugin.getLogger().info(basics.parseColor(out,!config.getBoolean("log-text.remove"),config.getBoolean("log-text.convert")));
+        if(config.getBoolean("log-text.enable")) WaterPlugin.getLogger().info(Basics.parseColor(out,config.getBoolean("log-text.convert")));
         return out;
     }
 

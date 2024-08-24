@@ -2,7 +2,7 @@ package me.waterwood.common;
 
 import java.util.Map;
 
-public interface basics {
+public interface Basics {
     public static final String BLACK = "\u001B[30m";
     public static final String DARK_RED = "\u001B[31m";
     public static final String DARK_GREEN = "\u001B[32m";
@@ -30,28 +30,23 @@ public interface basics {
             Map.entry("§e",YELLOW), Map.entry("§f",WHITE), Map.entry("§r",RESET));
 
     /**
-     * parse {@link basics color-code} in order to show in the terminal
+     * parse {@link Basics color-code} in order to show in the terminal
      * original text contains code §.
      * @param origin original text
-     * @param notRemove whether remove the color code remaining no color output
      * @param isEnable whether parse color
      * @return parsed color text(with ANSI)
      */
-    public static String parseColor(String origin,boolean notRemove,boolean isEnable){
+    public static String parseColor(String origin,boolean isEnable){
         if(isEnable) {
-            if (notRemove) {
                 for (Map.Entry<String, String> entry : color.entrySet()){
                     origin = origin.replace(entry.getKey(), entry.getValue());
                 }
                 return origin.endsWith(RESET) ? origin : origin.concat(RESET) ;
-            } else {
-                return origin.replaceAll("§.", "");
-            }
         }else{
-            return origin;
+            return origin.replaceAll("§.", "");
         }
     }
     static String parseColor(String origin){
-        return parseColor(origin,true,true);
+        return parseColor(origin,true);
     }
 }

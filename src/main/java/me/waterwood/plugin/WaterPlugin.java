@@ -5,13 +5,13 @@ import me.waterwood.config.YamlConfigProcesser;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import org.slf4j.Logger;
 
 public abstract class WaterPlugin  implements PluginBase {
     private static Logger logger = null;
-    private File file = null;
     protected static FileConfiguration config = null;
     private static String pluginName;
     private static Map<String,Object> pluginData;
@@ -49,8 +49,11 @@ public abstract class WaterPlugin  implements PluginBase {
     }
     public void getPluginInfo(){
         Yaml yaml = new Yaml();
-        InputStream pluginFis = getClass().getClassLoader().getResourceAsStream("plugin.yml");
-        pluginData = yaml.load(pluginFis);
-        pluginName = (String) YamlConfigProcesser.get("name", pluginData);
+        try(InputStream pluginFis = getClass().getClassLoader().getResourceAsStream("plugin.yml")) {
+            pluginData = yaml.load(pluginFis);
+            pluginName = (String) YamlConfigProcesser.get("name", pluginData);
+        }catch(IOException e){
+            e.printStackTrace();
+        }
     }
 }

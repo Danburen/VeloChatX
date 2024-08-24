@@ -1,6 +1,6 @@
 package me.waterwood.config;
 
-import me.waterwood.common.basics;
+import me.waterwood.common.Basics;
 import me.waterwood.plugin.WaterPlugin;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.DumperOptions;
@@ -12,12 +12,12 @@ public class YamlConfigProcesser extends FileConfiguration{
     YamlConfigProcesser config = null;
     Yaml yaml = new Yaml(getDumperOptions());
     private static Map<String,Object> configData;
-    private static Map<String,Object> configComments;
     public YamlConfigProcesser(){
 
     }
     @Override
     public FileConfiguration loadConfig(){
+        if (config == null) localization();
         this.config = new YamlConfigProcesser();
         try {
             File configFile = new File(config.getPluginFilePath("config.yml"));
@@ -79,7 +79,7 @@ public class YamlConfigProcesser extends FileConfiguration{
         }catch(Exception e){
             e.printStackTrace();
         }
-        WaterPlugin.getLogger().info(basics.parseColor("§aSuccessfully save config"));
+        WaterPlugin.getLogger().info(Basics.parseColor("§aSuccessfully save config"));
     }
 
     public static DumperOptions getDumperOptions(){
@@ -89,26 +89,26 @@ public class YamlConfigProcesser extends FileConfiguration{
         return options;
     }
 
-    // I want to implement the function of saving comments for yaml file .
-    // this need to access the underlying of SnakeYaml so i quit....(further may try to achieve....)
-//    public static  LinkedHashMap<Integer,String> getComments(File file){
-//        Pattern COMMENT_PATTERN = Pattern.compile("(#.*|\\s*)$");
-//        LinkedHashMap<Integer,String> comments = new LinkedHashMap<>();
-//        try ( BufferedReader reader = new BufferedReader(new FileReader(file));){
-//            String line;
-//            int lineNumber = 0;
-//            while((line = reader.readLine())!= null) {
-//                lineNumber++;
-//                if (COMMENT_PATTERN.matcher(line).matches()) {
-//                    comments.put(lineNumber, line);
-//                }
-//            }
-//            return comments;
-//        }catch(IOException e){
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
+    /* I want to implement the function of saving comments for yaml file .
+     this need to access the underlying of SnakeYaml so i quit....(further may try to achieve....)*/
+    /*public static  LinkedHashMap<Integer,String> getComments(File file){
+        Pattern COMMENT_PATTERN = Pattern.compile("(#.*|\\s*)$");
+        LinkedHashMap<Integer,String> comments = new LinkedHashMap<>();
+        try ( BufferedReader reader = new BufferedReader(new FileReader(file));){
+            String line;
+            int lineNumber = 0;
+            while((line = reader.readLine())!= null) {
+                lineNumber++;
+                if (COMMENT_PATTERN.matcher(line).matches()) {
+                    comments.put(lineNumber, line);
+                }
+            }
+            return comments;
+        }catch(IOException e){
+            e.printStackTrace();
+            return null;
+        }
+    }*/
     @Override
     public void saveConfig(){
         save(new File(getPluginFilePath("config.yml")),configData);

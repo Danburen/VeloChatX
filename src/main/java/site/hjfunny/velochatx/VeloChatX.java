@@ -8,7 +8,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.plugin.WaterPlugin;
 import org.slf4j.Logger;
 
-import static me.waterwood.common.basics.parseColor;
+import static me.waterwood.common.Basics.parseColor;
 
 @Plugin(
         id = "velochatx",
@@ -37,7 +37,7 @@ public class VeloChatX extends WaterPlugin {
         logger.info(parseColor("§b|_____/ |_____| |_____| \\_____/ \\_____| |_| |_| /_/   |_|   |_|   /_/  \\_\\ "));
         logger.info(parseColor(String.format("§aVelochatX V%s  Author:%s",getPluginData().get("version"),getPluginData().get("author"))) );
         Instance = this;
-        server.getEventManager().register(this, new ChatEvent());
+        server.getEventManager().register(this, new PlayerEvents());
         ChatProcesser.load();
         if(! ChatProcesser.hasLuckPerm()){
             logger.warn("Cannot connect to LuckPerms,perfix && suffix is unavailable.");

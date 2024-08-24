@@ -1,0 +1,2 @@
+play-join-server: "(+){Group}{Prefix}{Player} join the {Server}"
+play-leave-server: "(+){Group}{Prefix}{Player} leave the {Server}"
