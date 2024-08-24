@@ -1,17 +1,16 @@
 package me.waterwood.config;
 
-import me.waterwood.common.Color;
+import me.waterwood.common.basics;
 import me.waterwood.plugin.WaterPlugin;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.nodes.Node;
 
 import java.io.*;
 import java.util.Map;
 
 public class YamlConfigProcesser extends FileConfiguration{
     YamlConfigProcesser config = null;
+    Yaml yaml = new Yaml(getDumperOptions());
     private static Map<String,Object> configData;
     private static Map<String,Object> configComments;
     public YamlConfigProcesser(){
@@ -21,11 +20,10 @@ public class YamlConfigProcesser extends FileConfiguration{
     public FileConfiguration loadConfig(){
         this.config = new YamlConfigProcesser();
         try {
-            Yaml yaml = new Yaml();
             File configFile = new File(config.getPluginFilePath("config.yml"));
             InputStream configFIS = new FileInputStream(configFile);
             configData = yaml.load(configFIS);
-
+            configFIS.close();
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -38,13 +36,13 @@ public class YamlConfigProcesser extends FileConfiguration{
     public static Object get(String path,Map<String,Object> data){
         String[] keys = path.split("\\.");
         Map<String,Object> temp;
-        temp = getMap(keys,data);
+        temp = getHashMapData(keys,data);
         return temp.get(keys[keys.length - 1]);
     }
-
-    public static Map<String,Object> getMap(String[] keys,Map<String,Object> data){
+    public static Map<String,Object> getHashMapData(String[] keys, Map<String,Object> data){
         Map<String,Object> currentMap = data;
-        for(String key : keys){
+        for(int i = 0 ; i < keys.length -1 ; i++){
+            String key = keys[i];
             if(currentMap.containsKey(key)) {
                 Object value = currentMap.get(key);
                 if(value instanceof Map){
@@ -56,13 +54,13 @@ public class YamlConfigProcesser extends FileConfiguration{
                 return null;
             }
         }
-        return null;
+        return currentMap;
     }
 
     @Override
     public void set(String path, Object val, Map<String, Object>  data){
         String[] keys= path.split("\\.");
-        Map<String,Object> map = getMap(keys,data);
+        Map<String,Object> map = getHashMapData(keys,data);
         if (map != null) {
             map.put(keys[keys.length - 1], val);
         }
@@ -75,44 +73,42 @@ public class YamlConfigProcesser extends FileConfiguration{
 
     @Override
     public void save(File file,Map<String,Object> data){
-        Yaml yaml = new Yaml(getDumperOptions());
-        try(FileWriter fileWriter = new FileWriter(file)){
-            yaml.dump(data,fileWriter);
+//        LinkedHashMap<Integer,String> comments = getComments(file);
+        try(FileWriter writer = new FileWriter(file)){
+            yaml.dump(data,writer);
         }catch(Exception e){
             e.printStackTrace();
         }
-        WaterPlugin.getLogger().info(Color.paint("green","Successfully save config"));
+        WaterPlugin.getLogger().info(basics.parseColor("§aSuccessfully save config"));
     }
-    @Override
-    public void extractConfigFromJar(String targetFilePath){
-        InputStream IS = YamlConfigProcesser.class.getResourceAsStream("/config.yml");
-        if (IS == null) {
-            WaterPlugin.getLogger().error("Config file not founded");
-            return;
-        }
-        File targetFile =new File(targetFilePath);
-        if (targetFile.exists()){
-            return;
-        }
 
-        try{
-            OutputStream OS = new FileOutputStream(targetFile);
-            byte[] buffer = new byte[1024];
-            int length;
-            while((length = IS.read(buffer)) > 0){
-                OS.write(buffer,0,length);
-            }
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-    }
     public static DumperOptions getDumperOptions(){
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
-        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
         return options;
     }
+
+    // I want to implement the function of saving comments for yaml file .
+    // this need to access the underlying of SnakeYaml so i quit....(further may try to achieve....)
+//    public static  LinkedHashMap<Integer,String> getComments(File file){
+//        Pattern COMMENT_PATTERN = Pattern.compile("(#.*|\\s*)$");
+//        LinkedHashMap<Integer,String> comments = new LinkedHashMap<>();
+//        try ( BufferedReader reader = new BufferedReader(new FileReader(file));){
+//            String line;
+//            int lineNumber = 0;
+//            while((line = reader.readLine())!= null) {
+//                lineNumber++;
+//                if (COMMENT_PATTERN.matcher(line).matches()) {
+//                    comments.put(lineNumber, line);
+//                }
+//            }
+//            return comments;
+//        }catch(IOException e){
+//            e.printStackTrace();
+//            return null;
+//        }
+//    }
     @Override
     public void saveConfig(){
         save(new File(getPluginFilePath("config.yml")),configData);

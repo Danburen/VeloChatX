@@ -5,14 +5,32 @@
 ConfigVersion: 1.0
 
 # use like {xxx} to parse values for your chat text
-# Group: return the Group DisplayName for the player
+# Group: return the Group DisplayName which the player is in.
 # Prefix/Suffix: return pre/suffix of the player
-# Server: return which server player is in;
+# Server: return which server player is in(display can be replaced below);
 # player: return player's name
 # Message: player's chat text
 # NOTE : SERVER && MESSAGE && PlayName are both required,necessity.
 # if one of them is missing, it will use default chat format:[{Server}]{PlayerName}: {Message}
 # you can use like §x to change the text color(covering original display color of luckperms)
-chat-format: "[{Group}][{Server}]{Prefix}{Player}{Suffix}§8:§r {Message}"
+chat-format: "{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 
-opp: 1
+# whether log all players' chat message in the terminal?
+# if this was disabled can save your server's memory(a little)
+# if your server has huge number of players,i recommended set the attribute(enable) to disable.
+log-text:
+  enable: true
+  # whether remove color code(only show text). if this option is true ,convert will not work!
+  remove: false
+  # whether convert the mc color code "§/&" to ANSI to show text color in terminal.
+  convert: true
+
+# convert the server name to the display name of the server.
+# below the "display" are servers' name in your velocity server -> Velocity.toml -> [servers]
+# which are replaced when play send messages.
+# e.g. [Lobby]steven: hello -> [大厅服]steven: hello
+server-display:
+  enable: true
+  display:
+    lobby: "[§d大厅服§r]"
+    server2: "[§2生存服§r]"

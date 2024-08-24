@@ -1,10 +1,11 @@
 package site.hjfunny.velochatx;
 
 
-import com.velocitypowered.api.event.*;
+import com.velocitypowered.api.event.PostOrder;
+import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
-import me.waterwood.api.LuckPermsAPI;
+import me.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 
 public class ChatEvent {

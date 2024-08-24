@@ -9,10 +9,10 @@ import java.io.InputStream;
 import java.util.Map;
 import org.slf4j.Logger;
 
-public abstract class WaterPlugin implements PluginBase {
+public abstract class WaterPlugin  implements PluginBase {
     private static Logger logger = null;
     private File file = null;
-    private static FileConfiguration config = null;
+    protected static FileConfiguration config = null;
     private static String pluginName;
     private static Map<String,Object> pluginData;
     protected WaterPlugin(Logger logger){
@@ -47,7 +47,6 @@ public abstract class WaterPlugin implements PluginBase {
     public void onload(){
         upgradeConfig();
     }
-
     public void getPluginInfo(){
         Yaml yaml = new Yaml();
         InputStream pluginFis = getClass().getClassLoader().getResourceAsStream("plugin.yml");
