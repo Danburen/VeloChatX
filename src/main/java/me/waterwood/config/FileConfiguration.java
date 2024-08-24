@@ -4,24 +4,32 @@ import me.waterwood.plugin.WaterPlugin;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.security.ProtectionDomain;
 import java.security.CodeSource;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
-public abstract class FileConfiguration implements FileConfigBase {
+public abstract class FileConfiguration extends MemoryProcesser implements FileConfigBase {
     public FileConfiguration(){
-        extractResource(getPluginFilePath("config.yml"),"config.yml",true);
+
     }
     public abstract Object get(String path);
     public abstract void set(String path, Object val, Map<String,Object> data);
     public abstract void set(String path, Object val);
     public abstract void save(File file,Map<String,Object> data);
     public abstract void saveConfig();
-    public  FileConfiguration loadConfig(){
+    public abstract Map<String,Object> loadFile(String filePath) throws IOException;
+
+
+    public abstract FileConfiguration reloadConfig(String resourcePath);
+
+    public abstract  Map<String,Object> loadSource(String sourcePath);
+    public FileConfiguration loadConfig(){
         return this;
     };
+    public FileConfiguration reloadConfig(){return this;}
     public final Map<String,String> getMap(String path){
         return  getMap(path,String.class);
     }
@@ -58,75 +66,47 @@ public abstract class FileConfiguration implements FileConfigBase {
     public final String getString(String path){
         return (String) get(path);
     }
-    public String getPluginFilePath(String FileName){
-        return getJarDir() + "\\" +WaterPlugin.getPluginName() + "\\" + FileName;
-    }
 
-    /**
-     * extract jar package resource to file system
-     * @param targetFilePath target file path
-     * @param source source file of the jar package
-     * @param createTip whether create a FileName.yml.txt
-     */
-    public void extractResource(String targetFilePath, String source, Boolean createTip){
-        InputStream IS = YamlConfigProcesser.class.getResourceAsStream("/" + source);
-        if (IS == null) {
-            WaterPlugin.getLogger().error("Config file not founded");
-            return;
+    public void createConfigFiles(){
+        String sourceLangFilePath = "lang/" + getUserLanguage()+".yml" ;//localization
+        if(isResourceExist(sourceLangFilePath)){
+            extractResource("####",getPluginFilePath(),sourceLangFilePath);
+        }else{
+            extraDefaultSource("config.yml","message.yml");
         }
-        File targetFile =new File(targetFilePath);
-        if (targetFile.exists()){
-            return;
-        }
-        File parentDir = targetFile.getParentFile();
-        if (!parentDir.exists()) {
-            parentDir.mkdirs();
-        }
-        try(OutputStream OS = new FileOutputStream(targetFile)){
-            copyFile(IS,OS);
-            if (createTip) {
-                IS = YamlConfigProcesser.class.getResourceAsStream("/" + source);
-                copyFile(IS, new FileOutputStream(new File(targetFilePath + ".txt")));
+    }
+    public void extraDefaultSource(String... sources){
+        for(String source : sources){
+            if (isResourceExist(source)){
+                extractResource(getPluginFilePath(source),source,false);
             }
-        }catch(IOException e){
-            e.printStackTrace();
         }
     }
-
-    /**
-     * useInputStream to copy file
-     * automatically close file
-     * @param IS inputStream
-     * @param OS outputStream
-     */
-    public void copyFile(InputStream IS,OutputStream OS){
-        try{
-            byte[] buffer = new byte[1024];
-            int length;
-            while((length = IS.read(buffer)) > 0){
-                OS.write(buffer,0,length);
-            }
-            IS.close();
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * use {@link ProtectionDomain} to get the jar package
-     * @return String
-     */
-     public String getJarDir(){
-         try {
-             ProtectionDomain domain = this.getClass().getProtectionDomain();
-             CodeSource source = domain.getCodeSource();
-             URL location = source.getLocation();
-             File jarFile = new File(location.toURI());
-             File jarDir = jarFile.getParentFile();
+    @Override
+    public  String getJarDir(){
+        try {
+            ProtectionDomain domain = this.getClass().getProtectionDomain();
+            CodeSource source = domain.getCodeSource();
+            URL location = source.getLocation();
+            File jarFile = new File(location.toURI());
+            File jarDir = jarFile.getParentFile();
             return jarDir.getAbsolutePath();
-         } catch (Exception e) {
-             e.printStackTrace();
-             return null;
-         }
-     }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @Override
+    public  String getPluginFilePath(String FileName){
+        return getJarDir() + "\\" +WaterPlugin.getPluginInfo("name") + "\\" + FileName;
+    }
+    @Override
+    public  String getPluginFilePath(){
+        return getJarDir() + "\\" +WaterPlugin.getPluginInfo("name");
+    }
+    @Override
+    public boolean isResourceExist(String source){
+        URL sourceURL = getClass().getClassLoader().getResource(source);
+        return sourceURL != null;
+    }
  }

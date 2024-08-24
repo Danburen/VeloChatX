@@ -1,0 +1,7 @@
+# use like chat format. {xxx} value is acceptable.
+player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} join the {Server}"
+player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} leave the {Server}"
+mention-to-message: "§2%s mentioned {Group}{Prefix}{Player}{Suffix}"
+mention-recive-message: "%s §6 is mention you!"
+# 会填充上方的 %s ,如果是服务器则展示服务器的 display
+mention-text-format: "{Group}{Prefix}{Player}{Suffix}"

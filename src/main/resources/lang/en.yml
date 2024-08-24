@@ -1,3 +1,4 @@
+####FILE_START:config.yml
 # VelochatX 1.0beta
 # build java version: JE 17
 # author: waterwood
@@ -37,5 +38,19 @@ log-text:
 server-display:
   enable: true
   display:
-    lobby: "[§d大厅服§r]"
-    server2: "[§2生存服§r]"
+    lobby: "[§dLobby§r]"
+    server2: "[§2Survivor§r]"
+
+join-leave-broadcast: true
+
+####FILE_END
+
+
+####FILE_START:message.yml
+# use like chat format. {xxx} value is acceptable.
+player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} join the {Server}"
+player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} leave the {Server}"
+mention-to-message: "§2%s mentioned {Group}{Prefix}{Player}{Suffix}"
+mention-recive-message: "%s §6 is mention you!"
+# 会填充上方的 %s ,如果是服务器则展示服务器的 display
+mention-text-format: "{Group}{Prefix}{Player}{Suffix}"
