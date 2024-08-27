@@ -2,7 +2,6 @@ package site.hjfunny.velochatx.commands;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
-import me.waterwood.common.ABasics;
 import me.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,14 +10,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ReloadCommand extends ABasics implements SimpleCommand {
+public class ReloadCommand extends Command implements SimpleCommand {
+    private static final String PRIMARY_ALIAS = "velochatx";
+    private static final String[] ALIASES = {"vcx","chatx"};
     public static final ArrayList<String> configFiles = new ArrayList<>(Arrays.asList("config","message","all"));
+    @Override
+    public void register(WaterPlugin plugin){
+        this.register(plugin,this,PRIMARY_ALIAS,ALIASES,false);
+    }
     @Override
     public void execute(final Invocation invocation){
         if (! hasPermission(invocation)) return;
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
-        if(args.length > 2){
+        if(args.length > 2 || args.length < 1 ){
             source.sendMessage(Component.text(getMessage("incorrect-command-arguments-message")
                     .formatted("/velochatx reload <config file>" + configFiles),NamedTextColor.RED));
         }

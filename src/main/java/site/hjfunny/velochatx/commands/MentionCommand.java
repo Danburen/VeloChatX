@@ -11,9 +11,14 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import site.hjfunny.velochatx.Methods;
 import site.hjfunny.velochatx.sounds;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class MentionCommand extends ABasics implements SimpleCommand {
+    private final  static  String ALIAS = "mention";
+    private final static String[] ALIASES = {"men","at"};
+    private final static String SHARP_ALIAS = "/mention";
+    private final static String[] SHARP_ALIASES = Arrays.stream(ALIASES).map(s -> '/' + s).toArray(String[]::new);
 
     @Override
     public void execute(Invocation invocation) {
@@ -47,3 +52,4 @@ public class MentionCommand extends ABasics implements SimpleCommand {
     }
 
 }
+

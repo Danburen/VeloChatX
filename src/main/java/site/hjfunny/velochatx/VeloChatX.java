@@ -57,8 +57,7 @@ public class VeloChatX extends WaterPlugin {
     }
 
     public void registerCommands(){
-        registerCommand(this,new ReloadCommand(),"VeloChatX","vcx","chatx");
-        registerCommand(this,new MentionCommand(),"mention","at","@");
+        new ReloadCommand().register(this);
     }
 
     public static VeloChatX getInstance(){

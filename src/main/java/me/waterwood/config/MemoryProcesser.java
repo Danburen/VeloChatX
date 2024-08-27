@@ -48,7 +48,6 @@ public abstract class MemoryProcesser {
                             }
                             writer.write(contentLine + "\n");
                         }
-                        WaterPlugin.getLogger().info(WaterPlugin.getConfig().getString("new-config-file-created-message").formatted(subFile.getName()));
                     }
                 }
             }
