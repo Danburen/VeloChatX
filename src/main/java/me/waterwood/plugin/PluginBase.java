@@ -1,12 +1,12 @@
 package me.waterwood.plugin;
 
-import me.waterwood.common.Basics;
+import me.waterwood.common.Colors;
 import me.waterwood.config.FileConfiguration;
 
 import org.slf4j.Logger;
 
 
-public interface PluginBase extends Basics {
+public interface PluginBase extends Colors {
     static FileConfiguration getConfig(){
         return null;
     };

@@ -1,14 +1,17 @@
-package site.hjfunny.velochatx;
+package site.hjfunny.velochatx.methods;
 
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import me.waterwood.VelocityPlugin;
 import me.waterwood.api.LuckPermsAPI;
-import me.waterwood.common.Basics;
+import me.waterwood.common.Colors;
 import me.waterwood.config.FileConfiguration;
 import me.waterwood.plugin.WaterPlugin;
 
+import java.util.List;
 import java.util.Map;
 
 public abstract class Methods extends LuckPermsAPI {
@@ -17,6 +20,7 @@ public abstract class Methods extends LuckPermsAPI {
     private static Map<String,String> serverDisPlayName = null;
 //    private  static final String DefaultChatFormat = ""
     public static void load(){
+        checkApi();
         chatFormatText = config.getString("chat-format");
         checkFormat();
         if(config.getBoolean("server-display.enable")){
@@ -30,9 +34,8 @@ public abstract class Methods extends LuckPermsAPI {
             if (hasLuckPerm()){
                 return;
             }else{
-                WaterPlugin.getLogger().info(Basics.parseColor(config.getString("no-api-support-message")
-                        .formatted("LuckPerms",config.getString("use-default-chat-format-message"))));
-                useDefaultFormatChat();
+                WaterPlugin.getLogger().info(Colors.parseColor(config.getString("no-api-support-message")
+                        .formatted("LuckPerms")));
             }
             return;
         }
@@ -48,7 +51,7 @@ public abstract class Methods extends LuckPermsAPI {
         String message = evt.getMessage();
         out = out.replace("{message}",message);
         if(config.getBoolean("log-text.enable")) WaterPlugin.getLogger().info(
-                Basics.parseColor(out,config.getBoolean("log-text.convert")));
+                Colors.parseColor(out,config.getBoolean("log-text.convert")));
         return out;
     }
 
@@ -58,7 +61,7 @@ public abstract class Methods extends LuckPermsAPI {
         String serverName = server == null ? "UnKnown" : convertServerName(server.getServerInfo().getName());
         String prefix = nullStrCheck(getPlayerPrefix(playerName));
         String suffix = nullStrCheck(getPlayersuffix(playerName));
-        String GroupDisplayName = nullStrCheck(getPlayerGroup(playerName).getDisplayName());
+        String GroupDisplayName = nullStrCheck(getPlayerGroupDisplay(playerName));
         out = out.replace("{player}",playerName)
                 .replace("{server}",serverName)
                 .replace("{prefix}",prefix)
@@ -85,6 +88,15 @@ public abstract class Methods extends LuckPermsAPI {
             String displayName = serverDisPlayName.get(serverName);
             return displayName ==null ? serverName:displayName;
         }
+    }
+
+    public static List<String> getAllPlayer(CommandSource source){
+        List<String> players = VelocityPlugin.getAllPlayerName();
+        if(source instanceof Player){
+            Player player = (Player) source;
+            players.remove(player.getUsername());
+        }
+        return players;
     }
     public static void useDefaultFormatChat(){
        chatFormatText = "{Server}{Player} §7:§r {Message}";

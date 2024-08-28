@@ -20,6 +20,13 @@ chat-format: "{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 # usually config.yml && message.yml generate depending on your VCM default language.
 locale: en
 
+# global/locale  set to display player information (mentions, private chats, etc.)
+# -whether based on the language of the player's client or server.
+# global: display to players based on the language of the server (customizable message settings can be changed)
+# locale: display various player messages based on the language of the player's client (unable to customize me
+#  -ssages, only built-in default plugin messages can be displayed)
+player-locale: global
+
 # whether log all players' chat message in the terminal?
 # if this was disabled can save your server's memory(a little)
 # if your server has huge number of players,i recommended set the attribute(enable) to disable.
@@ -37,5 +44,13 @@ log-text:
 server-display:
   enable: true
   display:
-    lobby: "[§d大厅服§r]"
-    server2: "[§2生存服§r]"
+    lobby: "[§dLobby§r]"
+    server2: "[§2Survivor§r]"
+    proxy: "[§5VCLO]§r"
+
+# Do need to send a departure message on the original server and a join message on the joined server when
+# -the player leaves/joins the sub server
+join-leave-broadcast:
+  enable: true
+  player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} has joined the {Server}"
+  player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} has left the {Server}"

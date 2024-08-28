@@ -2,54 +2,138 @@ package site.hjfunny.velochatx.commands;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
+import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
-import me.waterwood.common.ABasics;
-import me.waterwood.common.Basics;
+import me.waterwood.VelocityPlugin;
+import me.waterwood.config.FileConfiguration;
 import me.waterwood.plugin.WaterPlugin;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import site.hjfunny.velochatx.Methods;
-import site.hjfunny.velochatx.sounds;
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.title.TitlePart;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
+import site.hjfunny.velochatx.methods.MsgMethods;
 
-import java.util.Arrays;
+import java.time.Duration;
 import java.util.List;
+import java.util.OptionalLong;
 
-public class MentionCommand extends ABasics implements SimpleCommand {
-    private final  static  String ALIAS = "mention";
+public class  MentionCommand extends VelocitySimpleCommand implements SimpleCommand {
+    private final  static  String PRIMARY_ALIAS = "mention";
     private final static String[] ALIASES = {"men","at"};
-    private final static String SHARP_ALIAS = "/mention";
-    private final static String[] SHARP_ALIASES = Arrays.stream(ALIASES).map(s -> '/' + s).toArray(String[]::new);
+    public void register(VelocityPlugin plugin){
+        this.register(plugin,this,PRIMARY_ALIAS,ALIASES,true);
+    }
 
     @Override
     public void execute(Invocation invocation) {
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
-        List<String> players = WaterPlugin.getAllPlayerName();
+        List<String> players = VelocityPlugin.getAllPlayerName();
         if(args.length != 1){
-            source.sendMessage(Component.text(getMessage("incorrect-command-arguments-message")
-                    .formatted("/mention [PlayerName]]"), NamedTextColor.RED));
+            illegalArgsMsg(source,"mention");
+            return;
         }
         if(! players.contains(args[0])){
-            source.sendMessage(Component.text(getMessage("fail-find-player-message")));
+            failFindPlayerMsg(source,args[0]);
         }else{
-            Player sourcePlayer = source instanceof Player ? (Player) source : null;
-            source.sendMessage(Component.text(Basics.parseColor(Methods.placeValue(getMessage("mention-to-message"),sourcePlayer))));
-
-            Player targetPlayer = getServer().getPlayer(args[0]).get();
-            targetPlayer.sendMessage(Component.text(Basics.parseColor(Methods.placeValue(getMessage("mention-receive-message"),targetPlayer))));
-            targetPlayer.playSound(new sounds());
+            Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[0]).get();
+            if(checkNoSelf(source,targetPlayer)) return;
+            FileConfiguration config = WaterPlugin.getConfig();
+            sendRawMessage(source,MsgMethods.convertMessage("mention-to-message", targetPlayer, source));
+            sendRawMessage(targetPlayer,MsgMethods.convertMessage("mention-receive-message", source, targetPlayer));
+            if(config.getBoolean("mention-show-title.enable")) {
+                String mainTitle = MsgMethods.convertMessage("mention-title-show-main",source,targetPlayer);
+                String subTitle = MsgMethods.convertMessage("mention-title-show-sub",source,targetPlayer);
+                int[] time = {config.getInteger("mention-show-title.time.fade-in"),
+                        config.getInteger("mention-show-title.time.stay"),
+                        config.getInteger("mention-show-title.time.fade-out")};
+                targetPlayer.showTitle(new titleShow(mainTitle,subTitle,time));
+            }
+            targetPlayer.playSound(new soundPlay(Key.key("minecraft:block.note_block.pling"), Sound.Source.BLOCK),Sound.Emitter.self());
         }
     }
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        return WaterPlugin.getAllPlayerName();
+        return MsgMethods.getAllPlayer(invocation.source());
     }
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission("velochatx.mention");
+        return invocation.source().hasPermission("velochatx.player");
     }
 
 }
+class titleShow implements Title {
+    private static String mainTitleText;
+    private static String subTitleText;
+    private static int[] time;
+    titleShow(String main,String sub,int[] time){
+        mainTitleText = main;
+        subTitleText = sub;
+        titleShow.time = time;
+    }
+    @Override
+    public @NotNull Component title() {
+        return Component.text(mainTitleText);
+    }
 
+    @Override
+    public @NotNull Component subtitle() {
+        return Component.text(subTitleText);
+    }
+
+    @Override
+    public @Nullable Times times() {
+        return Times.times(Duration.ofSeconds(time[0]),Duration.ofSeconds(time[1]),Duration.ofSeconds(time[2]));
+    }
+
+    @Override
+    public <T> @UnknownNullability T part(@NotNull TitlePart<T> part) {
+        return null;
+    }
+}
+
+class soundPlay implements Sound {
+    private Key key;
+    private Source source;
+    soundPlay(Key name,Source source){
+        this.key = name;
+        this.source = source;
+    }
+
+    @Override
+    public @NotNull Key name() {
+        return key;
+    }
+
+    @Override
+    public @NotNull Source source() {
+        return source;
+    }
+
+    @Override
+    public float volume() {
+        return 1f;
+    }
+
+    @Override
+    public float pitch() {
+        return 1f;
+    }
+
+    @Override
+    public @NotNull OptionalLong seed() {
+        return null;
+    }
+
+    @Override
+    public @NotNull SoundStop asStop() {
+        return null;
+    }
+}

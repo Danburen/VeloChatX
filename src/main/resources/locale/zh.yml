@@ -1,0 +1,8 @@
+mention-to-message: "§2你提及了玩家 {Server}{Group}{Prefix}{Player}{Suffix}"
+mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix} §6提及了你!"
+no-self-action-message: "§c你无法对自己执行这个操作§r"
+fail-find-player-message: "§6在所有服务器上找不到玩家:%s ，其是否§c隐身§r或者§c下线？§r"
+mention-title-show-main: "§c请注意 §6你被提及了！"
+mention-title-show-sub: "{Group}{Prefix}{Player}{Suffix} §e提及了你!"
+msg-to-message: "[§c私聊§r] §2你§r §7->§r {Server}{Group}{Prefix}{Player}{Suffix} §8:§r {Message}"
+msg-receive-message: "[§c私聊§r] {Server}{Group}{Prefix}{Player}{Suffix} §7->§r §2你 §8:§r {Message}"

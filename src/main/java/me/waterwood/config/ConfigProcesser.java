@@ -1,6 +1,6 @@
 package me.waterwood.config;
 
-import me.waterwood.common.Basics;
+import me.waterwood.common.Colors;
 import me.waterwood.plugin.WaterPlugin;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.DumperOptions;
@@ -8,6 +8,7 @@ import org.yaml.snakeyaml.DumperOptions;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -15,28 +16,44 @@ public class ConfigProcesser extends FileConfiguration{
     ConfigProcesser config = null;
     Yaml yaml = new Yaml(getDumperOptions());
     private static Map<String,Object> configData;
+    private static Map<String,Object> localMsgData;
     public ConfigProcesser(){
 
     }
     @Override
     public FileConfiguration loadConfig(){
-        if (config == null) createConfigFiles();
+        if (config == null) { //first load
+            createConfigFiles();
+            localMsgData= new HashMap<>();
+        }
         this.config = new ConfigProcesser();
         try {
             configData = loadFile(getPluginFilePath("config.yml"));
             configData.putAll(loadFile(getPluginFilePath("message.yml")));
             loadPluginMessages((String)configData.get("locale"));
+            loadLocaleMsg((String)configData.get("locale"));
         }catch(IOException e){
             loadDefaultSource(true);
             WaterPlugin.getLogger().warn(config.getString("use-default-config-message"));
         }
         return config;
     }
+
+    public void loadLocaleMsg(String lang){
+        Map<String,Object> data;
+        data = loadSource("locale/" + lang + ".yml");
+        if(data == null){
+            WaterPlugin.getLogger().warn(config.getString("fail-find-local-message").formatted(lang));
+        }else{
+            for(Map.Entry<String,Object> entry : data.entrySet()){
+                localMsgData.put(lang + "-" + entry.getKey(),entry.getValue());
+            }
+        }
+    }
     public void loadPluginMessages(String lang){
         String langPath = "pluginMessages" + "/" + lang + ".properties";
         if(isResourceExist(langPath)){
             configData.putAll(loadPropSource(langPath));
-            WaterPlugin.getLogger().info(Basics.parseColor(getString("lang-file-use-message").formatted(lang)));
         }else{
             WaterPlugin.getLogger().warn("(Unsupported/Wrong/Missing lang code)Can't find plugin message lang source : " + lang);
             WaterPlugin.getLogger().info("now loading default plugin message lang : en" );
@@ -44,10 +61,11 @@ public class ConfigProcesser extends FileConfiguration{
         }
     }
     @Override
+    public FileConfiguration reloadConfig(){
+        return loadConfig();
+    }
+    @Override
     public FileConfiguration reloadConfig(String resourcePath){
-        if(resourcePath.equalsIgnoreCase("all")){
-            return loadConfig();
-        }
         try {
             if(resourcePath.substring(resourcePath.lastIndexOf(".") + 1).equals("yml")) {
                 configData.putAll(loadFile(getPluginFilePath(resourcePath)));
@@ -87,7 +105,6 @@ public class ConfigProcesser extends FileConfiguration{
         try(InputStream IS = getClass().getResourceAsStream("/" + source)){
             return yaml.load(IS);
         }catch (IOException e){
-            e.printStackTrace();
             WaterPlugin.getLogger().warn("source not founded" + source);
         }
         return null;
@@ -108,37 +125,70 @@ public class ConfigProcesser extends FileConfiguration{
         }
     }
     @Override
+    public final String getLocalMessage(String path,String lang){
+        return (String) get(lang+ "-"+ path,localMsgData);
+    }
+    @Override
     public final Object get(String path){
         return get(path,configData);
     }
     public static Object get(String path,Map<String,Object> data){
         String[] keys = path.split("\\.");
-        Map<String,Object> temp;
-        temp = getHashMapData(keys,data);
-        return temp.get(keys[keys.length - 1]);
+        return getHashMapData(keys,data);
+//        Map<String,Object> temp;
+//        temp = getHashMapData(keys,data);
+//        return temp.get(keys[keys.length - 1]);
     }
-    public static Map<String,Object> getHashMapData(String[] keys, Map<String,Object> data){
-        Map<String,Object> currentMap = data;
-        for(int i = 0 ; i < keys.length -1 ; i++){
+    public static Object getHashMapData(String[] keys, Map<String,Object> data){
+//        Map<String,Object> currentMap = data;
+//        for(int i = 0 ; i < keys.length -1 ; i++){
+//            String key = keys[i];
+//            if(currentMap.containsKey(key)) {
+//                Object value = currentMap.get(key);
+//                if(value instanceof Map){
+//                    currentMap = (Map<String,Object>)value;
+//                } else {
+//                    return  currentMap;
+//                }
+//            }else{
+//                return null;
+//            }
+//        }
+//        return currentMap;
+        Object currentData = data;
+        for (int i = 0; i < keys.length; i++) {
             String key = keys[i];
-            if(currentMap.containsKey(key)) {
-                Object value = currentMap.get(key);
-                if(value instanceof Map){
-                    currentMap = (Map<String,Object>)value;
+            if (currentData instanceof Map) {
+                Map<String, Object> currentMap = (Map<String, Object>) currentData;
+                if (currentMap.containsKey(key)) {
+                    currentData = currentMap.get(key);
                 } else {
-                    return  currentMap;
+                    return null;
                 }
-            }else{
+            }
+            else if (currentData instanceof List<?>) {
+                List<?> currentList = (List<?>) currentData;
+                try {
+                    int index = Integer.parseInt(key);
+                    if (index >= 0 && index < currentList.size()) {
+                        currentData = currentList.get(index);
+                    } else {
+                        return null;
+                    }
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            } else {
                 return null;
             }
         }
-        return currentMap;
+        return currentData;
     }
 
     @Override
     public void set(String path, Object val, Map<String, Object>  data){
         String[] keys= path.split("\\.");
-        Map<String,Object> map = getHashMapData(keys,data);
+        Map<String,Object> map = (Map<String,Object>)getHashMapData(keys,data);
         if (map != null) {
             map.put(keys[keys.length - 1], val);
         }
@@ -157,7 +207,7 @@ public class ConfigProcesser extends FileConfiguration{
         }catch(Exception e){
             e.printStackTrace();
         }
-        WaterPlugin.getLogger().info(Basics.parseColor("§aSuccessfully save config"));
+        WaterPlugin.getLogger().info(Colors.parseColor("§aSuccessfully save config"));
     }
 
     public static DumperOptions getDumperOptions(){
@@ -172,6 +222,7 @@ public class ConfigProcesser extends FileConfiguration{
         configData= loadSource("config.yml");
         configData.putAll(loadSource("message.yml"));
         loadPluginMessages((String)configData.get("locale"));
+        loadLocaleMsg((String)configData.get("locale"));
     }
     @Override
     public void saveConfig(){

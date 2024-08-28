@@ -21,6 +21,13 @@ chat-format: "{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 # usually config.yml && message.yml generate depending on your VCM default language.
 locale: en
 
+# global/locale  set to display player information (mentions, private chats, etc.)
+# -whether based on the language of the player's client or server.
+# global: display to players based on the language of the server (customizable message settings can be changed)
+# locale: display various player messages based on the language of the player's client (unable to customize me
+#  -ssages, only built-in default plugin messages can be displayed)
+player-locale: global
+
 # whether log all players' chat message in the terminal?
 # if this was disabled can save your server's memory(a little)
 # if your server has huge number of players,i recommended set the attribute(enable) to disable.
@@ -40,17 +47,34 @@ server-display:
   display:
     lobby: "[§dLobby§r]"
     server2: "[§2Survivor§r]"
+    proxy: "[§5VCLO]§r"
 
-join-leave-broadcast: true
+# Do need to send a departure message on the original server and a join message on the joined server when
+# -the player leaves/joins the sub server
+join-leave-broadcast:
+  enable: true
+  player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} has joined the {Server}"
+  player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} has left the {Server}"
+
+# Whether show title to target player when mention him.
+mention-show-title:
+  enable: true
+  # how long will the title stay.fade in,out.Use seconds.(Integer)
+  time:
+    fade-in: 1
+    stay: 2
+    fade-out: 1
 
 ####FILE_END
 
 
 ####FILE_START:message.yml
 # use like chat format. {xxx} value is acceptable.
-player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} join the {Server}"
-player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} leave the {Server}"
-mention-to-message: "§2%s mentioned {Group}{Prefix}{Player}{Suffix}"
-mention-recive-message: "%s §6 is mention you!"
-# 会填充上方的 %s ,如果是服务器则展示服务器的 display
-mention-text-format: "{Group}{Prefix}{Player}{Suffix}"
+mention-to-message: "§2you mentioned§r {Server}{Group}{Prefix}{Player}{Suffix}"
+mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix}s §6 is mention you!"
+no-self-action-message: "§cYou can't do this yourself!§r"
+fail-find-player-message: "§6can't find the player: %s ,is he §coffline§r or §cvanished§r?"
+mention-title-show-main: "§cAttention §6you have been mentioned!"
+mention-title-show-sub: "{Group}{Prefix}{Player}{Suffix} §e mentioned you!"
+msg-to-message: "[§cPriChat§r] §2You§r §7->§r {Server}{Group}{Prefix}{Player}{Suffix} §8:§r {Message}"
+msg-receive-message: "[§cPriChat§r] {Server}{Group}{Prefix}{Player}{Suffix} §7->§r §2You §8:§r {Message}"

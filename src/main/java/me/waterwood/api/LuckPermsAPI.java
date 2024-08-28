@@ -1,17 +1,15 @@
 package me.waterwood.api;
 
-import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.server.ServerPing;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 
 public abstract class LuckPermsAPI implements ApiBase<LuckPerms>{
-    private static boolean hasLuckPerms = true;
+    private static boolean hasLuckPerms = false;
     private static LuckPerms api = null;
-    public LuckPermsAPI(){
-
+    public static void checkApi(){
+        hasLuckPerms = hasLuckPerm();
     }
     @Override
     public Object getAPI(){
@@ -21,8 +19,7 @@ public abstract class LuckPermsAPI implements ApiBase<LuckPerms>{
     public static boolean hasLuckPerm(){
         try {
             api = LuckPermsProvider.get();
-        }catch(Throwable t){
-            hasLuckPerms = false;
+        }catch(NoClassDefFoundError e){
             return false;
         }
         return true;
@@ -48,14 +45,16 @@ public abstract class LuckPermsAPI implements ApiBase<LuckPerms>{
         }
     }
 
-    public static Group getPlayerGroup(String playerName){
-        return getPlayerGroup(api.getUserManager().getUser(playerName));
-    }
-    public static Group getPlayerGroup(User user){
-        Group group = api.getGroupManager().getGroup(user.getPrimaryGroup());
-        if(group == null){
+    public static String getPlayerGroupDisplay(String playerName){
+        if(hasLuckPerms) {
+            User user = api.getUserManager().getUser(playerName);
+            Group group = api.getGroupManager().getGroup(user.getPrimaryGroup());
+            if (group == null) {
+                return null;
+            }
+            return group.getDisplayName();
+        }else{
             return null;
         }
-        return group;
     }
 }

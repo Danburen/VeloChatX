@@ -21,6 +21,11 @@ chat-format: "{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 # usually config.yml && message.yml generate depending on your VCM default language.
 locale: zh
 
+# global/locale 这个选项设置在显示给玩家信息(提及，私聊等)是否根据玩家客户端还是服务器的语言显示？
+# global: 依据服务器的语言显示给玩家(可以更改设置自定义的消息)
+# locale: 依据玩家的客户端的语言显示玩家各种消息(无法自定义消息，只能显示内置的默认的插件消息)
+player-locale: global
+
 # 是否在终端输出所有玩家的文本
 # 如果觉得服务器内存不够，可以把这个功能关闭尤其是服务器玩家在线人数特别多的时候
 log-text:
@@ -30,23 +35,41 @@ log-text:
 
 # 转换输出的服务器的显示名称
 # display的键对应的必须是Velocity中的服务器名字 -> Velocity.toml -> [servers]
+# proxy表示代理服务器，如Velocity;
 # e.g. [Lobby]steven: hello -> [大厅服]steven: hello
 server-display:
   enable: true
   display:
     lobby: "[§d大厅服§r]"
     server2: "[§2生存服§r]"
+    proxy: "[§5代理服§r]"
 
 # 是否需要在玩家离开/加入 子服务器的时候，在原服务器发送离开消息，在被加入的服务器发送加入消息
-join-leave-broadcast: true
+join-leave-broadcast:
+  enable: true
+  player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} 加入了 {Server}"
+  player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} 离开了 {Server}"
+
+# 是否在提醒的时候给玩家大屏幕显示标题
+mention-show-title:
+  enable: true
+  # 显示Title的时间,秒为单位，支持整数，非整数自动四舍五入。分别是淡入，停留，淡出的持续时间。
+  time:
+    fade-in: 1
+    stay: 2
+    fade-out: 1
 
 ####FILE_END
 
 
 ####FILE_START:message.yml
-player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} 加入了 {Server}"
-player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} 离开了 {Server}"
-mention-to-message: "§2%s提醒了玩家 {Group}{Prefix}{Player}{Suffix}"
-mention-recive-message: "%s §6在提醒你!"
-# 会填充上方的 %s ,如果是服务器则展示服务器的 display
-mention-text-format: "{Group}{Prefix}{Player}{Suffix}"
+# 注意只有当前显示{}的地方能用{}其他未显示的基本是无效的。
+# 以下这些属性的更改只有在 config.yml中的 player-locale属性 设置为global的时候才有效。
+mention-to-message: "§2你提及了玩家§r {Server}{Group}{Prefix}{Player}{Suffix}"
+mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix} §6提及了你!"
+no-self-action-message: "§c你无法对自己执行这个操作§r"
+fail-find-player-message: "§6在所有服务器上找不到玩家:%s ，其是否§c隐身§r或者§c下线？§r"
+mention-title-show-main: "§c注意 §6你被提及了！"
+mention-title-show-sub: "{Group}{Prefix}{Player}{Suffix} §e提及了你!"
+msg-to-message: "[§c私聊§r] §2你§r §7->§r {Server}{Group}{Prefix}{Player}{Suffix} §8:§r "
+msg-receive-message: "[§c私聊§r] {Server}{Group}{Prefix}{Player}{Suffix} §7->§r §2你 §8:§r "

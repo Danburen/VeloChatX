@@ -9,12 +9,14 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 public abstract class FileConfiguration extends MemoryProcesser implements FileConfigBase {
     public FileConfiguration(){
 
     }
+
+    public abstract String getLocalMessage(String path, String lang);
+
     public abstract Object get(String path);
     public abstract void set(String path, Object val, Map<String,Object> data);
     public abstract void set(String path, Object val);
@@ -66,6 +68,8 @@ public abstract class FileConfiguration extends MemoryProcesser implements FileC
     public final String getString(String path){
         return (String) get(path);
     }
+    public abstract void loadLocaleMsg(String lang);
+
 
     public void createConfigFiles(){
         String sourceLangFilePath = "lang/" + getUserLanguage()+".yml" ;//localization
