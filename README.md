@@ -7,6 +7,7 @@
 * Support message customization
 * Use [luckperms](https://github.com/LuckPerms/LuckPerms/tree/master?tab=readme-ov-file) to get player data.
 * i18n support, support language en_US, zh_CN
+* auto fix the language for the player join the game
 
 ### Programe build
   use my own [api](https://github.com/Danburen/DeloChatX/tree/main/src/main/java/me/waterwood) to adapted to Velocity
