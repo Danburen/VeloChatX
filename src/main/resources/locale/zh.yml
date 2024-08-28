@@ -13,6 +13,11 @@ normal-chat-message: "§a您现在对玩家§r {Group}{Prefix}{Player}{Suffix} �
 no-in-list-message: "§6玩家§r {Group}{Prefix}{Player}{Suffix} §c不在被拒收/忽视的列表当中！§r"
 enable-vc-chat-message: "已连接至跨服聊天系统。"
 disable-vc-chat-message: "已断开跨服聊天系统的连接。您接下来无法看到其他服务器的消息了。"
+incorrect-command-arguments-message: "不支持的命令格式。\n 此命令格式: %s"
+unknown-command-message: "未知的命令。"
+only-in-game-message: "此命令只能在游戏中使用。"
+only-in-console-message: "此命令只能在控制台使用。"
+no-permission: "您无权使用该命令！"
 
 mention-command-format-message: "§6/mention <玩家名字>§r - §4对某人显示提及消息。§r"
 msg-command-format-message: "§6/vcmsg <玩家名字> [消息文本]§r - §4对某人发送私聊消息。§r"

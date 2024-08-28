@@ -28,6 +28,25 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             illegalArgsMsg(source,"control");
             return;
         }
+        if(args[0].equalsIgnoreCase("reload")) { //reload command
+            if (source.hasPermission("velochatx.admin")) {
+                if (args.length == 1) {
+                    WaterPlugin.getConfig().reloadConfig();
+                    source.sendMessage(Component.text(getMessage("config-reload-completed-message"), NamedTextColor.GREEN));
+                    return;
+                }
+                if (configFiles.contains(args[1])) {
+                    WaterPlugin.getConfig().reloadConfig(args[1] + ".yml");
+                    source.sendMessage(Component.text(getMessage("config-file-reload-message")
+                            .formatted(args[1].concat(".yml")), NamedTextColor.GREEN));
+                } else {
+                    source.sendMessage(Component.text(String.format(getMessage("incorrect-config-file-message"), args[1], configFiles), NamedTextColor.RED));
+                }
+            } else {
+                source.sendMessage(Component.text(getMessage("no-permission"), NamedTextColor.RED));
+            }
+            return;
+        }
         if(source instanceof Player sourcePlayer) {
             String language = sourcePlayer.getEffectiveLocale().getLanguage();
                 if (args[0].equalsIgnoreCase("help")) {
@@ -90,25 +109,6 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                 for (String cmd : subCmds) {
                     source.sendMessage(Component.text(Colors.parseColor(getMessage(cmd + "-command-format-message"))));
                 }
-            }
-        }
-
-        if(args[0].equalsIgnoreCase("reload")) { //reload command
-            if (source.hasPermission("velochatx.admin")) {
-                if (args.length == 1) {
-                    WaterPlugin.getConfig().reloadConfig();
-                    source.sendMessage(Component.text(getMessage("config-reload-completed-message"), NamedTextColor.GREEN));
-                    return;
-                }
-                if (configFiles.contains(args[1])) {
-                    WaterPlugin.getConfig().reloadConfig(args[1] + ".yml");
-                    source.sendMessage(Component.text(getMessage("config-file-reload-message")
-                            .formatted(args[1].concat(".yml")), NamedTextColor.GREEN));
-                } else {
-                    source.sendMessage(Component.text(String.format(getMessage("incorrect-config-file-message"), args[1], configFiles), NamedTextColor.RED));
-                }
-            } else {
-                source.sendMessage(Component.text(getMessage("no-permission"), NamedTextColor.RED));
             }
         }
     }
