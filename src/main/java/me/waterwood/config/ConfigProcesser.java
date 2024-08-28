@@ -7,16 +7,14 @@ import org.yaml.snakeyaml.DumperOptions;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class ConfigProcesser extends FileConfiguration{
     ConfigProcesser config = null;
     Yaml yaml = new Yaml(getDumperOptions());
     private static Map<String,Object> configData;
     private static Map<String,Object> localMsgData;
+    private static List<String> loadedLocal;
     public ConfigProcesser(){
 
     }
@@ -25,6 +23,7 @@ public class ConfigProcesser extends FileConfiguration{
         if (config == null) { //first load
             createConfigFiles();
             localMsgData= new HashMap<>();
+            loadedLocal= new ArrayList<>();
         }
         this.config = new ConfigProcesser();
         try {
@@ -40,6 +39,7 @@ public class ConfigProcesser extends FileConfiguration{
     }
 
     public void loadLocaleMsg(String lang){
+        if(loadedLocal.contains(lang)) return;
         Map<String,Object> data;
         data = loadSource("locale/" + lang + ".yml");
         if(data == null){
@@ -48,7 +48,12 @@ public class ConfigProcesser extends FileConfiguration{
             for(Map.Entry<String,Object> entry : data.entrySet()){
                 localMsgData.put(lang + "-" + entry.getKey(),entry.getValue());
             }
+            loadedLocal.add(lang);
+            WaterPlugin.getLogger().info(getString("successfully-load-local-message").formatted(lang));
         }
+    }
+    public List<String> getLoadedLocal(){
+        return loadedLocal;
     }
     public void loadPluginMessages(String lang){
         String langPath = "pluginMessages" + "/" + lang + ".properties";

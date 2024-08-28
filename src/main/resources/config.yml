@@ -54,3 +54,12 @@ join-leave-broadcast:
   enable: true
   player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} has joined the {Server}"
   player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} has left the {Server}"
+
+# Whether show title to target player when mention him.
+mention-show-title:
+  enable: true
+  # how long will the title stay.fade in,out.Use seconds.(Integer)
+  time:
+    fade-in: 1
+    stay: 2
+    fade-out: 1

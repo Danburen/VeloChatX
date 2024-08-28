@@ -31,13 +31,20 @@ public abstract class VelocitySimpleCommand extends PluginBase {
     }
 
     public void illegalArgsMsg(CommandSource source,String command){
-        source.sendMessage(Component.text(getMessage("incorrect-command-arguments-message")
-                .formatted(getMessage(command + "-command-format-message")), NamedTextColor.RED));
+        if(source instanceof Player sourcePlayer) {
+            String lang = sourcePlayer.getEffectiveLocale().getLanguage();
+            source.sendMessage(Component.text(getMessage("incorrect-command-arguments-message", lang)
+                    .formatted(getMessage(command + "-command-format-message"),lang), NamedTextColor.RED));
+        }else{
+            source.sendMessage(Component.text(Colors.parseColor(getMessage("incorrect-command-arguments-message")
+                    .formatted(getMessage(command + "-command-format-message"))), NamedTextColor.RED));
+        }
     }
 
     public void failFindPlayerMsg(CommandSource source,String playerName){
-        if(source instanceof Player){
-            source.sendMessage(Component.text(getMessage("fail-find-player-message").formatted(playerName)));
+        if(source instanceof Player sourcePlayer){
+            source.sendMessage(Component.text(getMessage("fail-find-player-message",
+                    sourcePlayer.getEffectiveLocale().getLanguage()).formatted(playerName)));
         }else{
             source.sendMessage(Component.text(Colors.parseColor(getMessage("fail-find-player-message").formatted(playerName))));
         }
@@ -45,13 +52,39 @@ public abstract class VelocitySimpleCommand extends PluginBase {
 
     public boolean checkNoSelf(CommandSource source,Player targetPlayer){
         if (source.equals(targetPlayer)) {
-            source.sendMessage(Component.text(getMessage("no-self-action-message")));
+            source.sendMessage(Component.text(getMessage("no-self-action-message",targetPlayer.getEffectiveLocale().getLanguage())));
                 return true;
         }
         return false;
     }
     public void sendRawMessage(CommandSource source, String msg){
         source.sendMessage(Component.text(msg));
+    }
+
+    public void sendWarnMessage(CommandSource source, String msg){
+        source.sendMessage(Component.text(msg,NamedTextColor.RED));
+    }
+
+    public boolean isUnknownCommand(CommandSource source,List<String> commands,String command){
+        if(!(commands.contains(command))){
+            if(source instanceof Player sourcePlayer){
+                source.sendMessage(Component.text(getMessage("unknown-command-message",
+                        sourcePlayer.getEffectiveLocale().getLanguage()),NamedTextColor.RED));
+            }else{
+                sendWarnMessage(source,getMessage("unknown-command-message"));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void UnKnowMessage(CommandSource source){
+        if(source instanceof Player sourcePlayer){
+            source.sendMessage(Component.text(getMessage("unknown-command-message",
+                    sourcePlayer.getEffectiveLocale().getLanguage()),NamedTextColor.RED));
+        }else{
+            sendWarnMessage(source,"unknown-command-message");
+        }
     }
     public abstract void register(VelocityPlugin plugin);
 }

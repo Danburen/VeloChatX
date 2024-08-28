@@ -8,7 +8,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.VelocityPlugin;
 import me.waterwood.common.Colors;
 import org.slf4j.Logger;
-import site.hjfunny.velochatx.commands.ControlCommand;
+import site.hjfunny.velochatx.commands.ControlCommands;
 import site.hjfunny.velochatx.commands.MentionCommand;
 import site.hjfunny.velochatx.commands.MsgCommand;
 import site.hjfunny.velochatx.events.CommandEvents;
@@ -61,7 +61,7 @@ public class VeloChatX extends VelocityPlugin {
     public void registerCommands(){
         new MentionCommand().register(this);
         new MsgCommand().register(this);
-        new ControlCommand().register(this);
+        new ControlCommands().register(this);
     }
 
     public static VeloChatX getInstance(){

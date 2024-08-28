@@ -1,4 +1,3 @@
-####FILE_START:config.yml
 # VelochatX 1.0beta
 # build java version: JE 17
 # author: waterwood
@@ -64,17 +63,3 @@ mention-show-title:
     fade-in: 1
     stay: 2
     fade-out: 1
-
-####FILE_END
-
-
-####FILE_START:message.yml
-# use like chat format. {xxx} value is acceptable.
-mention-to-message: "§2you mentioned§r {Server}{Group}{Prefix}{Player}{Suffix}"
-mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix}s §6 is mention you!"
-no-self-action-message: "§cYou can't do this yourself!§r"
-fail-find-player-message: "§6can't find the player: %s ,is he §coffline§r or §cvanished§r?"
-mention-title-show-main: "§cAttention §6you have been mentioned!"
-mention-title-show-sub: "{Group}{Prefix}{Player}{Suffix} §e mentioned you!"
-msg-to-message: "[§cPriChat§r] §2You§r §7->§r {Server}{Group}{Prefix}{Player}{Suffix} §8:§r {Message}"
-msg-receive-message: "[§cPriChat§r] {Server}{Group}{Prefix}{Player}{Suffix} §7->§r §2You §8:§r {Message}"

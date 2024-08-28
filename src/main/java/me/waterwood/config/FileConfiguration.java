@@ -8,6 +8,7 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class FileConfiguration extends MemoryProcesser implements FileConfigBase {
@@ -32,6 +33,7 @@ public abstract class FileConfiguration extends MemoryProcesser implements FileC
         return this;
     };
     public FileConfiguration reloadConfig(){return this;}
+    public abstract List<String> getLoadedLocal();
     public final Map<String,String> getMap(String path){
         return  getMap(path,String.class);
     }
@@ -72,12 +74,14 @@ public abstract class FileConfiguration extends MemoryProcesser implements FileC
 
 
     public void createConfigFiles(){
-        String sourceLangFilePath = "lang/" + getUserLanguage()+".yml" ;//localization
-        if(isResourceExist(sourceLangFilePath)){
-            extractResource("####",getPluginFilePath(),sourceLangFilePath);
-        }else{
-            extraDefaultSource("config.yml","message.yml");
-        }
+        extractResource(getPluginFilePath("config.yml"),"lang/" +getUserLanguage() + ".yml",false);
+        extractResource(getPluginFilePath("message.yml"),"locale/" +getUserLanguage() + ".yml",false);
+//        String sourceLangFilePath = "lang/" + getUserLanguage()+".yml" ;//localization
+//        if(isResourceExist(sourceLangFilePath)){
+////            extractResource("####",getPluginFilePath(),sourceLangFilePath);
+//        }else{
+//            extraDefaultSource("config.yml","message.yml");
+//        }
     }
     public void extraDefaultSource(String... sources){
         for(String source : sources){

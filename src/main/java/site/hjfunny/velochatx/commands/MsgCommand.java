@@ -4,18 +4,21 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.VelocityPlugin;
+import me.waterwood.common.Colors;
 import me.waterwood.config.FileConfiguration;
 import me.waterwood.plugin.WaterPlugin;
+import site.hjfunny.velochatx.events.PlayerEvents;
+import site.hjfunny.velochatx.methods.Methods;
 import site.hjfunny.velochatx.methods.MsgMethods;
 
 import java.util.List;
 
 public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
-    private final  static  String PRIMARY_ALIAS = "msg";
+    private final  static  String PRIMARY_ALIAS = "vcmsg";
     private final static String[] ALIASES = {"vctell"};
     @Override
     public void register(VelocityPlugin plugin){
-            this.register(plugin,this,PRIMARY_ALIAS,ALIASES,true);
+            this.register(plugin,this,PRIMARY_ALIAS,ALIASES,false);
 
     }
 
@@ -32,15 +35,33 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
             failFindPlayerMsg(source,args[0]);
         }else{
             Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[0]).get();
-            if(checkNoSelf(source,targetPlayer)) return;;
-            sendRawMessage(source,MsgMethods.convertMessage("msg-receive-message".formatted(args[1]), targetPlayer, source));
-            sendRawMessage(targetPlayer,MsgMethods.convertMessage("msg-receive-message".formatted(args[1]), source, targetPlayer));
+            if(checkNoSelf(source,targetPlayer)) return;
+            if(source instanceof Player sourcePlayer){
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getRejectPlayers().contains(sourcePlayer.getUsername())){
+                    sendRawMessage(source,MsgMethods.convertMessage("msg-reject-message", targetPlayer, source));
+                    return;
+                }
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getIgnorePlayers().contains(sourcePlayer.getUsername())){
+                    return;
+                }
+                sendRawMessage(source, Methods.placeValue(getMessage("msg-to-message").replace("{Message}",args[1]),targetPlayer));
+                sendRawMessage(targetPlayer, Methods.placeValue(getMessage("msg-receive-message").replace("{Message}",args[1]),sourcePlayer));
+            }else{
+                sendRawMessage(source, Colors.parseColor(
+                        Methods.placeValue(getMessage("msg-to-message").replace("{Message}",args[1]),targetPlayer)));
+                sendRawMessage(targetPlayer, MsgMethods.convertServer(getMessage("msg-receive-message").replace("{Message}", args[1]), source,targetPlayer));
+            }
+
         }
     }
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        return MsgMethods.getAllPlayer(invocation.source());
+        if(invocation.arguments().length ==0) {
+            return MsgMethods.getAllPlayer(invocation.source());
+        }else{
+            return List.of();
+        }
     }
 
     @Override

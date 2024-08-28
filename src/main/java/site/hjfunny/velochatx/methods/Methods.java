@@ -43,12 +43,11 @@ public abstract class Methods extends LuckPermsAPI {
                 + "\n" + config.getString("use-default-chat-format-message"));
         useDefaultFormatChat();
     }
-    public static String placeChatValue(PlayerChatEvent evt){
-        return placeChatValue(chatFormatText,evt);
+    public static String placeChatValue(String message,Player player){
+        return placeChatValue(chatFormatText,message,player);
     }
-    public static String placeChatValue(String origin,PlayerChatEvent evt){
-        String out = placeValue(origin,evt.getPlayer());
-        String message = evt.getMessage();
+    public static String placeChatValue(String origin,String message,Player player){
+        String out = placeValue(origin,player);
         out = out.replace("{message}",message);
         if(config.getBoolean("log-text.enable")) WaterPlugin.getLogger().info(
                 Colors.parseColor(out,config.getBoolean("log-text.convert")));

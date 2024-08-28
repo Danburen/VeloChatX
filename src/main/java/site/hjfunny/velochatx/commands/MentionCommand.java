@@ -16,6 +16,7 @@ import net.kyori.adventure.title.TitlePart;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
+import site.hjfunny.velochatx.events.PlayerEvents;
 import site.hjfunny.velochatx.methods.MsgMethods;
 
 import java.time.Duration;
@@ -26,7 +27,7 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
     private final  static  String PRIMARY_ALIAS = "mention";
     private final static String[] ALIASES = {"men","at"};
     public void register(VelocityPlugin plugin){
-        this.register(plugin,this,PRIMARY_ALIAS,ALIASES,true);
+        this.register(plugin,this,PRIMARY_ALIAS,ALIASES,false);
     }
 
     @Override
@@ -42,6 +43,15 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
             failFindPlayerMsg(source,args[0]);
         }else{
             Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[0]).get();
+            if(source instanceof Player sourcePlayer){
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getRejectPlayers().contains(sourcePlayer.getUsername())){
+                    sendRawMessage(source,MsgMethods.convertMessage("msg-reject-message", targetPlayer, source));
+                    return;
+                }
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getIgnorePlayers().contains(sourcePlayer.getUsername())){
+                    return;
+                }
+            }
             if(checkNoSelf(source,targetPlayer)) return;
             FileConfiguration config = WaterPlugin.getConfig();
             sendRawMessage(source,MsgMethods.convertMessage("mention-to-message", targetPlayer, source));
