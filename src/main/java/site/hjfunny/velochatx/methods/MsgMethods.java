@@ -1,10 +1,19 @@
 package site.hjfunny.velochatx.methods;
 
 import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import me.waterwood.common.PluginBase;
+import me.waterwood.VelocityPlugin;
 import me.waterwood.common.Colors;
+import me.waterwood.plugin.WaterPlugin;
+import net.kyori.adventure.text.Component;
+import site.hjfunny.velochatx.VeloChatX;
+
+import static me.waterwood.common.PluginBase.getMessage;
 
 public class MsgMethods extends Methods {
     public static String convertString(String original,CommandSource source,CommandSource target){
@@ -21,12 +30,12 @@ public class MsgMethods extends Methods {
     public static String convertMessage(String key,CommandSource source,CommandSource target){
         if(source instanceof Player sourcePlayer){
             if(target instanceof Player){
-                return placeValue(PluginBase.getMessage(key,sourcePlayer.getEffectiveLocale().getLanguage()),sourcePlayer);
+                return placeValue(getMessage(key,sourcePlayer.getEffectiveLocale().getLanguage()),sourcePlayer);
             }else{
-                return Colors.parseColor(placeValue(PluginBase.getMessage(key),sourcePlayer));
+                return Colors.parseColor(placeValue(getMessage(key),sourcePlayer));
             }
         }else{
-            return convertServer(PluginBase.getMessage(key),source,target);
+            return convertServer(getMessage(key),source,target);
         }
     }
     public static String convertServer(String original,CommandSource source,CommandSource target){
@@ -42,9 +51,9 @@ public class MsgMethods extends Methods {
 
     public static String getSourceMessage(String key,CommandSource source){
         if(source instanceof Player sourcePlayer) {
-            return PluginBase.getMessage(key,sourcePlayer.getEffectiveLocale().getLanguage());
+            return getMessage(key,sourcePlayer.getEffectiveLocale().getLanguage());
         }else{
-            return PluginBase.getMessage(key);
+            return getMessage(key);
         }
     }
     /*
@@ -79,5 +88,59 @@ public class MsgMethods extends Methods {
             }
         }
         return out;
+    }
+
+    public static void serverMessage(String messageSource, Player player, ServerConnectedEvent evt){
+        if(config.getBoolean(messageSource + ".enable")) {
+            RegisteredServer connectServer = evt.getServer();
+            evt.getPreviousServer().ifPresent(preServer -> {
+                preServer.sendMessage(Component.text(                        placeValue(getMessage(messageSource+".player-leave-message"),player,preServer)));
+            });
+            String joinMessage = placeValue(getMessage(messageSource + ".player-join-message"),player,connectServer);
+            connectServer.sendMessage(Component.text(joinMessage));
+            if(config.getBoolean(messageSource + ".log-to-console")){
+                WaterPlugin.getLogger().info(Colors.parseColor(joinMessage));
+            }
+        }
+    }
+
+    public static void serverMessage(String messageSource, Player player, LoginEvent evt){
+        ProxyServer proxyServer = VelocityPlugin.getProxyServer();
+        if(config.getBoolean(messageSource + ".enable")) {
+            String messageText = placeValue(getMessage(messageSource + ".player-join-message"),player,proxyServer);
+            if(config.getBoolean(messageSource + ".log-to-console")){
+                VeloChatX.getLogger().info(Colors.parseColor(messageText));
+            }
+            if(config.getBoolean(messageSource + ".send-to-all-subServer")){
+                proxyServer.getAllServers().forEach(registeredServer ->
+                        registeredServer.sendMessage(Component.text(messageText))
+                );
+            }
+        }
+    }
+
+    public static void serverMessage(String messageSource, Player player, DisconnectEvent evt){
+        ProxyServer proxyServer = VelocityPlugin.getProxyServer();
+        if(config.getBoolean(messageSource + ".enable")) {
+            String messageText = placeValue(getMessage(messageSource + ".player-leave-message"),player,proxyServer);
+            if(config.getBoolean(messageSource + ".log-to-console")){
+                VeloChatX.getLogger().info(Colors.parseColor(messageText));
+            }
+            if(config.getBoolean(messageSource + ".send-to-all-subServer")){
+                proxyServer.getAllServers().forEach(registeredServer ->
+                        registeredServer.sendMessage(Component.text(messageText))
+                );
+            }
+        }
+    }
+
+    public static boolean isBanWorld(String message){
+        String[] banWords = config.getString("ban-words.words").split(",");
+        for(String banWord : banWords){
+            if(message.contains(banWord)){
+                return true;
+            }
+        }
+        return false;
     }
 }

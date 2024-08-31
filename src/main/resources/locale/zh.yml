@@ -18,6 +18,8 @@ unknown-command-message: "未知的命令。"
 only-in-game-message: "此命令只能在游戏中使用。"
 only-in-console-message: "此命令只能在控制台使用。"
 no-permission: "您无权使用该命令！"
+ban-words-message: "您当前的发言存在违禁/敏感词汇,已屏蔽您对其他服的广播。"
+ban-words-log-message: "{Player} §c 的发言中存在敏感/违禁词汇:§r {Message}"
 
 mention-command-format-message: "§6/mention <玩家名字>§r - §4对某人显示提及消息。§r"
 msg-command-format-message: "§6/vcmsg <玩家名字> [消息文本]§r - §4对某人发送私聊消息。§r"

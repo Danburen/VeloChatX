@@ -6,11 +6,14 @@ import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.VelocityPlugin;
 import me.waterwood.common.Colors;
+import me.waterwood.common.PluginBase;
+import me.waterwood.plugin.Plugin;
 import me.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import site.hjfunny.velochatx.PlayerAttribution;
 import site.hjfunny.velochatx.events.PlayerEvents;
+import site.hjfunny.velochatx.methods.Methods;
 import site.hjfunny.velochatx.methods.MsgMethods;
 
 import java.util.*;
@@ -31,7 +34,9 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
         if(args[0].equalsIgnoreCase("reload")) { //reload command
             if (source.hasPermission("velochatx.admin")) {
                 if (args.length == 1) {
-                    WaterPlugin.getConfig().reloadConfig();
+                    WaterPlugin.upgradeConfig();
+                    PluginBase.reloadConfig();
+                    Methods.load();
                     source.sendMessage(Component.text(getMessage("config-reload-completed-message"), NamedTextColor.GREEN));
                     return;
                 }

@@ -52,8 +52,18 @@ server-display:
 # -the player leaves/joins the sub server
 join-leave-broadcast:
   enable: true
+  log-to-console: true
   player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} has joined the {Server}"
   player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} has left the {Server}"
+
+# Do need to send a departure message on the proxy server and a join message on the proxy server when
+# -the player leaves/joins the proxy
+join-leave-proxy-broadcast:
+  enable: true
+  log-to-console: true
+  send-to-all-subServer: true
+  player-join-message: "§a[+]§r{Group}{Prefix}{Player}{Suffix} now joined the {Server}"
+  player-leave-message: "§c[-]§r{Group}{Prefix}{Player}{Suffix} now leave the {Server}"
 
 # Whether show title to target player when mention him.
 mention-show-title:
@@ -63,3 +73,9 @@ mention-show-title:
     fade-in: 1
     stay: 2
     fade-out: 1
+
+# ban words , split with ","
+ban-words:
+  enable: true
+  log-to-console: true
+  words: "fuck,bitch,baga,son of bitch"

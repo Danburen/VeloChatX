@@ -1,42 +1,55 @@
 package site.hjfunny.velochatx.events;
 
 
-import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.crypto.SignedMessage;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
+import me.waterwood.common.Colors;
 import me.waterwood.common.PluginBase;
 import me.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.slf4j.Logger;
 import site.hjfunny.velochatx.PlayerAttribution;
-import site.hjfunny.velochatx.commands.MentionCommand;
 import site.hjfunny.velochatx.methods.Methods;
 import site.hjfunny.velochatx.VeloChatX;
+import site.hjfunny.velochatx.methods.MsgMethods;
 
 import java.util.*;
 
 public class PlayerEvents extends PluginBase {
     private final ProxyServer proxyServer = VeloChatX.getInstance().getProxyServer();
     private static Map<String,PlayerAttribution> playerAttrs = new HashMap<>();
+    private final Logger logger = WaterPlugin.getLogger();
     public static Map<String, PlayerAttribution> getPlayerAttrs() {
         return playerAttrs;
     }
+
     @Subscribe(order = PostOrder.NORMAL)
     public void onPlayChat(PlayerChatEvent evt){
         String message = evt.getMessage();
         Player source = evt.getPlayer();
+        if(config.getBoolean("ban-words.enable"))
+            if(MsgMethods.isBanWorld(message)) {
+                source.sendMessage(Component.text(MsgMethods.getMessage("ban-words-message"),NamedTextColor.RED));
+                if(config.getBoolean("ban-words.log-to-console")){
+                    logger.info(Colors.parseColor(MsgMethods.placeChatValue(MsgMethods.getMessage("ban-words-log-message"),message,source)));
+                }
+                return;
+            }
+        String fianlMessage = Methods.placeChatValue(message,source);
+        if(config.getBoolean("log-text.enable")) logger.info(Colors.parseColor(fianlMessage,config.getBoolean("log-text.convert")));
         proxyServer.getAllPlayers().forEach(player -> {
             if(player.getCurrentServer().get().getServerInfo().getName().equals(source.getCurrentServer().get().getServerInfo().getName())) return;
             if(playerAttrs.get(player.getUsername()).getIgnorePlayers().contains(source.getUsername())){
                 return;
             }
-            player.sendMessage(Component.text(Methods.placeChatValue(message,source)));
+                player.sendMessage(Component.text(fianlMessage));
         });
     }
 
@@ -45,26 +58,19 @@ public class PlayerEvents extends PluginBase {
         Player player = evt.getPlayer();
         playerAttrs.put(player.getUsername(),new PlayerAttribution(new HashSet<>(),new HashSet<>(),true));
         String locale = Objects.requireNonNull(evt.getPlayer().getEffectiveLocale()).getLanguage();
-        if(!(WaterPlugin.getConfig().getLoadedLocal().contains(locale))) {
-            WaterPlugin.getConfig().loadLocaleMsg(locale);
+        if(!(config.getLoadedLocal().contains(locale))) {
+            config.loadLocaleMsg(locale);
         }
-        if(WaterPlugin.getConfig().getBoolean("join-leave-broadcast.enable")) {
-            RegisteredServer connectServer = evt.getServer();
-            evt.getPreviousServer().ifPresent(preServer -> {
-                Component text = Component.text().content(
-                        Methods.placeValue(getMessage("join-leave-broadcast.player-leave-message"),player,preServer)
-                ).build();
-                preServer.sendMessage(text);
-            });
-            Component text = Component.text().content(
-                    Methods.placeValue(getMessage("join-leave-broadcast.player-join-message"),player,connectServer)
-            ).build();
-            connectServer.sendMessage(text);
-        }
+        MsgMethods.serverMessage("join-leave-broadcast",player,evt);
+    }
 
+    @Subscribe(order = PostOrder.NORMAL)
+    public void onProxyConnect(LoginEvent evt){
+        MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer(),evt);
     }
     @Subscribe(order = PostOrder.NORMAL)
     public void onDisConnect(DisconnectEvent evt){
+        MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer(),evt);
         playerAttrs.remove(evt.getPlayer().getUsername());
     }
 }
@@ -72,9 +78,9 @@ public class PlayerEvents extends PluginBase {
 //    public void onLoginIn(LoginEvent evt){
 //        try{
 //            String locale = evt.getPlayer().getEffectiveLocale().getLanguage();
-//            WaterPlugin.getConfig().loadLocaleMsg(locale);
+//            config.loadLocaleMsg(locale);
 //        }catch (NullPointerException e){
-//            WaterPlugin.getLogger().warn("can't get player's language");
+//            logger.warn("can't get player's language");
 //        }
 //    }
 

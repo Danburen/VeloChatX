@@ -21,11 +21,11 @@ public class ConfigProcesser extends FileConfiguration{
     @Override
     public FileConfiguration loadConfig(){
         if (config == null) { //first load
+            this.config = new ConfigProcesser();
             createConfigFiles();
             localMsgData= new HashMap<>();
             loadedLocal= new ArrayList<>();
         }
-        this.config = new ConfigProcesser();
         try {
             configData = loadFile(getPluginFilePath("config.yml"));
             configData.putAll(loadFile(getPluginFilePath("message.yml")));

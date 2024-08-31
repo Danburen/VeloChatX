@@ -106,11 +106,11 @@ public abstract class FileConfiguration extends MemoryProcesser implements FileC
     }
     @Override
     public  String getPluginFilePath(String FileName){
-        return getJarDir() + "\\" +WaterPlugin.getPluginInfo("name") + "\\" + FileName;
+        return getJarDir() + "/" +WaterPlugin.getPluginInfo("name") + "/" + FileName;
     }
     @Override
     public  String getPluginFilePath(){
-        return getJarDir() + "\\" +WaterPlugin.getPluginInfo("name");
+        return getJarDir() + "/" +WaterPlugin.getPluginInfo("name");
     }
     @Override
     public boolean isResourceExist(String source){

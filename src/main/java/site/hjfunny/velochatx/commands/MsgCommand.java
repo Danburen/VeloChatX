@@ -5,7 +5,6 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.VelocityPlugin;
 import me.waterwood.common.Colors;
-import me.waterwood.config.FileConfiguration;
 import me.waterwood.plugin.WaterPlugin;
 import site.hjfunny.velochatx.events.PlayerEvents;
 import site.hjfunny.velochatx.methods.Methods;

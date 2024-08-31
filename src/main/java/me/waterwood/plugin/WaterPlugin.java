@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.util.Map;
 import org.slf4j.Logger;
 
-public abstract class WaterPlugin  implements me.waterwood.plugin.PluginBase {
+public abstract class WaterPlugin  implements Plugin {
     private static Logger logger = null;
     protected static FileConfiguration config = null;
     private static Map<String,Object> pluginData;
@@ -34,8 +34,8 @@ public abstract class WaterPlugin  implements me.waterwood.plugin.PluginBase {
     }
 
     public static void upgradeConfig(){
-        config = new ConfigProcesser();
-        config.loadConfig();
+        if (config == null) config = new ConfigProcesser();
+        config = config.loadConfig();
         if(config.getString("player-locale").equals("locale")){
             PluginBase.setLocale(true);
         }else{

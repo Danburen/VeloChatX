@@ -37,10 +37,10 @@ public class VeloChatX extends VelocityPlugin {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         logger.info(Colors.parseColor("§1                                             "));
-        logger.info(Colors.parseColor("§1 __|  ___  |    __   __  |__   __  _|_  \\_'"));
-        logger.info(Colors.parseColor("§1(__| (__/_ |_, (__) (___ |  ) (__(  |_, / \\"));
+        logger.info(Colors.parseColor("§1\\  /  ___  |    __   __  |__   __  _|_  \\_'"));
+        logger.info(Colors.parseColor("§1 \\/  (__/_ |_, (__) (___ |  ) (__(  |_, / \\"));
         logger.info(Colors.parseColor("§1                                             "));
-        logger.info(Colors.parseColor("DeloChatX §bV%s §2Author:§rWaterwood".formatted(getPluginInfo("version"))));
+        logger.info(Colors.parseColor("VeloChatX §bV%s §2Author:§rWaterwood".formatted(getPluginInfo("version"))));
         Long start = System.currentTimeMillis();
         Instance = this;
         config = getConfig();

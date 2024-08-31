@@ -1,26 +1,30 @@
 package site.hjfunny.velochatx.methods;
 
 import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.VelocityPlugin;
 import me.waterwood.api.LuckPermsAPI;
 import me.waterwood.common.Colors;
+import me.waterwood.common.PluginBase;
 import me.waterwood.config.FileConfiguration;
+import me.waterwood.plugin.Plugin;
 import me.waterwood.plugin.WaterPlugin;
 
 import java.util.List;
 import java.util.Map;
 
-public abstract class Methods extends LuckPermsAPI {
+import static me.waterwood.api.LuckPermsAPI.*;
+
+public abstract class Methods extends PluginBase {
     private static String chatFormatText;
-    private static FileConfiguration config = WaterPlugin.getConfig();
     private static Map<String,String> serverDisPlayName = null;
 //    private  static final String DefaultChatFormat = ""
+
     public static void load(){
-        checkApi();
+        LuckPermsAPI.checkApi();
         chatFormatText = config.getString("chat-format");
         checkFormat();
         if(config.getBoolean("server-display.enable")){
@@ -49,8 +53,23 @@ public abstract class Methods extends LuckPermsAPI {
     public static String placeChatValue(String origin,String message,Player player){
         String out = placeValue(origin,player);
         out = out.replace("{message}",message);
-        if(config.getBoolean("log-text.enable")) WaterPlugin.getLogger().info(
-                Colors.parseColor(out,config.getBoolean("log-text.convert")));
+
+        return out;
+    }
+
+    public static String placeValue(String origin, Player player, ProxyServer proxyServer){
+        String out = origin.toLowerCase();
+        String playerName = player.getUsername();
+        String serverName = config.getString("server-display.display.proxy");
+        String prefix = nullStrCheck(getPlayerPrefix(playerName));
+        String suffix = nullStrCheck(getPlayersuffix(playerName));
+        String GroupDisplayName = nullStrCheck(getPlayerGroupDisplay(playerName));
+        out = out.replace("{player}",playerName)
+                .replace("{server}",serverName)
+                .replace("{prefix}",prefix)
+                .replace("{suffix}",suffix)
+                .replace("{group}",GroupDisplayName)
+                .replace("&","§");// the mc can't convert "&" code tested sometimes.
         return out;
     }
 

@@ -6,7 +6,7 @@ import me.waterwood.config.FileConfiguration;
 import org.slf4j.Logger;
 
 
-public interface PluginBase extends Colors {
+public interface Plugin extends Colors {
     static FileConfiguration getConfig(){
         return null;
     };
