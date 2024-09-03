@@ -9,6 +9,7 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import me.waterwood.VelocityPlugin;
 import me.waterwood.common.Colors;
 import me.waterwood.common.PluginBase;
 import me.waterwood.plugin.WaterPlugin;
@@ -56,13 +57,6 @@ public class PlayerEvents extends PluginBase {
     @Subscribe(order = PostOrder.NORMAL)
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
-        MsgMethods.serverMessage("join-leave-broadcast",player,evt);
-    }
-
-    @Subscribe(order = PostOrder.NORMAL)
-    public void onProxyConnect(LoginEvent evt){
-        Player player = evt.getPlayer();
-        playerAttrs.put(player.getUsername(), new PlayerAttribution(new HashSet<>(), new HashSet<>(), true));
         String locale = config.getString("locale");
         try {
             locale = player.getEffectiveLocale().getLanguage();
@@ -72,10 +66,19 @@ public class PlayerEvents extends PluginBase {
         }catch(NullPointerException e){
             if (!(config.getLoadedLocal().contains(locale))) {
                 config.loadLocaleMsg(locale);
+                WaterPlugin.getLogger().info(getMessage("cant-load-message"));
             }
         }finally {
-            MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer(),evt);
+            MsgMethods.serverMessage("join-leave-broadcast",player,evt);
         }
+
+    }
+
+    @Subscribe(order = PostOrder.NORMAL)
+    public void onProxyConnect(LoginEvent evt){
+        Player player = evt.getPlayer();
+        playerAttrs.put(player.getUsername(), new PlayerAttribution(new HashSet<>(), new HashSet<>(), true));
+        MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer(),evt);
     }
     @Subscribe(order = PostOrder.NORMAL)
     public void onDisConnect(DisconnectEvent evt){

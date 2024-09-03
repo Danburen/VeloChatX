@@ -14,6 +14,7 @@ import site.hjfunny.velochatx.commands.MsgCommand;
 import site.hjfunny.velochatx.events.CommandEvents;
 import site.hjfunny.velochatx.events.PlayerEvents;
 import site.hjfunny.velochatx.methods.Methods;
+import site.hjfunny.velochatx.metrics.Metrics;
 
 
 @Plugin(
@@ -25,12 +26,13 @@ public class VeloChatX extends VelocityPlugin {
     private final Logger logger;
     private final ProxyServer server;
     private static VeloChatX Instance;
+    private final Metrics.Factory metricsFactory;
     @Inject
-    public VeloChatX(ProxyServer server , Logger logger){
+    public VeloChatX(ProxyServer server , Logger logger,Metrics.Factory metricsFactory){
         super(logger,server);
         this.logger = logger;
         this.server = server;
-
+        this.metricsFactory = metricsFactory;
     }
 
 
@@ -47,6 +49,9 @@ public class VeloChatX extends VelocityPlugin {
         logger.info(Colors.parseColor(config.getString("config-files-load-message")));
         init();
         logger.info(Colors.parseColor(String.format(config.getString("successfully-enable-message"),System.currentTimeMillis() - start)));
+        // metrics
+        int pluginId = 23273;
+        Metrics metrics = metricsFactory.make(this, pluginId);
     }
     @Subscribe
     public void init(){
