@@ -46,6 +46,7 @@ public class VeloChatX extends VelocityPlugin {
         Long start = System.currentTimeMillis();
         Instance = this;
         config = getConfig();
+        logger.info(Colors.parseColor(config.getString("check-update-message")));
         CheckForUpdata("Danburen","VeloChatX");
         logger.info(Colors.parseColor(config.getString("config-files-load-message")));
         init();

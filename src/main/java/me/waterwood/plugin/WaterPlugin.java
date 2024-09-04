@@ -87,6 +87,7 @@ public abstract class WaterPlugin  implements Plugin {
         String url = "https://api.github.com/repos/%s/%s/releases/latest".formatted(name,repositories);
         if(config == null) config = getConfig();
         String latestJSON = sendGetRequest(url);
+        if (latestJSON.equals("")){ return;}
         JsonObject jsonObject = JsonParser.parseString(latestJSON).getAsJsonObject();
         String downloadLink = null;
         JsonArray assets = jsonObject.getAsJsonArray("assets");
