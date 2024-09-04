@@ -14,7 +14,7 @@ import site.hjfunny.velochatx.commands.MsgCommand;
 import site.hjfunny.velochatx.events.CommandEvents;
 import site.hjfunny.velochatx.events.PlayerEvents;
 import site.hjfunny.velochatx.methods.Methods;
-import site.hjfunny.velochatx.metrics.Metrics;
+import me.waterwood.util.Metrics ;
 
 
 @Plugin(
@@ -46,6 +46,7 @@ public class VeloChatX extends VelocityPlugin {
         Long start = System.currentTimeMillis();
         Instance = this;
         config = getConfig();
+        CheckForUpdata("Danburen","VeloChatX");
         logger.info(Colors.parseColor(config.getString("config-files-load-message")));
         init();
         logger.info(Colors.parseColor(String.format(config.getString("successfully-enable-message"),System.currentTimeMillis() - start)));

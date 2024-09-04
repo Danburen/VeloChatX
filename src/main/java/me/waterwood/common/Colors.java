@@ -1,5 +1,7 @@
 package me.waterwood.common;
 
+import me.waterwood.plugin.WaterPlugin;
+
 import java.util.Map;
 
 public interface Colors {
