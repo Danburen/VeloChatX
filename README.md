@@ -18,5 +18,8 @@
   
   see more in [me.waterwood.*](https://github.com/Danburen/DeloChatX/tree/main/src/main/java/me/waterwood)
 
-### Build:
-* Java 17 JDK or newer. 
+### Build
+* Java 17 JDK or newer.
+
+### Stats
+![Bstats](https://bstats.org/signatures/velocity/VeloChatX.svg)
