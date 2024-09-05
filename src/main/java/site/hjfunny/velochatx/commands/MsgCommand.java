@@ -25,7 +25,7 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
     public void execute(Invocation invocation) {
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
-        if(args.length != 2){
+        if(args.length <2 ){
             illegalArgsMsg(source,"msg");
             return;
         }
@@ -35,6 +35,10 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
         }else{
             Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[0]).get();
             if(checkNoSelf(source,targetPlayer)) return;
+            StringBuilder message = new StringBuilder(args[1]);
+            for(int i = 2 ; i < args.length ; i ++){
+                message.append(" ").append(args[i]);
+            }
             if(source instanceof Player sourcePlayer){
                 if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getRejectPlayers().contains(sourcePlayer.getUsername())){
                     sendRawMessage(source,MsgMethods.convertMessage("msg-reject-message", targetPlayer, source));
@@ -43,12 +47,12 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
                 if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getIgnorePlayers().contains(sourcePlayer.getUsername())){
                     return;
                 }
-                sendRawMessage(source, Methods.placeValue(getMessage("msg-to-message").replace("{Message}",args[1]),targetPlayer));
-                sendRawMessage(targetPlayer, Methods.placeValue(getMessage("msg-receive-message").replace("{Message}",args[1]),sourcePlayer));
+                sendRawMessage(source, Methods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer));
+                sendRawMessage(targetPlayer, Methods.placeValue(getMessage("msg-receive-message").replace("{Message}", message.toString()),sourcePlayer));
             }else{
                 sendRawMessage(source, Colors.parseColor(
-                        Methods.placeValue(getMessage("msg-to-message").replace("{Message}",args[1]),targetPlayer)));
-                sendRawMessage(targetPlayer, MsgMethods.convertServer(getMessage("msg-receive-message").replace("{Message}", args[1]), source,targetPlayer));
+                        Methods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer)));
+                sendRawMessage(targetPlayer, MsgMethods.convertServer(getMessage("msg-receive-message").replace("{Message}", message.toString()), source,targetPlayer));
             }
 
         }
