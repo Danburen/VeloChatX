@@ -44,10 +44,10 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
                     sendRawMessage(source,MsgMethods.convertMessage("msg-reject-message", targetPlayer, source));
                     return;
                 }
+                sendRawMessage(source, Methods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer));
                 if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getIgnorePlayers().contains(sourcePlayer.getUsername())){
                     return;
                 }
-                sendRawMessage(source, Methods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer));
                 sendRawMessage(targetPlayer, Methods.placeValue(getMessage("msg-receive-message").replace("{Message}", message.toString()),sourcePlayer));
             }else{
                 sendRawMessage(source, Colors.parseColor(
