@@ -9,7 +9,6 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import me.waterwood.VelocityPlugin;
 import me.waterwood.common.Colors;
 import me.waterwood.common.PluginBase;
 import me.waterwood.plugin.WaterPlugin;
@@ -57,7 +56,7 @@ public class PlayerEvents extends PluginBase {
     @Subscribe(order = PostOrder.NORMAL)
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
-        String locale = config.getString("locale");
+        String locale = config.getString("message");
         try {
             locale = player.getEffectiveLocale().getLanguage();
             if (!(config.getLoadedLocal().contains(locale))) {

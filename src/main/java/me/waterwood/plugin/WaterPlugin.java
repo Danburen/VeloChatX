@@ -10,6 +10,7 @@ import me.waterwood.common.PluginBase;
 import me.waterwood.config.ConfigProcesser;
 import me.waterwood.config.FileConfiguration;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
@@ -18,11 +19,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 import java.util.Map;
 
 
 public abstract class WaterPlugin  implements Plugin {
-    private static Logger logger = null;
+    private static Logger logger ;
     protected static FileConfiguration config = null;
     private static Map<String,Object> pluginData;
     protected WaterPlugin(Logger logger){
@@ -47,7 +49,7 @@ public abstract class WaterPlugin  implements Plugin {
     public static void upgradeConfig(){
         if (config == null) config = new ConfigProcesser();
         config = config.loadConfig();
-        if(config.getString("player-locale").equals("locale")){
+        if(config.getString("player-locale").equals("message")){
             PluginBase.setLocale(true);
         }else{
             PluginBase.setLocale(false);
@@ -126,6 +128,9 @@ public abstract class WaterPlugin  implements Plugin {
         }
     }
 
+    public static String getLang(){
+        return Locale.getDefault().getLanguage();
+    }
     public static String getPluginInfo(String key){
         return (String)pluginData.get(key);
     }

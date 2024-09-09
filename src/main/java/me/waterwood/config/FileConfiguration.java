@@ -74,8 +74,8 @@ public abstract class FileConfiguration extends MemoryProcesser implements FileC
 
 
     public void createConfigFiles(){
-        extractResource(getPluginFilePath("config.yml"),"lang/" +getUserLanguage() + ".yml",false);
-        extractResource(getPluginFilePath("message.yml"),"locale/" +getUserLanguage() + ".yml",false);
+        extractResource(getPluginFilePath("config.yml"),"config/" +getUserLanguage() + ".yml",false);
+        extractResource(getPluginFilePath("message.yml"),"message/" +getUserLanguage() + ".yml",false);
 //        String sourceLangFilePath = "lang/" + getUserLanguage()+".yml" ;//localization
 //        if(isResourceExist(sourceLangFilePath)){
 ////            extractResource("####",getPluginFilePath(),sourceLangFilePath);

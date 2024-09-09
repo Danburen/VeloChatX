@@ -41,7 +41,7 @@ public class ConfigProcesser extends FileConfiguration{
     public void loadLocaleMsg(String lang){
         if(loadedLocal.contains(lang)) return;
         Map<String,Object> data;
-        data = loadSource("locale/" + lang + ".yml");
+        data = loadSource("message/" + lang + ".yml");
         if(data == null){
             WaterPlugin.getLogger().warn(config.getString("fail-find-local-message").formatted(lang));
         }else{
@@ -56,7 +56,7 @@ public class ConfigProcesser extends FileConfiguration{
         return loadedLocal;
     }
     public void loadPluginMessages(String lang){
-        String langPath = "pluginMessages" + "/" + lang + ".properties";
+        String langPath = "locale" + "/" + lang + ".properties";
         if(isResourceExist(langPath)){
             configData.putAll(loadPropSource(langPath));
         }else{
