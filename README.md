@@ -1,4 +1,4 @@
-# DeloChatX (Undeveloped)
+# DeloChatX
 ### Introduction
   a plugin that Velocity server distribute players' messages to its sub servers.
 ### plugin features
