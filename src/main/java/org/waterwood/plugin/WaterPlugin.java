@@ -44,19 +44,15 @@ public abstract class WaterPlugin  implements Plugin {
         return pluginMessages.getString(path);
     }
     public String getPluginName(){
-        return (String) getPluginData("name");
+        return getPluginData("name");
     }
     public String getDefaultFilePath(String filePath){
         return config.getPluginFilePath(getPluginName(), filePath);
     }
 
-
     public static String getPluginData(String path){
         return pluginData.getString(path);
     }
-
-
-    public void onDisable(){};
     @Override
     public void loadConfig(){
         String lang = Locale.getDefault().getLanguage();
@@ -88,11 +84,11 @@ public abstract class WaterPlugin  implements Plugin {
     }
 
     public void reloadConfig(String dataName) throws IOException{
-        switch (dataName){
-            case "config" : config.loadFile(getDefaultFilePath("config.yml"));break;
-            case "message": pluginMessages.loadSource("locale/" + config.getString("locale"),"properties");break;
-            default : reloadConfig();
-        };
+        switch (dataName) {
+            case "config" -> config.loadFile(getDefaultFilePath("config.yml"));
+            case "message" -> pluginMessages.loadSource("locale/" + config.getString("locale"), "properties");
+            default -> reloadConfig();
+        }
     }
 
     @Override
@@ -109,10 +105,6 @@ public abstract class WaterPlugin  implements Plugin {
             getLogger().warning("Source not founded!");
         }
     }
-
-    public static String getLang(){
-        return Locale.getDefault().getLanguage();
-    }
     @Override
     public void checkUpdate(boolean download, String author, String repositories){
         getLogger().info(getPluginMessage("check-update-message"));
@@ -128,7 +120,7 @@ public abstract class WaterPlugin  implements Plugin {
             LogMsg(getPluginMessage("latest-version-message"));
         }
         if(download){
-
+            //download action.
         }
     }
     public void loadLocale(String lang){

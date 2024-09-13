@@ -3,9 +3,6 @@ package org.waterwood.io;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -17,22 +14,18 @@ public abstract class FileConfiguration extends MemoryProcess implements FileCon
     public abstract void set(String path, Object val);
     public abstract void save(File file,Map<String,Object> data) throws Exception;
     public abstract Map<String,Object> getFileMapData(String filePath) throws IOException;
-    public abstract FileConfiguration reload(String resourcePath) throws IOException;
+
+    public abstract FileConfigProcess reload(String resourcePath) throws IOException;
 
     public abstract void loadSource(String source, String extension) throws IOException;
 
     public abstract void loadSource(String sourcePath) throws IOException;
-    public FileConfiguration loadConfig(){
-        return this;
-    };
-    public FileConfiguration reload(){return this;}
     public final Map<String,String> getMap(String path){
         return  getMap(path,String.class);
     }
     public final <T> Map<String, T> getMap(String path, Class<T> typeClass) {
         Object out = get(path);
-        if (out instanceof Map) {
-            Map<?, ?> rawMap = (Map<?, ?>) out;
+        if (out instanceof Map<?, ?> rawMap) {
             Map<String, T> typedMap = new HashMap<>();
             for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
                 if (entry.getKey() instanceof String && typeClass.isInstance(entry.getValue())) {
@@ -61,25 +54,6 @@ public abstract class FileConfiguration extends MemoryProcess implements FileCon
 
     public final String getString(String path){
         return (String) get(path);
-    }
-    @Override
-    public  String getJarDir(){
-        try {
-            ProtectionDomain domain = this.getClass().getProtectionDomain();
-            CodeSource source = domain.getCodeSource();
-            URL location = source.getLocation();
-            File jarFile = new File(location.toURI());
-            File jarDir = jarFile.getParentFile();
-            return jarDir.getAbsolutePath();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-    @Override
-    public boolean isResourceExist(String source){
-        URL sourceURL = getClass().getClassLoader().getResource(source);
-        return sourceURL != null;
     }
 
     public void createFile(String fileName,String pluginName) throws FileNotFoundException {

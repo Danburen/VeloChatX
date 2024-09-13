@@ -18,8 +18,11 @@ public abstract class MemoryProcess {
         if(! parentPath.exists()){
             parentPath.mkdir();
         }
-        try(InputStream LangFIS = getClass().getResourceAsStream("/" + source)){;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(LangFIS));
+        try(InputStream LangFIS = getClass().getResourceAsStream("/" + source)){
+            BufferedReader reader = null;
+            if (LangFIS != null) {
+                reader = new BufferedReader(new InputStreamReader(LangFIS));
+            }
             String line;
             while((line = reader.readLine())!= null){
                 if(line.startsWith(splitStr)){

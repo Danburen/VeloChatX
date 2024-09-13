@@ -4,6 +4,7 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -70,7 +71,7 @@ public class FileConfigProcess extends FileConfiguration {
                 return  yaml.load(IS);
             }else if(extension.equals("properties")){
                 Properties prop = new Properties();
-                prop.load(new InputStreamReader(IS,"UTF-8"));
+                prop.load(new InputStreamReader(IS, StandardCharsets.UTF_8));
                 return ((Map<Object,Object>) prop).entrySet().stream().collect(
                         Collectors.toMap(e -> e.getKey().toString(),Map.Entry::getValue));
             }else{

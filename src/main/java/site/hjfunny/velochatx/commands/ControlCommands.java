@@ -63,7 +63,6 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                     for (String cmd : subCmds) {
                         source.sendMessage(Component.text(getMessage(cmd + "-command-format-message", language)));
                     }
-                    return;
                 } else {
                     PlayerAttribution attrs = PlayerEvents.getPlayerAttrs().get(sourcePlayer.getUsername());
                     List<String> players = VelocityPlugin.getAllPlayerName();
@@ -88,25 +87,28 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                             return;
                         }
                         Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[1]).get();
-                        if (command.equals("ignore")) {      // velochatX ignore command
-                            attrs.addIgnorePlayers(args[1]);
-                            sendRawMessage(source, MsgMethods.convertMessage("has-ignore-message",targetPlayer,source));
-                        } else if(command.equals("reject")){                              // velochatX reject command
-                            attrs.addRejectPlayers(args[1]);
-                            sendRawMessage(source, MsgMethods.convertMessage("has-reject-message",targetPlayer,source));
-                        } else if(command.equals("remove")){
-                            Set<String> mutedPlayers = new HashSet<>();
-                            mutedPlayers.addAll(attrs.getRejectPlayers());
-                            mutedPlayers.addAll(attrs.getIgnorePlayers());
-                            if(mutedPlayers.contains(args[1])){
-                                attrs.removeIJ(args[1]);
-                                sendRawMessage(source, MsgMethods.convertMessage("normal-chat-message",targetPlayer,source));
-                                sendRawMessage(targetPlayer, MsgMethods.convertMessage("normal-chat-message",source,targetPlayer));
-                            }else{
-                                sendRawMessage(source, MsgMethods.convertMessage("no-in-list-message",targetPlayer,source));
+                        switch (command) {
+                            case "ignore" -> {       // velochatX ignore command
+                                attrs.addIgnorePlayers(args[1]);
+                                sendRawMessage(source, MsgMethods.convertMessage("has-ignore-message", targetPlayer, source));
                             }
-                        }else{
-                            UnKnowMessage(source);
+                            case "reject" -> {                               // velochatX reject command
+                                attrs.addRejectPlayers(args[1]);
+                                sendRawMessage(source, MsgMethods.convertMessage("has-reject-message", targetPlayer, source));
+                            }
+                            case "remove" -> {
+                                Set<String> mutedPlayers = new HashSet<>();
+                                mutedPlayers.addAll(attrs.getRejectPlayers());
+                                mutedPlayers.addAll(attrs.getIgnorePlayers());
+                                if (mutedPlayers.contains(args[1])) {
+                                    attrs.removeIJ(args[1]);
+                                    sendRawMessage(source, MsgMethods.convertMessage("normal-chat-message", targetPlayer, source));
+                                    sendRawMessage(targetPlayer, MsgMethods.convertMessage("normal-chat-message", source, targetPlayer));
+                                } else {
+                                    sendRawMessage(source, MsgMethods.convertMessage("no-in-list-message", targetPlayer, source));
+                                }
+                            }
+                            default -> UnKnowMessage(source);
                         }
                     }
                 }

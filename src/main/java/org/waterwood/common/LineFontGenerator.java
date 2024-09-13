@@ -1,14 +1,7 @@
 package org.waterwood.common;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class LineFontGenerator {
     public static final String[] FUTURISTIC_BUILD_RAW = {

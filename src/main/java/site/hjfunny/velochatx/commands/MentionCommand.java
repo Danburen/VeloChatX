@@ -108,8 +108,8 @@ class titleShow implements Title {
 }
 
 class soundPlay implements Sound {
-    private Key key;
-    private Source source;
+    private final Key key;
+    private final Source source;
     soundPlay(Key name,Source source){
         this.key = name;
         this.source = source;

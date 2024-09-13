@@ -16,7 +16,7 @@ import java.util.List;
 
 public abstract class VelocitySimpleCommand extends WaterPlugin {
     public void register(VelocityPlugin plugin, SimpleCommand command, String PRIMARY_ALIAS, String[] ALIASES, boolean sharp){
-        ProxyServer proxy= plugin.getProxyServer();
+        ProxyServer proxy= VelocityPlugin.getProxyServer();
         proxy.getCommandManager().register(PRIMARY_ALIAS,command,ALIASES);
         if(sharp){
             String SHARP_PRIMARY_ALIAS = '/' + PRIMARY_ALIAS;
