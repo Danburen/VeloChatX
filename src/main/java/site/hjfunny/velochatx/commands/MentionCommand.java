@@ -2,11 +2,9 @@ package site.hjfunny.velochatx.commands;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
-import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.VelocityPlugin;
-import me.waterwood.config.FileConfiguration;
-import me.waterwood.plugin.WaterPlugin;
+import org.waterwood.io.FileConfiguration;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
@@ -53,7 +51,7 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
                 }
             }
             if(checkNoSelf(source,targetPlayer)) return;
-            FileConfiguration config = WaterPlugin.getConfig();
+            FileConfiguration config = getConfig();
             sendRawMessage(source,MsgMethods.convertMessage("mention-to-message", targetPlayer, source));
             sendRawMessage(targetPlayer,MsgMethods.convertMessage("mention-receive-message", source, targetPlayer));
             if(config.getBoolean("mention-show-title.enable")) {

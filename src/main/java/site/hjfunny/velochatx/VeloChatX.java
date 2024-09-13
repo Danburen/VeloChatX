@@ -6,15 +6,15 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.VelocityPlugin;
-import me.waterwood.common.Colors;
 import org.slf4j.Logger;
+import org.waterwood.common.Colors;
+import org.waterwood.common.LineFontGenerator;
 import site.hjfunny.velochatx.commands.ControlCommands;
 import site.hjfunny.velochatx.commands.MentionCommand;
 import site.hjfunny.velochatx.commands.MsgCommand;
 import site.hjfunny.velochatx.events.CommandEvents;
 import site.hjfunny.velochatx.events.PlayerEvents;
 import site.hjfunny.velochatx.methods.Methods;
-import me.waterwood.util.Metrics ;
 
 
 @Plugin(
@@ -23,14 +23,12 @@ import me.waterwood.util.Metrics ;
         version = "1.0",
         authors = "Waterwood")
 public class VeloChatX extends VelocityPlugin {
-    private final Logger logger;
     private final ProxyServer server;
     private static VeloChatX Instance;
     private final Metrics.Factory metricsFactory;
     @Inject
-    public VeloChatX(ProxyServer server , Logger logger,Metrics.Factory metricsFactory){
-        super(logger,server);
-        this.logger = logger;
+    public VeloChatX(ProxyServer server ,Metrics.Factory metricsFactory){
+        super(server);
         this.server = server;
         this.metricsFactory = metricsFactory;
     }
@@ -38,26 +36,24 @@ public class VeloChatX extends VelocityPlugin {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        logger.info(Colors.parseColor("§1                                             "));
-        logger.info(Colors.parseColor("§1\\  /  ___  |    __   __  |__   __  _|_  \\_'"));
-        logger.info(Colors.parseColor("§1 \\/  (__/_ |_, (__) (___ |  ) (__(  |_, / \\"));
-        logger.info(Colors.parseColor("§1                                             "));
-        logger.info(Colors.parseColor("VeloChatX §bV%s §2Author:§rWaterwood".formatted(getPluginInfo("version"))));
-        Long start = System.currentTimeMillis();
+        for(String str : LineFontGenerator.parseLineText("velochatx")){
+            getLogger().info(Colors.parseColor("§6%s§r").formatted(str));
+        }
+        getLogger().info(Colors.parseColor("VeloChatX §7V%s §7Author:§rWaterwood".formatted(getPluginInfo("version"))));
+        long start = System.currentTimeMillis();
         Instance = this;
-        config = getConfig();
-        logger.info(Colors.parseColor(config.getString("check-update-message")));
-        CheckForUpdata("Danburen","VeloChatX");
-        logger.info(Colors.parseColor(config.getString("config-files-load-message")));
+        this.loadConfig();
+        checkUpdate(false,"Danburen","VeloChatX");
+        getLogger().info(Colors.parseColor(getPluginMessage("config-files-load-message")));
         init();
-        logger.info(Colors.parseColor(String.format(config.getString("successfully-enable-message"),System.currentTimeMillis() - start)));
+        getLogger().info(Colors.parseColor(String.format(getPluginMessage("successfully-enable-message"),System.currentTimeMillis() - start)));
         // metrics
         int pluginId = 23273;
         Metrics metrics = metricsFactory.make(this, pluginId);
     }
     @Subscribe
     public void init(){
-        logger.info(Colors.parseColor(config.getString("init-process-message")));
+        getLogger().info(Colors.parseColor(getPluginMessage("init-process-message")));
         server.getEventManager().register(this, new PlayerEvents());
         server.getEventManager().register(this, new CommandEvents());
         Methods.load();

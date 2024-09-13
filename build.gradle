@@ -21,6 +21,10 @@ dependencies {
     annotationProcessor 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
     implementation 'org.yaml:snakeyaml:1.29'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    // SLF4J to JUL Bridge
+    implementation 'org.slf4j:jul-to-slf4j:2.0.12'
+    // SLF4J with JUL Adapter
+    implementation 'org.slf4j:slf4j-jdk14:2.0.12'
 }
 
 def targetJavaVersion = 17

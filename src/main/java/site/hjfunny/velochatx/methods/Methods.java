@@ -6,29 +6,26 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.VelocityPlugin;
-import me.waterwood.api.LuckPermsAPI;
-import me.waterwood.common.Colors;
-import me.waterwood.common.PluginBase;
-import me.waterwood.config.FileConfiguration;
-import me.waterwood.plugin.Plugin;
-import me.waterwood.plugin.WaterPlugin;
+import org.waterwood.api.LuckPermsAPI;
+import org.waterwood.common.Colors;
+import org.waterwood.plugin.WaterPlugin;
 
 import java.util.List;
 import java.util.Map;
 
-import static me.waterwood.api.LuckPermsAPI.*;
+import static org.waterwood.api.LuckPermsAPI.*;
 
-public abstract class Methods extends PluginBase {
+public abstract class Methods extends WaterPlugin {
     private static String chatFormatText;
     private static Map<String,String> serverDisPlayName = null;
 //    private  static final String DefaultChatFormat = ""
 
     public static void load(){
         LuckPermsAPI.checkApi();
-        chatFormatText = config.getString("chat-format");
+        chatFormatText = getConfig().getString("chat-format");
         checkFormat();
-        if(config.getBoolean("server-display.enable")){
-            serverDisPlayName = config.getMap("server-display.display");
+        if(getConfig().getBoolean("server-display.enable")){
+            serverDisPlayName = getConfig().getMap("server-display.display");
         }
     }
 
@@ -38,13 +35,13 @@ public abstract class Methods extends PluginBase {
             if (hasLuckPerm()){
                 return;
             }else{
-                WaterPlugin.getLogger().info(Colors.parseColor(config.getString("no-api-support-message")
+                WaterPlugin.getLogger().info(Colors.parseColor(getPluginMessage("no-api-support-message")
                         .formatted("LuckPerms")));
             }
             return;
         }
-        WaterPlugin.getLogger().warn(config.getString("fail-parsing-chat-format-message")
-                + "\n" + config.getString("use-default-chat-format-message"));
+        getLogger().warning(getPluginMessage("fail-parsing-chat-format-message")
+                + "\n" + getPluginMessage("use-default-chat-format-message"));
         useDefaultFormatChat();
     }
     public static String placeChatValue(String message,Player player){
@@ -60,7 +57,7 @@ public abstract class Methods extends PluginBase {
     public static String placeValue(String origin, Player player, ProxyServer proxyServer){
         String out = origin.toLowerCase();
         String playerName = player.getUsername();
-        String serverName = config.getString("server-display.display.proxy");
+        String serverName = getConfig().getString("server-display.display.proxy");
         String prefix = nullStrCheck(getPlayerPrefix(playerName));
         String suffix = nullStrCheck(getPlayersuffix(playerName));
         String GroupDisplayName = nullStrCheck(getPlayerGroupDisplay(playerName));

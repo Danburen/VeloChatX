@@ -9,12 +9,10 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import me.waterwood.common.Colors;
-import me.waterwood.common.PluginBase;
-import me.waterwood.plugin.WaterPlugin;
+import org.waterwood.common.Colors;
+import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.slf4j.Logger;
 import site.hjfunny.velochatx.PlayerAttribution;
 import site.hjfunny.velochatx.methods.Methods;
 import site.hjfunny.velochatx.VeloChatX;
@@ -22,10 +20,9 @@ import site.hjfunny.velochatx.methods.MsgMethods;
 
 import java.util.*;
 
-public class PlayerEvents extends PluginBase {
+public class PlayerEvents extends WaterPlugin {
     private final ProxyServer proxyServer = VeloChatX.getInstance().getProxyServer();
     private static Map<String,PlayerAttribution> playerAttrs = new HashMap<>();
-    private final Logger logger = WaterPlugin.getLogger();
     public static Map<String, PlayerAttribution> getPlayerAttrs() {
         return playerAttrs;
     }
@@ -34,16 +31,16 @@ public class PlayerEvents extends PluginBase {
     public void onPlayChat(PlayerChatEvent evt){
         String message = evt.getMessage();
         Player source = evt.getPlayer();
-        if(config.getBoolean("ban-words.enable"))
-            if(MsgMethods.isBanWorld(message)) {
+        if(getConfig().getBoolean("ban-words.enable"))
+            if(MsgMethods.hasBanWords(message)) {
                 source.sendMessage(Component.text(MsgMethods.getMessage("ban-words-message"),NamedTextColor.RED));
-                if(config.getBoolean("ban-words.log-to-console")){
-                    logger.info(Colors.parseColor(MsgMethods.placeChatValue(MsgMethods.getMessage("ban-words-log-message"),message,source)));
+                if(getConfig().getBoolean("ban-words.log-to-console")){
+                    getLogger().info(Colors.parseColor(MsgMethods.placeChatValue(MsgMethods.getMessage("ban-words-log-message"),message,source)));
                 }
                 return;
             }
         String fianlMessage = Methods.placeChatValue(message,source);
-        if(config.getBoolean("log-text.enable")) logger.info(Colors.parseColor(fianlMessage,config.getBoolean("log-text.convert")));
+        if(getConfig().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(fianlMessage,getConfig().getBoolean("log-text.convert")));
         proxyServer.getAllPlayers().forEach(player -> {
             if(player.getCurrentServer().get().getServerInfo().getName().equals(source.getCurrentServer().get().getServerInfo().getName())) return;
             if(playerAttrs.get(player.getUsername()).getIgnorePlayers().contains(source.getUsername())){
@@ -56,17 +53,12 @@ public class PlayerEvents extends PluginBase {
     @Subscribe(order = PostOrder.NORMAL)
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
-        String locale = config.getString("message");
+        String locale;
         try {
             locale = player.getEffectiveLocale().getLanguage();
-            if (!(config.getLoadedLocal().contains(locale))) {
-                config.loadLocaleMsg(locale);
-            }
+            loadLocale(locale);
         }catch(NullPointerException e){
-            if (!(config.getLoadedLocal().contains(locale))) {
-                config.loadLocaleMsg(locale);
-                WaterPlugin.getLogger().info(getMessage("cant-load-message"));
-            }
+            getLogger().info(getPluginMessage("cant-load-message"));
         }finally {
             MsgMethods.serverMessage("join-leave-broadcast",player,evt);
         }
@@ -91,7 +83,7 @@ public class PlayerEvents extends PluginBase {
 //            String locale = evt.getPlayer().getEffectiveLocale().getLanguage();
 //            config.loadLocaleMsg(locale);
 //        }catch (NullPointerException e){
-//            logger.warn("can't get player's language");
+//            getLogger().warn("can't get player's language");
 //        }
 //    }
 

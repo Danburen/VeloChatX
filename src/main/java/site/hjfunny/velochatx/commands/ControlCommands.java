@@ -5,17 +5,17 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.VelocityPlugin;
-import me.waterwood.common.Colors;
-import me.waterwood.common.PluginBase;
-import me.waterwood.plugin.Plugin;
-import me.waterwood.plugin.WaterPlugin;
+import org.waterwood.common.Colors;
+import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import site.hjfunny.velochatx.PlayerAttribution;
+import site.hjfunny.velochatx.VeloChatX;
 import site.hjfunny.velochatx.events.PlayerEvents;
 import site.hjfunny.velochatx.methods.Methods;
 import site.hjfunny.velochatx.methods.MsgMethods;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ControlCommands extends VelocitySimpleCommand implements SimpleCommand {
@@ -34,28 +34,31 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
         if(args[0].equalsIgnoreCase("reload")) { //reload command
             if (source.hasPermission("velochatx.admin")) {
                 if (args.length == 1) {
-                    WaterPlugin.upgradeConfig();
-                    PluginBase.reloadConfig();
+                    VeloChatX.getInstance().reloadConfig();
                     Methods.load();
-                    source.sendMessage(Component.text(getMessage("config-reload-completed-message"), NamedTextColor.GREEN));
+                    source.sendMessage(Component.text(getPluginMessage("config-reload-completed-message"), NamedTextColor.GREEN));
                     return;
                 }
                 if (configFiles.contains(args[1])) {
-                    WaterPlugin.getConfig().reloadConfig(args[1] + ".yml");
-                    source.sendMessage(Component.text(getMessage("config-file-reload-message")
-                            .formatted(args[1].concat(".yml")), NamedTextColor.GREEN));
+                    try {
+                        VeloChatX.getInstance().reloadConfig(args[1]);
+                        source.sendMessage(Component.text(getPluginMessage("config-file-reload-message")
+                                .formatted(args[1].concat(".yml")), NamedTextColor.GREEN));
+                    }catch (IOException e){
+                        source.sendMessage(Component.text(getPluginMessage("config-file-reload-error-message").formatted(args[1].concat(".yml")),NamedTextColor.RED));
+                    }
                 } else {
-                    source.sendMessage(Component.text(String.format(getMessage("incorrect-config-file-message"), args[1], configFiles), NamedTextColor.RED));
+                    source.sendMessage(Component.text(String.format(getPluginMessage("incorrect-config-file-message"), args[1], configFiles), NamedTextColor.RED));
                 }
             } else {
-                source.sendMessage(Component.text(getMessage("no-permission"), NamedTextColor.RED));
+                source.sendMessage(Component.text(getPluginMessage("no-permission"), NamedTextColor.RED));
             }
             return;
         }
         if(source instanceof Player sourcePlayer) {
             String language = sourcePlayer.getEffectiveLocale().getLanguage();
                 if (args[0].equalsIgnoreCase("help")) {
-                    source.sendMessage(Component.text("---------------------------\n§1VeloChatX§r  §bv%s§r  §2By:%s§r \n---------------------------"
+                    source.sendMessage(Component.text("---===\n§1VeloChatX§r  §bv%s§r  §2By:%s§r \n===---"
                             .formatted(WaterPlugin.getPluginInfo("version"), WaterPlugin.getPluginInfo("author"))));
                     for (String cmd : subCmds) {
                         source.sendMessage(Component.text(getMessage(cmd + "-command-format-message", language)));

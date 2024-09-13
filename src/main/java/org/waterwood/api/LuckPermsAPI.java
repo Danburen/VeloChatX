@@ -1,4 +1,4 @@
-package me.waterwood.api;
+package org.waterwood.api;
 
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;

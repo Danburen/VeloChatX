@@ -12,7 +12,7 @@
  *
  * Violations will result in a ban of your plugin and account from bStats.
  */
-package me.waterwood.util;
+package site.hjfunny.velochatx;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.plugin.PluginContainer;

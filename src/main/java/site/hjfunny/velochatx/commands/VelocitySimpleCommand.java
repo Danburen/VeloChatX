@@ -6,15 +6,15 @@ import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.VelocityPlugin;
-import me.waterwood.common.PluginBase;
-import me.waterwood.common.Colors;
+import org.waterwood.common.Colors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.waterwood.plugin.WaterPlugin;
 
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class VelocitySimpleCommand extends PluginBase {
+public abstract class VelocitySimpleCommand extends WaterPlugin {
     public void register(VelocityPlugin plugin, SimpleCommand command, String PRIMARY_ALIAS, String[] ALIASES, boolean sharp){
         ProxyServer proxy= plugin.getProxyServer();
         proxy.getCommandManager().register(PRIMARY_ALIAS,command,ALIASES);

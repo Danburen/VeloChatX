@@ -1,4 +1,4 @@
-package me.waterwood.config;
+package org.waterwood.io;
 
 
 public interface FileConfigBase {
@@ -6,5 +6,4 @@ public interface FileConfigBase {
         return null;
     }
     void set(String path, Object val);
-    void saveConfig();
 }

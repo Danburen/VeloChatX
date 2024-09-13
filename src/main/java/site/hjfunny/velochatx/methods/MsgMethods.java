@@ -8,12 +8,10 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.VelocityPlugin;
-import me.waterwood.common.Colors;
-import me.waterwood.plugin.WaterPlugin;
+import org.waterwood.common.Colors;
+import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import site.hjfunny.velochatx.VeloChatX;
-
-import static me.waterwood.common.PluginBase.getMessage;
 
 public class MsgMethods extends Methods {
     public static String convertString(String original,CommandSource source,CommandSource target){
@@ -91,14 +89,14 @@ public class MsgMethods extends Methods {
     }
 
     public static void serverMessage(String messageSource, Player player, ServerConnectedEvent evt){
-        if(config.getBoolean(messageSource + ".enable")) {
+        if(getConfig().getBoolean(messageSource + ".enable")) {
             RegisteredServer connectServer = evt.getServer();
             evt.getPreviousServer().ifPresent(preServer -> {
-                preServer.sendMessage(Component.text(                        placeValue(getMessage(messageSource+".player-leave-message"),player,preServer)));
+                preServer.sendMessage(Component.text(placeValue(getConfig().getString(messageSource+".player-leave-message"),player,preServer)));
             });
-            String joinMessage = placeValue(getMessage(messageSource + ".player-join-message"),player,connectServer);
+            String joinMessage = placeValue(getConfig().getString(messageSource + ".player-join-message"),player,connectServer);
             connectServer.sendMessage(Component.text(joinMessage));
-            if(config.getBoolean(messageSource + ".log-to-console")){
+            if(getConfig().getBoolean(messageSource + ".log-to-console")){
                 WaterPlugin.getLogger().info(Colors.parseColor(joinMessage));
             }
         }
@@ -106,12 +104,12 @@ public class MsgMethods extends Methods {
 
     public static void serverMessage(String messageSource, Player player, LoginEvent evt){
         ProxyServer proxyServer = VelocityPlugin.getProxyServer();
-        if(config.getBoolean(messageSource + ".enable")) {
-            String messageText = placeValue(getMessage(messageSource + ".player-join-message"),player,proxyServer);
-            if(config.getBoolean(messageSource + ".log-to-console")){
-                VeloChatX.getLogger().info(Colors.parseColor(messageText));
+        if(getConfig().getBoolean(messageSource + ".enable")) {
+            String messageText = placeValue(getConfig().getString(messageSource + ".player-join-message"),player,proxyServer);
+            if(getConfig().getBoolean(messageSource + ".log-to-console")){
+                getLogger().info(Colors.parseColor(messageText));
             }
-            if(config.getBoolean(messageSource + ".send-to-all-subServer")){
+            if(getConfig().getBoolean(messageSource + ".send-to-all-subServer")){
                 proxyServer.getAllServers().forEach(registeredServer ->
                         registeredServer.sendMessage(Component.text(messageText))
                 );
@@ -121,12 +119,12 @@ public class MsgMethods extends Methods {
 
     public static void serverMessage(String messageSource, Player player, DisconnectEvent evt){
         ProxyServer proxyServer = VelocityPlugin.getProxyServer();
-        if(config.getBoolean(messageSource + ".enable")) {
-            String messageText = placeValue(getMessage(messageSource + ".player-leave-message"),player,proxyServer);
-            if(config.getBoolean(messageSource + ".log-to-console")){
+        if(getConfig().getBoolean(messageSource + ".enable")) {
+            String messageText = placeValue(getConfig().getString(messageSource + ".player-leave-message"),player,proxyServer);
+            if(getConfig().getBoolean(messageSource + ".log-to-console")){
                 VeloChatX.getLogger().info(Colors.parseColor(messageText));
             }
-            if(config.getBoolean(messageSource + ".send-to-all-subServer")){
+            if(getConfig().getBoolean(messageSource + ".send-to-all-subServer")){
                 proxyServer.getAllServers().forEach(registeredServer ->
                         registeredServer.sendMessage(Component.text(messageText))
                 );
@@ -134,8 +132,8 @@ public class MsgMethods extends Methods {
         }
     }
 
-    public static boolean isBanWorld(String message){
-        String[] banWords = config.getString("ban-words.words").split(",");
+    public static boolean hasBanWords(String message){
+        String[] banWords = getConfig().getString("ban-words.words").split(",");
         for(String banWord : banWords){
             if(message.contains(banWord)){
                 return true;

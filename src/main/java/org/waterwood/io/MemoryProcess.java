@@ -1,28 +1,19 @@
-package me.waterwood.config;
-
-import me.waterwood.plugin.WaterPlugin;
-import org.jetbrains.annotations.NotNull;
+package org.waterwood.io;
 
 import java.io.*;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import java.util.Locale;
 
-public abstract class MemoryProcesser {
-    public static final String getUserLanguage(){
-        Locale userLocal = Locale.getDefault();
-        return userLocal.getLanguage();
-    }
+public abstract class MemoryProcess {
 
-    public abstract boolean isResourceExist(String source);
     /**
      * split a parent file from jar to File system,split like [xxxx][FileName]
      * @param splitStr split str "xxx" + file name
      * @param targetFilesPath where subFile output
      * @param source where parent file is in jar package(will add"/")
      */
-    public void extractResource(String splitStr, @NotNull String targetFilesPath, @NotNull String source){
+    public void extractResource(String splitStr, String targetFilesPath, String source){
         File parentPath = new File(targetFilesPath);
         if(! parentPath.exists()){
             parentPath.mkdir();
@@ -55,26 +46,14 @@ public abstract class MemoryProcesser {
             e.printStackTrace();
         }
     }
-    public abstract String getPluginFilePath(String FileName);
-    public abstract String getPluginFilePath();
-    /**
-     * Extract jar package resource to file system,not generate tip.txt
-     * @param targetFilePath target file path
-     * @param source source file of the jar package
-     */
-    public void extractResource(String targetFilePath, String source ){
-        extractResource(targetFilePath,source,false);
-    }
     /**
      * extract jar package resource to file system
      * @param targetFilePath target file path
      * @param source source file of the jar package
-     * @param createTip whether create a FileName.yml.txt
      */
-    public void extractResource(String targetFilePath, String source, Boolean createTip){
+    public void extractResource(String targetFilePath, String source){
         InputStream IS = getClass().getResourceAsStream("/" + source);
         if (IS == null) {
-            WaterPlugin.getLogger().error("Config file not founded");
             return;
         }
         File targetFile =new File(targetFilePath);
@@ -87,10 +66,6 @@ public abstract class MemoryProcesser {
         }
         try(OutputStream OS = new FileOutputStream(targetFile)){
             copyFile(IS,OS);
-            if (createTip) {
-                IS = getClass().getResourceAsStream("/" + source);
-                copyFile(IS, new FileOutputStream(new File(targetFilePath + ".txt")));
-            }
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -115,9 +90,24 @@ public abstract class MemoryProcesser {
         }
     }
 
-    /**
-     * use {@link ProtectionDomain} to get the jar package
-     * @return String
-     */
-    public abstract String getJarDir();
+    public  String getJarDir(){
+        try {
+            ProtectionDomain domain = this.getClass().getProtectionDomain();
+            CodeSource source = domain.getCodeSource();
+            URL location = source.getLocation();
+            File jarFile = new File(location.toURI());
+            File jarDir = jarFile.getParentFile();
+            return jarDir.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public String getPluginFilePath(String  PluginName, String FileName){
+        return getJarDir() + "\\" +PluginName + "\\" + FileName;
+    }
+    public boolean isResourceExist(String source){
+        URL sourceURL = getClass().getClassLoader().getResource(source);
+        return sourceURL != null;
+    }
 }
