@@ -20,7 +20,7 @@ import site.hjfunny.velochatx.methods.Methods;
 @Plugin(
         id = "velochatx",
         name = "VeloChatX",
-        version = "1.0",
+        version = BuildConstants.VERSION,
         authors = "Waterwood")
 public class VeloChatX extends VelocityPlugin {
     private final ProxyServer server;
@@ -39,7 +39,7 @@ public class VeloChatX extends VelocityPlugin {
         for(String str : LineFontGenerator.parseLineText("velochatx")){
             getLogger().info(Colors.parseColor("§6%s§r").formatted(str));
         }
-        getLogger().info(Colors.parseColor("VeloChatX §7V%s §7Author:§rWaterwood".formatted(getPluginInfo("version"))));
+        getLogger().info(Colors.parseColor("VeloChatX §7V%s §7Author:§rWaterwood".formatted(BuildConstants.VERSION)));
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();
