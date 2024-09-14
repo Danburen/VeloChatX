@@ -12,29 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-public abstract class Updater {
-    public static String sendGetRequest(String urlStr) {
-        StringBuilder result = new StringBuilder();
-        try{
-            URL url = new URL(urlStr);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            int requestCode = connection.getResponseCode();
-            if(requestCode == HttpURLConnection.HTTP_OK){
-                InputStream IS = connection.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(IS));
-                String line;
-                while((line = reader.readLine())!= null){
-                    result.append(line);
-                }
-                IS.close();
-                connection.disconnect();
-            }
-        }catch(Exception e) {
-            return null;
-        }
-        return result.toString();
-    }
+public abstract class Updater extends WebIO{
 
     /**
      * Checking for update , config  will automatically load.

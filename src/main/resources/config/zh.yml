@@ -3,6 +3,9 @@
 # author: waterwood
 
 ConfigVersion: 1.0
+check-update:
+  enable: enable
+  auto-download: false
 
 # 配置聊天输出的格式{xxx}代表替换的变量
 # 在message里，这些规则也适用
@@ -14,6 +17,7 @@ ConfigVersion: 1.0
 # NOTE : SERVER && MESSAGE && PlayName 这三个字段是必须的，如果少了就好用默认的输出format:[{Server}]{PlayerName}: {Message}
 # 支持mc的颜色格式包括 §和& 颜色代码，会覆盖原有的颜色
 chat-format: "{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
+
 
 
 # this option change plugin messages. it won't change message.yml && config.yml!

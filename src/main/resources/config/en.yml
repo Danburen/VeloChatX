@@ -4,6 +4,9 @@
 # Available language zh,en
 ConfigVersion: 1.0
 
+check-update:
+  enable: enable
+  auto-download: false
 
 # use like {xxx} to parse values for your chat text
 # Group: return the Group DisplayName which the player is in.

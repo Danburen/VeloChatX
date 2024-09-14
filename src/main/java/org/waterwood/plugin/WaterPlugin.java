@@ -54,20 +54,22 @@ public abstract class WaterPlugin  implements Plugin {
         return pluginData.getString(path);
     }
     @Override
-    public void loadConfig(){
+    public void loadConfig(boolean loadMessage){
         String lang = Locale.getDefault().getLanguage();
         try {
             config.createFile("config",getPluginName());
-            config.createFile("message",getPluginName());
             config.loadFile(getDefaultFilePath("config.yml"));
-            locale = config.getString("player-locale").equals("locale");
-            messages.put(lang,new FileConfigProcess().loadFile(getDefaultFilePath("message.yml")));
             pluginMessages.loadSource("locale/" + lang , "properties");
+            locale = config.getString("player-locale").equals("locale");
+            loadLocalMsg(lang,loadMessage);
         }catch(Exception e){
             getLogger().warning("Error when load config file, missing lang:" + lang + "\nUsing default lang en");
             loadDefaultSource("en");
-            e.printStackTrace();
         }
+    }
+    @Override
+    public void loadConfig(){
+        loadConfig(true);
     }
 
     @Override
@@ -91,6 +93,13 @@ public abstract class WaterPlugin  implements Plugin {
         }
     }
 
+    public void loadLocalMsg(String lang, boolean  load) throws IOException {
+        if(load) {
+            config.createFile("message", getPluginName());
+            messages.put(lang, new FileConfigProcess().loadFile(getDefaultFilePath("message.yml")));
+        }
+    }
+
     @Override
     public final String getDefaultSourcePath(String source, String extension, String lang){
         return source + "/" + lang +"."+ extension;
@@ -106,21 +115,26 @@ public abstract class WaterPlugin  implements Plugin {
         }
     }
     @Override
-    public void checkUpdate(boolean download, String author, String repositories){
+    public void checkUpdate(String owner, String repositories){
+        if (!Boolean.TRUE.equals(config.getBoolean("check-update.enable"))) { return; }
         getLogger().info(getPluginMessage("check-update-message"));
-        Map<String,Object> updateInfo = Updater.CheckForUpdata(author, repositories, Updater.parseVersion(getPluginData("version")));
+        Map<String,Object> updateInfo = Updater.CheckForUpdata(owner, repositories, Updater.parseVersion(getPluginData("version")));
         if(updateInfo == null){
             getLogger().warning(getPluginMessage("error-ckupd-message"));
             return;
         }
         if((boolean)updateInfo.get("hasNewVersion")){
-            LogMsg(getPluginMessage("new-version-founded-message").formatted(updateInfo.get("latestVersion"),
-                    updateInfo.get("downloadLink")));
+            String message;
+            if(Boolean.TRUE.equals(config.get("auto-download"))){
+                message  = getPluginMessage("new-version-download-message").formatted(updateInfo.get("latestVersion"));
+                //Updater.dowmloadFile();
+            }else{
+                message = getPluginMessage("new-version-founded-message").formatted(updateInfo.get("latestVersion"),
+                        updateInfo.get("downloadLink"));
+            }
+            LogMsg(message);
         }else{
             LogMsg(getPluginMessage("latest-version-message"));
-        }
-        if(download){
-            //download action.
         }
     }
     public void loadLocale(String lang){

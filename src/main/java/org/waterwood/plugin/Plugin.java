@@ -18,7 +18,9 @@ public interface Plugin extends Colors {
     void loadConfig();
 
     void loadDefaultSource(String lang);
-    void reloadConfig();
 
-    void checkUpdate(boolean download, String author, String repositories);
+    void loadConfig(boolean loadMessage);
+
+    void reloadConfig();
+    void checkUpdate(String owner, String repositories);
 }

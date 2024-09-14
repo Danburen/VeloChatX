@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'WaterFun.WaterWood'
-version = '1.0'
+version = '1.2.0'
 
 repositories {
     mavenCentral()
@@ -55,7 +55,6 @@ def generateTemplates = tasks.register('generateTemplates', Copy) { task ->
     task.into templateDest
     task.expand props
 }
-
 sourceSets.main.java.srcDir(generateTemplates.map { it.outputs })
 
 rootProject.idea.project.settings.taskTriggers.afterSync generateTemplates
