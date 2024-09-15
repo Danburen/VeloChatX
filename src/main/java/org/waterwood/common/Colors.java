@@ -34,14 +34,13 @@ public interface Colors {
      * original text contains code §.
      *
      * @param origin   original text
-     * @param isEnable whether parse color
+     * @param isDisable whether parse color
      * @return parsed color text(with ANSI)
      */
-    static String parseColor(String origin, boolean isEnable) {
-        if (!isEnable) {
+    static String parseColor(String origin, boolean isDisable) {
+        if (isDisable) {
             return origin.replaceAll("§[0-9a-fA-F]", "");
         }
-
         StringBuilder sb = new StringBuilder(origin);
         for (Map.Entry<String, String> entry : color.entrySet()) {
             int index = sb.indexOf(entry.getKey());
@@ -50,10 +49,11 @@ public interface Colors {
                 index = sb.indexOf(entry.getKey(), index + entry.getValue().length());
             }
         }
-        return sb.toString().endsWith(RESET) ? sb.toString() : sb.append(RESET).toString();
+        String result = sb.toString();
+        return result.endsWith(RESET) ? result : result + RESET;
     }
 
     static String parseColor(String origin) {
-        return parseColor(origin, true);
+        return parseColor(origin, false);
     }
 }

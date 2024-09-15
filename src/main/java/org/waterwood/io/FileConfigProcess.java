@@ -96,6 +96,10 @@ public class FileConfigProcess extends FileConfiguration {
         String[] keys = path.split("\\.");
         return getHashMapData(keys,data);
     }
+
+    public Map<String,Object> getData(){
+        return data;
+    }
     public static Object getHashMapData(String[] keys, Map<String,Object> data){
         Object currentData = data;
         for (String key : keys) {

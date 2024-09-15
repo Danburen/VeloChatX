@@ -5,14 +5,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Map;
 
-public abstract class Updater extends WebIO{
+public abstract class Updater extends WebIO {
 
     /**
      * Checking for update , config  will automatically load.
@@ -34,8 +29,7 @@ public abstract class Updater extends WebIO{
                 String latestVersion = jsonObject.get("tag_name").getAsString();
                 double latest = parseVersion(latestVersion);
                 if (currentVersion >= latest) {
-                    return Map.of("downloadLink", "",
-                            "latestVersion", latestVersion, "hasNewVersion", false,
+                    return Map.of("latestVersion", latestVersion,"hasNewVersion", false,
                             "status", 1);
                 } else {
                     return Map.of("downloadLink", downloadLink,
@@ -49,7 +43,7 @@ public abstract class Updater extends WebIO{
 
     public static double parseVersion(String dotStr){
         int dotInd = dotStr.indexOf(".");
-        String out = dotStr;
+        String out;
         if(dotInd != -1){
             out = dotStr.substring(0,dotInd + 1) + dotStr.substring(dotInd + 1).replaceAll("\\.","");
             double num = Double.parseDouble(out);

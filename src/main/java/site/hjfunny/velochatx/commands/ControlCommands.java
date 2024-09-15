@@ -9,7 +9,6 @@ import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import site.hjfunny.velochatx.BuildConstants;
 import site.hjfunny.velochatx.PlayerAttribution;
 import site.hjfunny.velochatx.VeloChatX;
 import site.hjfunny.velochatx.events.PlayerEvents;
@@ -60,7 +59,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             String language = sourcePlayer.getEffectiveLocale().getLanguage();
                 if (args[0].equalsIgnoreCase("help")) {
                     source.sendMessage(Component.text("---===\n§1VeloChatX§r  §bv%s§r  §2By:%s§r \n===---"
-                            .formatted(BuildConstants.VERSION, WaterPlugin.getPluginInfo("author"))));
+                            .formatted(getPluginInfo("version"), WaterPlugin.getPluginInfo("author"))));
                     for (String cmd : subCmds) {
                         source.sendMessage(Component.text(getMessage(cmd + "-command-format-message", language)));
                     }
@@ -116,7 +115,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
         }else{
             if (args[0].equalsIgnoreCase("help")) { //help command
                 source.sendMessage(Component.text(Colors.parseColor("---------------------------\n§1VeloChatX§r  §bv%s§r  §2By:%s§r\n---------------------------"
-                        .formatted(BuildConstants.VERSION, WaterPlugin.getPluginInfo("author")))));
+                        .formatted(getPluginInfo("version"), WaterPlugin.getPluginInfo("author")))));
                 for (String cmd : subCmds) {
                     source.sendMessage(Component.text(Colors.parseColor(getMessage(cmd + "-command-format-message"))));
                 }

@@ -2,12 +2,10 @@ package org.waterwood.plugin;
 
 import org.waterwood.common.Colors;
 
-import org.slf4j.Logger;
+import java.util.logging.Logger;
 
 
 public interface Plugin extends Colors {
-
-    Logger logger = null;
 
     static Logger getLogger() {
         return null;

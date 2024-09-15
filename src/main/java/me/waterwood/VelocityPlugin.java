@@ -11,6 +11,7 @@ public class VelocityPlugin extends WaterPlugin {
     private static ProxyServer server = null;
     protected VelocityPlugin(ProxyServer server) {
         VelocityPlugin.server = server;
+        this.initialization();
     }
     public static ProxyServer getProxyServer() {
         return server;

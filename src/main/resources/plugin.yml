@@ -1,4 +1,5 @@
 name: VeloChatX
 author: waterwood
+version: 1.2.0
 main: site.hjfunny.velochatx.VeloChatX
 description: A plugin for velocity that all backend servers cross server chat

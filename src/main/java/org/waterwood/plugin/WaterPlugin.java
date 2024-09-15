@@ -18,7 +18,7 @@ public abstract class WaterPlugin  implements Plugin {
     private static Map<String,FileConfigProcess>  messages = new HashMap<>();
     private static  FileConfigProcess pluginData;
     private static boolean locale = false;
-    protected WaterPlugin(){
+    public void initialization(){
         if(pluginData == null){
             try {
                 pluginData = new FileConfigProcess();
@@ -28,6 +28,9 @@ public abstract class WaterPlugin  implements Plugin {
             }
         }
         if (logger == null){ logger = Logger.getLogger(getPluginInfo("name"));}
+    }
+    public WaterPlugin(){
+        initialization();
     }
     public static Logger getLogger(){
         return logger;
@@ -60,8 +63,10 @@ public abstract class WaterPlugin  implements Plugin {
             config.createFile("config",getPluginName());
             config.loadFile(getDefaultFilePath("config.yml"));
             pluginMessages.loadSource("locale/" + lang , "properties");
-            locale = config.getString("player-locale").equals("locale");
-            loadLocalMsg(lang,loadMessage);
+            if(loadMessage) {
+                locale = "locale".equals(config.getString("player-locale"));
+                loadLocalMsg(lang,loadMessage);
+            }
         }catch(Exception e){
             getLogger().warning("Error when load config file, missing lang:" + lang + "\nUsing default lang en");
             loadDefaultSource("en");
@@ -77,11 +82,12 @@ public abstract class WaterPlugin  implements Plugin {
         String lang = config.getString("locale");
         try {
             config.loadFile(getDefaultFilePath("config.yml"));
-            locale = config.getString("player-locale").equals("locale");
+            locale = "locale".equals(config.getString("player-locale"));
             pluginMessages.loadSource("locale/" + lang , "properties");
         }catch(Exception e){
             logger.warning("Error when load config file, missing lang:" + lang + "\nUsing default lang en");
             loadDefaultSource("en");
+            e.printStackTrace();
         }
     }
 
@@ -117,22 +123,27 @@ public abstract class WaterPlugin  implements Plugin {
     @Override
     public void checkUpdate(String owner, String repositories){
         if (!Boolean.TRUE.equals(config.getBoolean("check-update.enable"))) { return; }
-        getLogger().info(getPluginMessage("check-update-message"));
-        Map<String,Object> updateInfo = Updater.CheckForUpdata(owner, repositories, Updater.parseVersion(getPluginData("version")));
+        getLogger().info(getPluginMessage("checking-update-message"));
+        Map<String,Object> updateInfo = Updater.CheckForUpdata(owner, repositories, Updater.parseVersion(getPluginInfo("version")));
         if(updateInfo == null){
-            getLogger().warning(getPluginMessage("error-ckupd-message"));
+            getLogger().warning(getPluginMessage("error-check-update-message"));
             return;
         }
         if((boolean)updateInfo.get("hasNewVersion")){
-            String message;
-            if(Boolean.TRUE.equals(config.get("auto-download"))){
-                message  = getPluginMessage("new-version-download-message").formatted(updateInfo.get("latestVersion"));
-                //Updater.dowmloadFile();
+            if(Boolean.TRUE.equals(config.get("check-update.auto-download"))){
+                String link = (String) updateInfo.get("downloadLink");
+                try {
+                    LogMsg(getPluginMessage("new-version-download-message").formatted(updateInfo.get("latestVersion")));
+                    String pathDownload = config.getJarDir() + "\\" + getPluginName() + updateInfo.get("latestVersion") +".jar";
+                    Updater.dowmloadFile(link, pathDownload);
+                    logger.info(Colors.parseColor(getPluginMessage("successfully-download-message").formatted(pathDownload)));
+                } catch (IOException e) {
+                    logger.warning(getPluginMessage("error-download-message").formatted(link));
+                }
             }else{
-                message = getPluginMessage("new-version-founded-message").formatted(updateInfo.get("latestVersion"),
-                        updateInfo.get("downloadLink"));
+                LogMsg(getPluginMessage("new-version-founded-message").formatted(updateInfo.get("latestVersion"),
+                        updateInfo.get("downloadLink")));
             }
-            LogMsg(message);
         }else{
             LogMsg(getPluginMessage("latest-version-message"));
         }

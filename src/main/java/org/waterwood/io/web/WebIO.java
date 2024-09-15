@@ -3,7 +3,6 @@ package org.waterwood.io.web;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.Buffer;
 
 public  abstract class WebIO {
     public static String sendGetRequest(String urlStr) {
@@ -40,6 +39,7 @@ public  abstract class WebIO {
             while((byteRead = FIS.read(buffer,0,1024))!= -1){
                 out.write(buffer,0,byteRead);
             }
+            FOS.close();
         }
     }
     private static String getFileName(String fileUrl) {

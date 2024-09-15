@@ -2,8 +2,7 @@
 # build java version: JE 17
 # author: waterwood
 # Available language zh,en
-ConfigVersion: 1.0
-
+ConfigVersion: 1.1
 check-update:
   enable: enable
   auto-download: false

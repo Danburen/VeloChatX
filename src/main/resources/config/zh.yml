@@ -2,10 +2,10 @@
 # build java version: JE 17
 # author: waterwood
 
-ConfigVersion: 1.0
+ConfigVersion: 1.1
 check-update:
-  enable: enable
-  auto-download: false
+  enable: true
+  auto-download: true
 
 # 配置聊天输出的格式{xxx}代表替换的变量
 # 在message里，这些规则也适用
