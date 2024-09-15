@@ -5,7 +5,7 @@ import org.waterwood.common.Colors;
 import java.util.logging.Logger;
 
 
-public interface Plugin extends Colors {
+public interface Plugin {
 
     static Logger getLogger() {
         return null;
