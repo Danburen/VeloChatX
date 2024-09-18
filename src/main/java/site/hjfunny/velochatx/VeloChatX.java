@@ -38,7 +38,7 @@ public class VeloChatX extends VelocityPlugin {
         for(String str : LineFontGenerator.parseLineText("velochatx")){
             getLogger().info(Colors.parseColor("§6%s§r").formatted(str));
         }
-        getLogger().info(Colors.parseColor("VeloChatX V§8%s§r §fAuthor:§8Waterwood§r".formatted(getPluginInfo("version"))));
+        getLogger().info(Colors.parseColor("VeloChatX V §8%s§r §fAuthor: §8Waterwood§r".formatted(getPluginInfo("version"))));
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();

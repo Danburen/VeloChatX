@@ -3,10 +3,7 @@ package org.waterwood.io;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public abstract class FileConfiguration extends MemoryProcess implements FileConfigBase {
     public abstract Object get(String path);
@@ -23,6 +20,7 @@ public abstract class FileConfiguration extends MemoryProcess implements FileCon
     public final Map<String,String> getMap(String path){
         return  getMap(path,String.class);
     }
+    public final List<Object> getList(String path){return (List<Object>) get(path);}
     public final <T> Map<String, T> getMap(String path, Class<T> typeClass) {
         Object out = get(path);
         if (out instanceof Map<?, ?> rawMap) {

@@ -40,7 +40,7 @@ public class PlayerEvents extends WaterPlugin {
                 return;
             }
         String fianlMessage = Methods.placeChatValue(message,source);
-        if(getConfig().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(fianlMessage,getConfig().getBoolean("log-text.convert")));
+        if(getConfig().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(fianlMessage,! getConfig().getBoolean("log-text.convert")));
         proxyServer.getAllPlayers().forEach(player -> {
             if(player.getCurrentServer().get().getServerInfo().getName().equals(source.getCurrentServer().get().getServerInfo().getName())) return;
             if(playerAttrs.get(player.getUsername()).getIgnorePlayers().contains(source.getUsername())){

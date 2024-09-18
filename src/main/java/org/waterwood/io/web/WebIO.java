@@ -28,18 +28,19 @@ public  abstract class WebIO {
         return result.toString();
     }
 
-    public static void dowmloadFile(String fileUrl,String savedPath) throws IOException{
+    public static void download(String fileUrl, String savedPath) throws IOException{
         URL url = new URL(fileUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        try(BufferedInputStream FIS =new BufferedInputStream(connection.getInputStream())){
-            FileOutputStream FOS = new FileOutputStream(savedPath);
-            BufferedOutputStream out = new BufferedOutputStream(FOS);
+        try (BufferedInputStream FIS = new BufferedInputStream(connection.getInputStream());
+             FileOutputStream FOS = new FileOutputStream(savedPath);
+             BufferedOutputStream out = new BufferedOutputStream(FOS)) {
             byte[] buffer = new byte[1024];
             int byteRead;
-            while((byteRead = FIS.read(buffer,0,1024))!= -1){
-                out.write(buffer,0,byteRead);
+            while ((byteRead = FIS.read(buffer, 0, 1024)) != -1) {
+                out.write(buffer, 0, byteRead);
             }
-            FOS.close();
+        } finally {
+            connection.disconnect();
         }
     }
     private static String getFileName(String fileUrl) {

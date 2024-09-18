@@ -1,5 +1,7 @@
 package org.waterwood.common;
 
+import org.waterwood.plugin.WaterPlugin;
+
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
