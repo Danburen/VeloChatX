@@ -20,15 +20,15 @@ public abstract class WaterPlugin  implements Plugin {
     private static  FileConfigProcess pluginData;
     private static boolean locale = false;
     public void initialization(){
-        if (logger == null){ logger = Logger.getLogger(getPluginInfo("name"));}
         if(pluginData == null){
             try {
                 pluginData = new FileConfigProcess();
                 pluginData.loadSource("plugin", "yml");
             }catch (IOException e){
-                logger.warning("Plugin not founded");
+                Logger.getLogger(this.getClass().getName()).warning("Plugin not founded");
             }
         }
+        if (logger == null){ logger = Logger.getLogger(getPluginInfo("name"));}
     }
     public WaterPlugin(){
         initialization();
@@ -170,7 +170,11 @@ public abstract class WaterPlugin  implements Plugin {
         for(String str : LineFontGenerator.parseLineText(lineTitleDisplay)) {
             logMsg("§6%s§r".formatted(str));
         }
-        logMsg("§e%s §6author:§7%s §6version:§7%s".formatted(getPluginInfo("name")
+        logMsg("§e%s §6author: §7%s §6version: §7%s".formatted(getPluginInfo("name")
                 , getPluginInfo("author"), getPluginInfo("version")));
+    }
+    public static String getPluginInfo(){
+        return "§6§l%s§r §ev§7%s§r".formatted(getPluginInfo("name"), getPluginInfo("version")) +
+                "§6§l by: §7%s".formatted( getPluginInfo("author"));
     }
 }

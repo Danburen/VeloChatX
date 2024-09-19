@@ -35,10 +35,7 @@ public class VeloChatX extends VelocityPlugin {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        for(String str : LineFontGenerator.parseLineText("velochatx")){
-            getLogger().info(Colors.parseColor("§6%s§r").formatted(str));
-        }
-        getLogger().info(Colors.parseColor("VeloChatX V §8%s§r §fAuthor: §8Waterwood§r".formatted(getPluginInfo("version"))));
+        showPluginTitle("VeloChatX");
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();

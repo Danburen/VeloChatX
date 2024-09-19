@@ -27,8 +27,12 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
         List<String> subCmds = this.suggest(invocation);
-        if(args.length < 1 || args.length > 2){
+        if(args.length > 2){
             illegalArgsMsg(source,"control");
+            return;
+        }
+        if(args.length == 0){
+            source.sendMessage(Component.text(Colors.parseColor(getPluginInfo())));
             return;
         }
         if(args[0].equalsIgnoreCase("reload")) { //reload command
@@ -58,8 +62,6 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
         if(source instanceof Player sourcePlayer) {
             String language = sourcePlayer.getEffectiveLocale().getLanguage();
                 if (args[0].equalsIgnoreCase("help")) {
-                    source.sendMessage(Component.text("---===\n§1VeloChatX§r  §bv%s§r  §2By:%s§r \n===---"
-                            .formatted(getPluginInfo("version"), WaterPlugin.getPluginInfo("author"))));
                     for (String cmd : subCmds) {
                         source.sendMessage(Component.text(getMessage(cmd + "-command-format-message", language)));
                     }
@@ -114,8 +116,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                 }
         }else{
             if (args[0].equalsIgnoreCase("help")) { //help command
-                source.sendMessage(Component.text(Colors.parseColor("---------------------------\n§1VeloChatX§r  §bv%s§r  §2By:%s§r\n---------------------------"
-                        .formatted(getPluginInfo("version"), WaterPlugin.getPluginInfo("author")))));
+                source.sendMessage(Component.text(Colors.parseColor(getPluginInfo())));
                 for (String cmd : subCmds) {
                     source.sendMessage(Component.text(Colors.parseColor(getMessage(cmd + "-command-format-message"))));
                 }

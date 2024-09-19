@@ -49,13 +49,9 @@ public abstract class Colors {
         if (isDisable) {
             return origin.replaceAll("§[0-9a-fA-Fr]", "");
         }
-
-        // Initializing StringBuilder for the final result
         StringBuilder sb = new StringBuilder();
         Matcher matcher = PATTERN.matcher(origin);
         int lastIndex = 0;
-
-        // Process and replace color codes
         while (matcher.find()) {
             sb.append(origin, lastIndex, matcher.start());
             String colorCode = matcher.group();
@@ -63,16 +59,11 @@ public abstract class Colors {
             sb.append(ansiCode);
             lastIndex = matcher.end();
         }
-
-        // Append the remaining part of the original string
         sb.append(origin, lastIndex, origin.length());
-
-        // Ensure the final string ends with RESET code if necessary
-        String result = sb.toString();
+        String result = sb.toString().replaceAll("§.?", "");
         if (!result.endsWith(RESET)) {
             result += RESET;
         }
-
         return result;
     }
 
