@@ -1,0 +1,3 @@
+[submodule "WaterAPI"]
+	path = WaterAPI
+	url = https://github.com/Danburen/WaterAPI

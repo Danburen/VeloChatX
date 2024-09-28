@@ -5,15 +5,17 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import me.waterwood.VelocityPlugin;
 import org.waterwood.api.LuckPermsAPI;
 import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
+import org.waterwood.plugin.velocity.VelocityPlugin;
+import org.waterwood.api.LuckPermsAPI.*;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.waterwood.api.LuckPermsAPI.*;
+
 
 public abstract class Methods extends WaterPlugin {
     private static String chatFormatText;
@@ -22,10 +24,10 @@ public abstract class Methods extends WaterPlugin {
 
     public static void load(){
         LuckPermsAPI.checkApi();
-        chatFormatText = getConfig().getString("chat-format");
+        chatFormatText = getConfigs().getString("chat-format");
         checkFormat();
-        if(getConfig().getBoolean("server-display.enable")){
-            serverDisPlayName = getConfig().getMap("server-display.display");
+        if(getConfigs().getBoolean("server-display.enable")){
+            serverDisPlayName = getConfigs().getMap("server-display.display");
         }
     }
 
@@ -57,7 +59,7 @@ public abstract class Methods extends WaterPlugin {
     public static String placeValue(String origin, Player player, ProxyServer proxyServer){
         String out = origin.toLowerCase();
         String playerName = player.getUsername();
-        String serverName = getConfig().getString("server-display.display.proxy");
+        String serverName = getConfigs().getString("server-display.display.proxy");
         String prefix = nullStrCheck(getPlayerPrefix(playerName));
         String suffix = nullStrCheck(getPlayersuffix(playerName));
         String GroupDisplayName = nullStrCheck(getPlayerGroupDisplay(playerName));

@@ -5,11 +5,11 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import me.waterwood.VelocityPlugin;
 import org.waterwood.common.Colors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.waterwood.plugin.WaterPlugin;
+import org.waterwood.plugin.velocity.VelocityPlugin;
 
 import java.util.Arrays;
 import java.util.List;

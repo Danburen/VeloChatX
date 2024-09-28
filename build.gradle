@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id "org.jetbrains.gradle.plugin.idea-ext" version "1.0.1"
+    id 'com.github.johnrengelman.shadow' version '8.1.0'
 }
 
 group = 'WaterFun.WaterWood'
@@ -13,6 +14,7 @@ repositories {
         name = 'papermc'
         url = 'https://repo.papermc.io/repository/maven-public/'
     }
+    maven { url 'https://ci.lucko.me/repository/luckperms-repo/' }
 }
 
 dependencies {
@@ -21,12 +23,21 @@ dependencies {
     annotationProcessor 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
     implementation 'org.yaml:snakeyaml:1.29'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-    // SLF4J to JUL Bridge
     implementation 'org.slf4j:jul-to-slf4j:2.0.12'
-    // SLF4J with JUL Adapter
     implementation 'org.slf4j:slf4j-jdk14:2.0.12'
+    implementation project(':WaterAPI')
 }
-
+shadowJar {
+    dependencies {
+        include(dependency('com.github.Danburen:WaterAPI:1.0.2')) // 指定要包含的库
+        // 不使用排除的通配符，这里可以不需要排除其他依赖
+    }
+    manifest {
+        attributes(
+                'Main-Class': 'site.hjfunny.velochatx.VeloChatX' // 替换为您的主类
+        )
+    }
+}
 def targetJavaVersion = 17
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)

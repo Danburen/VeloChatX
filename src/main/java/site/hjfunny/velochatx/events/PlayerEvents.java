@@ -31,16 +31,16 @@ public class PlayerEvents extends WaterPlugin {
     public void onPlayChat(PlayerChatEvent evt){
         String message = evt.getMessage();
         Player source = evt.getPlayer();
-        if(getConfig().getBoolean("ban-words.enable"))
+        if(getConfigs().getBoolean("ban-words.enable"))
             if(MsgMethods.hasBanWords(message)) {
                 source.sendMessage(Component.text(MsgMethods.getMessage("ban-words-message"),NamedTextColor.RED));
-                if(getConfig().getBoolean("ban-words.log-to-console")){
+                if(getConfigs().getBoolean("ban-words.log-to-console")){
                     getLogger().info(Colors.parseColor(MsgMethods.placeChatValue(MsgMethods.getMessage("ban-words-log-message"),message,source)));
                 }
                 return;
             }
         String fianlMessage = Methods.placeChatValue(message,source);
-        if(getConfig().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(fianlMessage,! getConfig().getBoolean("log-text.convert")));
+        if(getConfigs().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(fianlMessage,! getConfigs().getBoolean("log-text.convert")));
         proxyServer.getAllPlayers().forEach(player -> {
             if(player.getCurrentServer().get().getServerInfo().getName().equals(source.getCurrentServer().get().getServerInfo().getName())) return;
             if(playerAttrs.get(player.getUsername()).getIgnorePlayers().contains(source.getUsername())){
