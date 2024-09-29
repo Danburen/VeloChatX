@@ -38,7 +38,7 @@ public class VeloChatX extends VelocityPlugin {
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();
-        checkUpdate("Danburen","VeloChatX");
+        checkUpdate("Danburen","VeloChatX","1.3.0");
         getLogger().info(Colors.parseColor(getPluginMessage("config-files-load-message")));
         init();
         getLogger().info(Colors.parseColor(String.format(getPluginMessage("successfully-enable-message"),System.currentTimeMillis() - start)));
@@ -50,7 +50,7 @@ public class VeloChatX extends VelocityPlugin {
     public void init(){
         getLogger().info(Colors.parseColor(getPluginMessage("init-process-message")));
         server.getEventManager().register(this, new PlayerEvents());
-        Methods.load();
+        Methods.load(getProxyServer());
         registerCommands();
     }
 

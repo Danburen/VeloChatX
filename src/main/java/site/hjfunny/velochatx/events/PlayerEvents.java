@@ -9,6 +9,7 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
@@ -39,20 +40,21 @@ public class PlayerEvents extends WaterPlugin {
                 }
                 return;
             }
-        String fianlMessage = Methods.placeChatValue(message,source);
-        if(getConfigs().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(fianlMessage,! getConfigs().getBoolean("log-text.convert")));
+        String finalMessage = Methods.placeChatValue(message,source);
+        if(getConfigs().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(finalMessage,! getConfigs().getBoolean("log-text.convert")));
         proxyServer.getAllPlayers().forEach(player -> {
             if(player.getCurrentServer().get().getServerInfo().getName().equals(source.getCurrentServer().get().getServerInfo().getName())) return;
             if(playerAttrs.get(player.getUsername()).getIgnorePlayers().contains(source.getUsername())){
                 return;
             }
-                player.sendMessage(Component.text(fianlMessage));
+                player.sendMessage(Component.text(finalMessage));
         });
     }
 
     @Subscribe(order = PostOrder.NORMAL)
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
+        if(getConfigs().getBoolean("tab-list.enable")) Methods.updateTabList(player);
         String locale;
         try {
             locale = player.getEffectiveLocale().getLanguage();
@@ -69,7 +71,7 @@ public class PlayerEvents extends WaterPlugin {
     public void onProxyConnect(LoginEvent evt){
         Player player = evt.getPlayer();
         playerAttrs.put(player.getUsername(), new PlayerAttribution(new HashSet<>(), new HashSet<>(), true));
-        MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer(),evt);
+        MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer());
     }
     @Subscribe(order = PostOrder.NORMAL)
     public void onDisConnect(DisconnectEvent evt){

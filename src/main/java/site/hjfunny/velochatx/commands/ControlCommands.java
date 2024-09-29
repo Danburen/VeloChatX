@@ -39,7 +39,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             if (source.hasPermission("velochatx.admin")) {
                 if (args.length == 1) {
                     VeloChatX.getInstance().reloadConfig();
-                    Methods.load();
+                    Methods.load(VeloChatX.getProxyServer());
                     source.sendMessage(Component.text(getPluginMessage("config-reload-completed-message"), NamedTextColor.GREEN));
                     return;
                 }

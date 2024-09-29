@@ -62,8 +62,8 @@ join-leave-proxy-broadcast:
   enable: true
   log-to-console: true
   send-to-all-subServer: true
-  player-join-message: "§a[+]§r{Group}{Prefix}{Player}{Suffix} now joined the {Server}"
-  player-leave-message: "§c[-]§r{Group}{Prefix}{Player}{Suffix} now leave the {Server}"
+  player-join-message: "§a[+]§r{Group}{Prefix}{Player}{Suffix} now joined the {Proxy}"
+  player-leave-message: "§c[-]§r{Group}{Prefix}{Player}{Suffix} now leave the {Proxy}"
 
 # Whether show title to target player when mention him.
 mention-show-title:
