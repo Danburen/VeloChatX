@@ -62,7 +62,7 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
                         config.getInteger("mention-show-title.time.fade-out")};
                 targetPlayer.showTitle(new titleShow(mainTitle,subTitle,time));
             }
-            targetPlayer.playSound(new soundPlay(Key.key("minecraft:block.note_block.pling"), Sound.Source.BLOCK),Sound.Emitter.self());
+            targetPlayer.playSound(Sound.sound(Key.key("minecraft:block.note_block.pling"), Sound.Source.BLOCK,1f,1f),Sound.Emitter.self());
         }
     }
 
@@ -103,45 +103,6 @@ class titleShow implements Title {
 
     @Override
     public <T> @UnknownNullability T part(@NotNull TitlePart<T> part) {
-        return null;
-    }
-}
-
-class soundPlay implements Sound {
-    private final Key key;
-    private final Source source;
-    soundPlay(Key name,Source source){
-        this.key = name;
-        this.source = source;
-    }
-
-    @Override
-    public @NotNull Key name() {
-        return key;
-    }
-
-    @Override
-    public @NotNull Source source() {
-        return source;
-    }
-
-    @Override
-    public float volume() {
-        return 1f;
-    }
-
-    @Override
-    public float pitch() {
-        return 1f;
-    }
-
-    @Override
-    public @NotNull OptionalLong seed() {
-        return null;
-    }
-
-    @Override
-    public @NotNull SoundStop asStop() {
         return null;
     }
 }

@@ -1,20 +1,14 @@
 package site.hjfunny.velochatx.methods;
 
 import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.event.connection.DisconnectEvent;
-import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import site.hjfunny.velochatx.VeloChatX;
-
-import java.util.Optional;
 
 public class MsgMethods extends Methods {
     private static final ProxyServer proxyServer = VelocityPlugin.getProxyServer();
@@ -92,48 +86,45 @@ public class MsgMethods extends Methods {
         return out;
     }
 
-    public static void serverMessage(String messageSource, Player player, ServerConnectedEvent evt){
-        if(getConfigs().getBoolean(messageSource + ".enable")) {
+    public static String getMsgData(String msgSource,String type,boolean withPrefix){
+        return withPrefix ? getConfigs().getString(msgSource + "." + type + "-prefix")
+                + getConfigs().getString(msgSource + ".player-" + type + "-message")
+                :  getConfigs().getString(msgSource + ".player-" + type + "-message");
+    }
+    public static String convertProxyMessage(String msgSource,Player player,String type){
+        return placeValue(getMsgData(msgSource,type,true),player);
+    }
+    public static String convertMessage(String msgSource,Player player,RegisteredServer server,String type,boolean withPrefix){
+        return placeValue(getMsgData(msgSource,type,withPrefix),player,server);
+    }
+    public static void serverMessage(String msgSource, Player player, ServerConnectedEvent evt){
+        if(getConfigs().getBoolean(msgSource + ".enable")) {
             RegisteredServer connectServer = evt.getServer();
             evt.getPreviousServer().ifPresent(preServer -> {
-                preServer.sendMessage(Component.text(placeValue(getConfigs().getString(messageSource +".player-leave-message"),player,preServer)));
+                preServer.sendMessage(Component.text(convertMessage(msgSource,player,preServer,"leave",true)));
             });
-            String joinMessage = placeValue(getConfigs().getString(messageSource + ".player-join-message"),player,connectServer);
+            String joinMessage = convertMessage(msgSource,player,connectServer,"join",true);
             connectServer.sendMessage(Component.text(joinMessage));
-            if(getConfigs().getBoolean(messageSource + ".log-to-console")){
+            if(getConfigs().getBoolean(msgSource + ".log-to-console")){
                 WaterPlugin.getLogger().info(Colors.parseColor(joinMessage));
             }
-            if(getConfigs().getBoolean(messageSource + ".send-to-all-subServer")){
-                proxyServer.getAllServers().forEach(registeredServer ->
-                        registeredServer.sendMessage(Component.text(joinMessage))
-                );
+            if(getConfigs().getBoolean(msgSource + ".send-to-all-subServer")){
+                proxyServer.getAllServers().forEach(registeredServer -> {
+                    if(! registeredServer.equals(connectServer)){
+                            registeredServer.sendMessage(Component.text(convertMessage(msgSource,player,connectServer,"join",false)));
+                    }
+                });
             }
         }
     }
-
-    public static void serverMessage(String messageSource, Player player){
-        //ProxyServer proxyServer = VelocityPlugin.getProxyServer();
-        if(getConfigs().getBoolean(messageSource + ".enable")) {
-            String messageText = placeValue(getConfigs().getString(messageSource + ".player-join-message"),player);
-            if(getConfigs().getBoolean(messageSource + ".log-to-console")){
+    public static void proxyMessage(String MsgSource, Player player, String type){
+        if(getConfigs().getBoolean(MsgSource + ".enable")) {
+            ProxyServer proxyServer = VelocityPlugin.getProxyServer();
+            String messageText = convertProxyMessage(MsgSource,player,type);
+            if(getConfigs().getBoolean(MsgSource + ".log-to-console")){
                 getLogger().info(Colors.parseColor(messageText));
             }
-            if(getConfigs().getBoolean(messageSource + ".send-to-all-subServer")){
-                proxyServer.getAllServers().forEach(registeredServer ->
-                        registeredServer.sendMessage(Component.text(messageText))
-                );
-            }
-        }
-    }
-
-    public static void serverMessage(String messageSource, Player player, DisconnectEvent evt){
-        ProxyServer proxyServer = VelocityPlugin.getProxyServer();
-        if(getConfigs().getBoolean(messageSource + ".enable")) {
-            String messageText = placeValue(getConfigs().getString(messageSource + ".player-leave-message"),player);
-            if(getConfigs().getBoolean(messageSource + ".log-to-console")){
-                VeloChatX.getLogger().info(Colors.parseColor(messageText));
-            }
-            if(getConfigs().getBoolean(messageSource + ".send-to-all-subServer")){
+            if(getConfigs().getBoolean(MsgSource + ".send-to-all-subServer")){
                 proxyServer.getAllServers().forEach(registeredServer ->
                         registeredServer.sendMessage(Component.text(messageText))
                 );

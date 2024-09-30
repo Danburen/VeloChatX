@@ -9,7 +9,6 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
 import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
@@ -66,16 +65,14 @@ public class PlayerEvents extends WaterPlugin {
         }
 
     }
-
     @Subscribe(order = PostOrder.NORMAL)
     public void onProxyConnect(LoginEvent evt){
-        Player player = evt.getPlayer();
-        playerAttrs.put(player.getUsername(), new PlayerAttribution(new HashSet<>(), new HashSet<>(), true));
-        MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer());
+        playerAttrs.put(evt.getPlayer().getUsername(), new PlayerAttribution(new HashSet<>(), new HashSet<>(), true));
+        MsgMethods.proxyMessage("join-leave-proxy-broadcast",evt.getPlayer(),"join");
     }
     @Subscribe(order = PostOrder.NORMAL)
     public void onDisConnect(DisconnectEvent evt){
-        MsgMethods.serverMessage("join-leave-proxy-broadcast",evt.getPlayer(),evt);
+        MsgMethods.proxyMessage("join-leave-proxy-broadcast",evt.getPlayer(),"leave");
         playerAttrs.remove(evt.getPlayer().getUsername());
     }
 }

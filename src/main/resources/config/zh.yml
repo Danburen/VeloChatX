@@ -50,16 +50,20 @@ join-leave-broadcast:
   enable: true
   log-to-console: true
   send-to-all-subServer: false
-  player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} 加入了 {Server}"
-  player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} 离开了 {Server}"
+  join-prefix: "§a(+)§r"
+  leave-prefix: "§c(-)§r"
+  player-join-message: "{Group}{Prefix}{Player}{Suffix} 加入了 {Server}"
+  player-leave-message: "{Group}{Prefix}{Player}{Suffix} 离开了 {Server}"
 
 # 是否需要在玩家离开/加入 群组服务器的时候，在原服务器发送离开消息，在被加入的服务器发送加入消息
 join-leave-proxy-broadcast:
   enable: true
   log-to-console: true
   send-to-all-subServer: true
-  player-join-message: "§a[+]§r{Group}{Prefix}{Player}{Suffix} 现在加入了 {Proxy}"
-  player-leave-message: "§c[-]§r{Group}{Prefix}{Player}{Suffix} 现在离开了 {Proxy}"
+  join-prefix: "§a[+]]§r"
+  leave-prefix: "§c[-]]§r"
+  player-join-message: "{Group}{Prefix}{Player}{Suffix} 现在加入了 {Proxy}"
+  player-leave-message: "{Group}{Prefix}{Player}{Suffix} 现在离开了 {Proxy}"
 
 # 是否在提醒的时候给玩家大屏幕显示标题
 mention-show-title:
