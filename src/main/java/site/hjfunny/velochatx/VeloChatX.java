@@ -13,6 +13,7 @@ import site.hjfunny.velochatx.commands.ControlCommands;
 import site.hjfunny.velochatx.commands.MentionCommand;
 import site.hjfunny.velochatx.commands.MsgCommand;
 import site.hjfunny.velochatx.events.PlayerEvents;
+import site.hjfunny.velochatx.events.PlayerTabListEvents;
 import site.hjfunny.velochatx.methods.Methods;
 
 
@@ -50,6 +51,7 @@ public class VeloChatX extends VelocityPlugin {
     public void init(){
         getLogger().info(Colors.parseColor(getPluginMessage("init-process-message")));
         server.getEventManager().register(this, new PlayerEvents());
+        server.getEventManager().register(this,new PlayerTabListEvents(getProxyServer(),this));
         Methods.load(getProxyServer());
         registerCommands();
     }

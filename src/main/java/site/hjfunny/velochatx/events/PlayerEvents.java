@@ -14,6 +14,7 @@ import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import site.hjfunny.velochatx.PlayerAttribution;
+import site.hjfunny.velochatx.TabListManager;
 import site.hjfunny.velochatx.methods.Methods;
 import site.hjfunny.velochatx.VeloChatX;
 import site.hjfunny.velochatx.methods.MsgMethods;
@@ -53,7 +54,7 @@ public class PlayerEvents extends WaterPlugin {
     @Subscribe(order = PostOrder.NORMAL)
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
-        if(getConfigs().getBoolean("tab-list.enable")) Methods.updateTabList(player);
+        if(getConfigs().getBoolean("tab-list.enable")) TabListManager.updateTabList(player);
         String locale;
         try {
             locale = player.getEffectiveLocale().getLanguage();
@@ -76,13 +77,4 @@ public class PlayerEvents extends WaterPlugin {
         playerAttrs.remove(evt.getPlayer().getUsername());
     }
 }
-//    @Subscribe(order = PostOrder.FIRST)
-//    public void onLoginIn(LoginEvent evt){
-//        try{
-//            String locale = evt.getPlayer().getEffectiveLocale().getLanguage();
-//            config.loadLocaleMsg(locale);
-//        }catch (NullPointerException e){
-//            getLogger().warn("can't get player's language");
-//        }
-//    }
 

@@ -10,10 +10,11 @@ import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
-import org.waterwood.api.LuckPermsAPI;
+import org.waterwood.hock.LuckPermsHock;
 import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import org.waterwood.plugin.velocity.VelocityPlugin;
+import site.hjfunny.velochatx.TabListManager;
 import site.hjfunny.velochatx.VeloChatX;
 
 import java.util.Collection;
@@ -22,37 +23,34 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.waterwood.api.LuckPermsAPI.*;
+import static org.waterwood.hock.LuckPermsHock.*;
 
 
 public abstract class Methods extends WaterPlugin {
     private static String chatFormatText;
     private static Map<String,String> serverDisPlayName = null;
-    private static ScheduledTask schedulerTask;
+    private static ScheduledTask scheduler;
     private static ProxyServer proxyServer;
-    private static String TAB_LIST_FORMAT = getConfigs().getString("tab-list.format");
     public static void load(ProxyServer proxyServer){
-        LuckPermsAPI.checkApi();
-        setUpConst();
+        LuckPermsHock.checkApi();
         chatFormatText = getConfigs().getString("chat-format");
         checkFormat();
         if(getConfigs().getBoolean("server-display.enable")){
             serverDisPlayName = getConfigs().getMap("server-display.display");
         }
         Methods.proxyServer = proxyServer;
-        if(getConfigs().getBoolean("tab-list.enable")){
-            updateTabListTask(getConfigs().getInteger("tab-list.interval"),proxyServer);
-        }else{
-            if(schedulerTask != null) schedulerTask.cancel();
-            proxyServer.getAllPlayers().forEach(player ->{
-                player.getTabList().clearAll();
-                player.getTabList().clearHeaderAndFooter();
-            });
+        TabListManager.init(proxyServer);
+        TabListManager.setConstVals();
+        if(scheduler!= null) scheduler.cancel();
+        if(TabListManager.isTabListEnable()){
+            proxyServer.getAllPlayers().forEach(TabListManager::setUpHeadAndFooter);
+            scheduler = proxyServer.getScheduler().buildTask(VeloChatX.getInstance(),task->{
+                        proxyServer.getAllPlayers().forEach(TabListManager::updateTabList);
+                    })
+                    .delay(1L, TimeUnit.SECONDS)
+                    .repeat(Methods.getConfigs().getInteger("tab-list.interval"), TimeUnit.MILLISECONDS)
+                    .schedule();
         }
-
-    }
-    public static void setUpConst(){
-        TAB_LIST_FORMAT = getConfigs().getString("tab-list.format");
     }
 
     public static void checkFormat(){
@@ -103,7 +101,8 @@ public abstract class Methods extends WaterPlugin {
         return out.toString();
     }
     public static StringBuilder placePlayerValue(String origin, Player player){
-        StringBuilder out = new StringBuilder(origin.toLowerCase());
+        String in = origin.toLowerCase();
+        StringBuilder out = new StringBuilder(in.matches(".*%[^%]+%.*") ? in.replaceAll("%([^%]+)%", "{$1}") : in);
         String playerName = player.getUsername();
         String prefix = getSafeString(getPlayerPrefix(playerName));
         String suffix = getSafeString(getPlayersuffix(playerName));
@@ -140,29 +139,5 @@ public abstract class Methods extends WaterPlugin {
     public static void useDefaultFormatChat(){
        chatFormatText = "{Server}{Player} §7:§r {Message}";
     }
-    public static void updateTabListTask(int interval,ProxyServer proxyServer){
-        if(schedulerTask != null){
-            schedulerTask.cancel();
-        }
-        schedulerTask = proxyServer.getScheduler().buildTask(VeloChatX.getInstance(),() ->
-                proxyServer.getAllPlayers().forEach(Methods::updateTabList))
-                .repeat(interval, TimeUnit.MILLISECONDS) .schedule();
-    }
 
-    public static void updateTabList(Player player){
-        TabList tabList = player.getTabList();
-        tabList.clearAll();
-        String header = Methods.placeValue(getConfigs().getString("tab-list.header"),player);
-        String footer = Methods.placeValue(getConfigs().getString("tab-list.footer"),player);
-        proxyServer.getAllServers().forEach( server -> proxyServer.getAllPlayers().forEach(p ->{
-                /*if (p.getCurrentServer().map(ServerConnection::getServer)
-                                .map(ServerConnection -> ServerConnection.equals(server)).orElse(false)){
-                  }*/
-            TabListEntry tabListEntry= TabListEntry.builder().displayName(Component.text(
-                    Methods.placeValue(TAB_LIST_FORMAT,p)
-            )).tabList(tabList).profile(p.getGameProfile()).build();
-            tabList.addEntry(tabListEntry);
-        }));
-        player.sendPlayerListHeaderAndFooter(Component.text(header),Component.text(footer));
-    }
 }
