@@ -10,16 +10,27 @@
 * auto fix the language for the player join the game
 
 ### Programe build
-  use my own [api](https://github.com/Danburen/DeloChatX/tree/main/src/main/java/me/waterwood) to adapted to Velocity
-  since Velocity still in the developing.
-  
-  Using Snake Yaml to load config files.
-  Using properties load plugin message file.
-  
-  see more in [me.waterwood.*](https://github.com/Danburen/DeloChatX/tree/main/src/main/java/me/waterwood)
-
+  USE MY OWN API [WaterAPI](https://github.com/Danburen/WaterAPI/)
+  USE JITPACK
 ### Build
-* Java 17 JDK or newer.
-
+***Requirement*** 
+* Java 17 or newer.
+* [JitPack](https://www.jitpack.io/#Danburen/WaterAPI)
+```Gradle:
+	dependencyResolutionManagement {
+		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+		repositories {
+			mavenCentral()
+			maven { url 'https://www.jitpack.io' }
+		}
+	}
+```
+dependency:
+```Gradle:
+dependencies {
+	        implementation 'com.github.Danburen:WaterAPI:-SHAPSHOT'
+	}
+```
 ### Stats
 ![Bstats](https://bstats.org/signatures/velocity/VeloChatX.svg)
+
