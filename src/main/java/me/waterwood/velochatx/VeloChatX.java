@@ -18,7 +18,8 @@ import me.waterwood.velochatx.methods.Methods;
 @Plugin(
         id = "velochatx",
         name = "VeloChatX",
-        authors = "Waterwood")
+        authors = "Waterwood",
+        version = "1.3.2")
 public class VeloChatX extends VelocityPlugin {
     private final ProxyServer server;
     private static VeloChatX Instance;
