@@ -1,19 +1,18 @@
-package site.hjfunny.velochatx.commands;
+package me.waterwood.velochatx.commands;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
+import me.waterwood.velochatx.PlayerAttribution;
+import me.waterwood.velochatx.VeloChatX;
+import me.waterwood.velochatx.events.PlayerEvents;
+import me.waterwood.velochatx.methods.Methods;
 import org.waterwood.common.Colors;
-import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import site.hjfunny.velochatx.PlayerAttribution;
-import site.hjfunny.velochatx.VeloChatX;
-import site.hjfunny.velochatx.events.PlayerEvents;
-import site.hjfunny.velochatx.methods.Methods;
-import site.hjfunny.velochatx.methods.MsgMethods;
+import me.waterwood.velochatx.methods.MsgMethods;
 
 import java.io.IOException;
 import java.util.*;
@@ -66,7 +65,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                         source.sendMessage(Component.text(getMessage(cmd + "-command-format-message", language)));
                     }
                 } else {
-                    PlayerAttribution attrs = PlayerEvents.getPlayerAttrs().get(sourcePlayer.getUsername());
+                    PlayerAttribution attrs = PlayerEvents.getPlayerAttrs().get(sourcePlayer.getUniqueId());
                     List<String> players = VelocityPlugin.getAllPlayerName();
                     if (args[0].equalsIgnoreCase("on")) { //velochatx on command
                         attrs.setAccess(true);
@@ -89,21 +88,22 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                             return;
                         }
                         Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[1]).get();
+                        UUID targetUUID = targetPlayer.getUniqueId();
                         switch (command) {
                             case "ignore" -> {       // velochatX ignore command
-                                attrs.addIgnorePlayers(args[1]);
+                                attrs.addIgnorePlayers(targetUUID);
                                 sendRawMessage(source, MsgMethods.convertMessage("has-ignore-message", targetPlayer, source));
                             }
                             case "reject" -> {                               // velochatX reject command
-                                attrs.addRejectPlayers(args[1]);
+                                attrs.addRejectPlayers(targetUUID);
                                 sendRawMessage(source, MsgMethods.convertMessage("has-reject-message", targetPlayer, source));
                             }
                             case "remove" -> {
-                                Set<String> mutedPlayers = new HashSet<>();
+                                Set<UUID> mutedPlayers = new HashSet<>();
                                 mutedPlayers.addAll(attrs.getRejectPlayers());
                                 mutedPlayers.addAll(attrs.getIgnorePlayers());
-                                if (mutedPlayers.contains(args[1])) {
-                                    attrs.removeIJ(args[1]);
+                                if (mutedPlayers.contains(targetUUID)) {
+                                    attrs.removeIJ(targetUUID);
                                     sendRawMessage(source, MsgMethods.convertMessage("normal-chat-message", targetPlayer, source));
                                     sendRawMessage(targetPlayer, MsgMethods.convertMessage("normal-chat-message", source, targetPlayer));
                                 } else {

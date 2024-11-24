@@ -1,27 +1,22 @@
-package site.hjfunny.velochatx.methods;
+package me.waterwood.velochatx.methods;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
-import com.velocitypowered.api.proxy.player.TabList;
-import com.velocitypowered.api.proxy.player.TabListEntry;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.scheduler.ScheduledTask;
-import net.kyori.adventure.text.Component;
+import me.waterwood.velochatx.VeloChatX;
 import org.waterwood.hock.LuckPermsHock;
 import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import site.hjfunny.velochatx.TabListManager;
-import site.hjfunny.velochatx.VeloChatX;
+import me.waterwood.velochatx.TabListManager;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.waterwood.hock.LuckPermsHock.*;
 
@@ -43,8 +38,8 @@ public abstract class Methods extends WaterPlugin {
         TabListManager.setConstVals();
         if(scheduler!= null) scheduler.cancel();
         if(TabListManager.isTabListEnable()){
-            proxyServer.getAllPlayers().forEach(TabListManager::setUpHeadAndFooter);
-            scheduler = proxyServer.getScheduler().buildTask(VeloChatX.getInstance(),task->{
+//            proxyServer.getAllPlayers().forEach(TabListManager::setUpHeadAndFooter);
+            scheduler = proxyServer.getScheduler().buildTask(VeloChatX.getInstance(), task->{
                         proxyServer.getAllPlayers().forEach(TabListManager::updateTabList);
                     })
                     .delay(1L, TimeUnit.SECONDS)
@@ -78,7 +73,7 @@ public abstract class Methods extends WaterPlugin {
         int index = 0;
         while ((index = builder.indexOf(placeholder, index)) != -1) {
             builder.replace(index, index + placeholder.length(), value);
-            index += value.length(); // 更新索引以继续查找
+            index += value.length();
         }
     }
     public static String placeValue(String origin,Player player,RegisteredServer targetServer){
@@ -129,10 +124,12 @@ public abstract class Methods extends WaterPlugin {
         }
     }
 
-    public static List<String> getAllPlayer(CommandSource source){
-        List<String> players =  VelocityPlugin.getAllPlayerName();
-        if(source instanceof Player player){
-            players.remove(player.getUsername());
+    public static List<String> getAllPlayer(CommandSource source) {
+        List<String> players = new ArrayList<>(VelocityPlugin.getAllPlayerName());  // 转换为可变集合
+        if (source instanceof Player player) {
+            players = players.stream()
+                    .filter(p -> !p.equals(player.getUsername()))  // 使用过滤器排除当前玩家
+                    .collect(Collectors.toList());  // 收集到新的 List 中
         }
         return players;
     }

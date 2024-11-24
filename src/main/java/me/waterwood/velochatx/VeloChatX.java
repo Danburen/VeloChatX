@@ -1,20 +1,18 @@
-package site.hjfunny.velochatx;
+package me.waterwood.velochatx;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
-import org.slf4j.Logger;
+import me.waterwood.velochatx.events.PlayerEvents;
 import org.waterwood.common.Colors;
-import org.waterwood.common.LineFontGenerator;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import site.hjfunny.velochatx.commands.ControlCommands;
-import site.hjfunny.velochatx.commands.MentionCommand;
-import site.hjfunny.velochatx.commands.MsgCommand;
-import site.hjfunny.velochatx.events.PlayerEvents;
-import site.hjfunny.velochatx.events.PlayerTabListEvents;
-import site.hjfunny.velochatx.methods.Methods;
+import me.waterwood.velochatx.commands.ControlCommands;
+import me.waterwood.velochatx.commands.MentionCommand;
+import me.waterwood.velochatx.commands.MsgCommand;
+import me.waterwood.velochatx.events.PlayerTabListEvents;
+import me.waterwood.velochatx.methods.Methods;
 
 
 @Plugin(

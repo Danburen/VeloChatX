@@ -1,4 +1,4 @@
-package site.hjfunny.velochatx.methods;
+package me.waterwood.velochatx.methods;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;

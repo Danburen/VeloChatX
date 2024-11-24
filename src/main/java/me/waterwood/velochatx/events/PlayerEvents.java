@@ -1,4 +1,4 @@
-package site.hjfunny.velochatx.events;
+package me.waterwood.velochatx.events;
 
 
 import com.velocitypowered.api.event.PostOrder;
@@ -13,18 +13,18 @@ import org.waterwood.common.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import site.hjfunny.velochatx.PlayerAttribution;
-import site.hjfunny.velochatx.TabListManager;
-import site.hjfunny.velochatx.methods.Methods;
-import site.hjfunny.velochatx.VeloChatX;
-import site.hjfunny.velochatx.methods.MsgMethods;
+import me.waterwood.velochatx.PlayerAttribution;
+import me.waterwood.velochatx.TabListManager;
+import me.waterwood.velochatx.methods.Methods;
+import me.waterwood.velochatx.VeloChatX;
+import me.waterwood.velochatx.methods.MsgMethods;
 
 import java.util.*;
 
 public class PlayerEvents extends WaterPlugin {
     private final ProxyServer proxyServer = VeloChatX.getInstance().getProxyServer();
-    private static Map<String,PlayerAttribution> playerAttrs = new HashMap<>();
-    public static Map<String, PlayerAttribution> getPlayerAttrs() {
+    private static Map<UUID,PlayerAttribution> playerAttrs = new HashMap<>();
+    public static Map<UUID, PlayerAttribution> getPlayerAttrs() {
         return playerAttrs;
     }
 
@@ -44,17 +44,20 @@ public class PlayerEvents extends WaterPlugin {
         if(getConfigs().getBoolean("log-text.enable")) getLogger().info(Colors.parseColor(finalMessage,! getConfigs().getBoolean("log-text.convert")));
         proxyServer.getAllPlayers().forEach(player -> {
             if(player.getCurrentServer().get().getServerInfo().getName().equals(source.getCurrentServer().get().getServerInfo().getName())) return;
-            if(playerAttrs.get(player.getUsername()).getIgnorePlayers().contains(source.getUsername())){
+            if(playerAttrs.get(player.getUniqueId()).getIgnorePlayers().contains(source.getUniqueId())){
                 return;
             }
-                player.sendMessage(Component.text(finalMessage));
+            player.sendMessage(Component.text(finalMessage));
         });
     }
-
     @Subscribe(order = PostOrder.NORMAL)
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
-        if(getConfigs().getBoolean("tab-list.enable")) TabListManager.updateTabList(player);
+        updateAllPlayerTabListHF();
+        if(getConfigs().getBoolean("tab-list.enable")) {
+            TabListManager.setUpHeadAndFooter(player,evt.getServer());
+            TabListManager.updateTabList(player);
+        }
         String locale;
         try {
             locale = player.getEffectiveLocale().getLanguage();
@@ -68,13 +71,25 @@ public class PlayerEvents extends WaterPlugin {
     }
     @Subscribe(order = PostOrder.NORMAL)
     public void onProxyConnect(LoginEvent evt){
-        playerAttrs.put(evt.getPlayer().getUsername(), new PlayerAttribution(new HashSet<>(), new HashSet<>(), true));
+        playerAttrs.put(evt.getPlayer().getUniqueId(), new PlayerAttribution(new HashSet<>(), new HashSet<>(), true));
         MsgMethods.proxyMessage("join-leave-proxy-broadcast",evt.getPlayer(),"join");
     }
     @Subscribe(order = PostOrder.NORMAL)
     public void onDisConnect(DisconnectEvent evt){
+        updateAllPlayerTabListHF();
         MsgMethods.proxyMessage("join-leave-proxy-broadcast",evt.getPlayer(),"leave");
-        playerAttrs.remove(evt.getPlayer().getUsername());
+        playerAttrs.get(evt.getPlayer().getUniqueId());
+        playerAttrs.remove(evt.getPlayer().getUniqueId());
+    }
+
+    private void updateAllPlayerTabListHF(){
+        proxyServer.getAllServers().forEach(
+                registeredServer -> {
+                    registeredServer.getPlayersConnected().forEach(
+                            player -> TabListManager.setUpHeadAndFooter(player,registeredServer)
+                    );
+                }
+        );
     }
 }
 

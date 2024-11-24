@@ -1,12 +1,12 @@
-package site.hjfunny.velochatx.commands;
+package me.waterwood.velochatx.commands;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
+import me.waterwood.velochatx.events.PlayerEvents;
 import org.waterwood.io.FileConfiguration;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
@@ -14,12 +14,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import site.hjfunny.velochatx.events.PlayerEvents;
-import site.hjfunny.velochatx.methods.MsgMethods;
+import me.waterwood.velochatx.methods.MsgMethods;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.OptionalLong;
 
 public class  MentionCommand extends VelocitySimpleCommand implements SimpleCommand {
     private final  static  String PRIMARY_ALIAS = "mention";
@@ -42,11 +40,11 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
         }else{
             Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[0]).get();
             if(source instanceof Player sourcePlayer){
-                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getRejectPlayers().contains(sourcePlayer.getUsername())){
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getRejectPlayers().contains(sourcePlayer.getUniqueId())){
                     sendRawMessage(source,MsgMethods.convertMessage("msg-reject-message", targetPlayer, source));
                     return;
                 }
-                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getIgnorePlayers().contains(sourcePlayer.getUsername())){
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getIgnorePlayers().contains(sourcePlayer.getUniqueId())){
                     return;
                 }
             }

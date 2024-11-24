@@ -1,4 +1,4 @@
-package site.hjfunny.velochatx.commands;
+package me.waterwood.velochatx.commands;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;

@@ -1,13 +1,13 @@
-package site.hjfunny.velochatx.commands;
+package me.waterwood.velochatx.commands;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
+import me.waterwood.velochatx.events.PlayerEvents;
 import org.waterwood.common.Colors;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import site.hjfunny.velochatx.events.PlayerEvents;
-import site.hjfunny.velochatx.methods.Methods;
-import site.hjfunny.velochatx.methods.MsgMethods;
+import me.waterwood.velochatx.methods.Methods;
+import me.waterwood.velochatx.methods.MsgMethods;
 
 import java.util.List;
 
@@ -39,12 +39,12 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
                 message.append(" ").append(args[i]);
             }
             if(source instanceof Player sourcePlayer){
-                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getRejectPlayers().contains(sourcePlayer.getUsername())){
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getRejectPlayers().contains(sourcePlayer.getUniqueId())){
                     sendRawMessage(source,MsgMethods.convertMessage("msg-reject-message", targetPlayer, source));
                     return;
                 }
                 sendRawMessage(source, Methods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer));
-                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUsername()).getIgnorePlayers().contains(sourcePlayer.getUsername())){
+                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getIgnorePlayers().contains(sourcePlayer.getUniqueId())){
                     return;
                 }
                 sendRawMessage(targetPlayer, Methods.placeValue(getMessage("msg-receive-message").replace("{Message}", message.toString()),sourcePlayer));

@@ -1,12 +1,11 @@
-package site.hjfunny.velochatx;
+package me.waterwood.velochatx;
 
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.player.TabList;
-import com.velocitypowered.api.proxy.player.TabListEntry;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.scheduler.ScheduledTask;
+import me.waterwood.velochatx.methods.Methods;
 import net.kyori.adventure.text.Component;
-import site.hjfunny.velochatx.methods.Methods;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,15 +27,12 @@ public class TabListManager extends Methods {
         FOOTER_FORMAT = getConfigs().getString("tab-list.footer");
         TAB_LIST_ENABLE = getConfigs().getBoolean("tab-list.enable");
     }
-    public static void setHeadAndFooter(Player player, String header, String footer){
-        player.sendPlayerListHeaderAndFooter(Component.text(header),Component.text(footer));
-    }
 
-    public static void setUpHeadAndFooter(Player player){
+    public static void setUpHeadAndFooter(Player player, RegisteredServer server){
         player.getTabList().clearHeaderAndFooter();
-        String header = placeValue(HEADER_FORMAT,player);
-        String footer = placeValue(FOOTER_FORMAT,player);
-        setHeadAndFooter(player,header,footer);
+        String header = placeValue(HEADER_FORMAT,player,server);
+        String footer = placeValue(FOOTER_FORMAT,player,server);
+        player.sendPlayerListHeaderAndFooter(Component.text(header),Component.text(footer));
     }
 
     public static void putPlayerTask(Player player,ScheduledTask task) {
