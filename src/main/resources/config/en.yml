@@ -2,10 +2,10 @@
 # build java version: JE 17
 # author: waterwood
 # Available language zh,en
-ConfigVersion: 1.3.0
+config-version: 1.3.2
 check-update:
-  enable: enable
-  auto-download: false
+  enable: true
+  auto-download: true
 
 # use like {xxx} to parse values for your chat text
 # Group: return the Group DisplayName which the player is in.
@@ -56,6 +56,8 @@ join-leave-broadcast:
   enable: true
   log-to-console: true
   send-to-all-subServer: false
+  join-prefix: "§a(+)§r"
+  leave-prefix: "§c(-)§r"
   player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} has joined the {Server}"
   player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} has left the {Server}"
 
@@ -65,8 +67,10 @@ join-leave-proxy-broadcast:
   enable: true
   log-to-console: true
   send-to-all-subServer: true
-  player-join-message: "§a[+]§r{Group}{Prefix}{Player}{Suffix} now joined the {Server}"
-  player-leave-message: "§c[-]§r{Group}{Prefix}{Player}{Suffix} now leave the {Server}"
+  join-prefix: "§a[+]]§r"
+  leave-prefix: "§c[-]]§r"
+  player-join-message: "{Group}{Prefix}{Player}{Suffix} 现在加入了 {Proxy}"
+  player-leave-message: "{Group}{Prefix}{Player}{Suffix} 现在离开了 {Proxy}"
 
 # Whether show title to target player when mention him.
 mention-show-title:
@@ -85,7 +89,7 @@ tab-list:
   interval: 1000 # refresh interval use millions seconds (ms)
   format: "{server}{prefix}{player}{Suffix}" #display each row of tab list  reference by chat format and server placeholder
   header: "Welcome you Join {proxy} Current Server: {server}"
-  footer: "ONLINE: {online} | Ping: §8{ping}"
+  footer: "ONLINES:  §8{total_online}§r | Ping: §8{ping}"
 
 # ban words,split with ","
 ban-words:
