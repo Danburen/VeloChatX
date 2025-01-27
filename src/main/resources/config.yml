@@ -67,8 +67,8 @@ join-leave-proxy-broadcast:
   enable: true
   log-to-console: true
   send-to-all-subServer: true
-  join-prefix: "§a[+]]§r"
-  leave-prefix: "§c[-]]§r"
+  join-prefix: "§a[+]§r"
+  leave-prefix: "§c[-]§r"
   player-join-message: "{Group}{Prefix}{Player}{Suffix} 现在加入了 {Proxy}"
   player-leave-message: "{Group}{Prefix}{Player}{Suffix} 现在离开了 {Proxy}"
 

@@ -6,7 +6,7 @@ import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.player.TabListEntry;
-import me.waterwood.velochatx.TabListManager;
+import me.waterwood.velochatx.manager.TabListManager;
 import me.waterwood.velochatx.VeloChatX;
 import me.waterwood.velochatx.methods.Methods;
 import net.kyori.adventure.text.Component;

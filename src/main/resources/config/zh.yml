@@ -1,14 +1,15 @@
-# VelochatX 1.3.2
+# VelochatX 1.4.0
 # build java version: JE 17
 # author: waterwood
 # Available language zh,en
-config-version: 1.3.2
+config-version: 1.4.0
 check-update:
   enable: true
   auto-download: true
 
 # 配置聊天输出的格式{xxx}代表替换的变量
 # 在message里，这些规则也适用
+# channel: 返回玩家所在的服务器频道
 # Group: 返回玩家的组别
 # Prefix/Suffix: 返回玩家的前/后缀
 # Server: 返回玩家所在的服务器，服务器的显示名字可以在下面的server-display来转换后再输出;
@@ -16,7 +17,7 @@ check-update:
 # Message: 玩家的消息文本
 # NOTE : SERVER && MESSAGE && PlayName 这三个字段是必须的，如果少了就好用默认的输出format:[{Server}]{PlayerName}: {Message}
 # 支持mc的颜色格式包括 §和& 颜色代码，会覆盖原有的颜色
-chat-format: "{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
+chat-format: "{channel}{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 
 # this option change plugin messages. it won't change message.yml && config.yml!
 # usually config.yml && message.yml generate depending on your VCM default language.
@@ -42,8 +43,32 @@ server-display:
   enable: true
   display:
     lobby: "[§d大厅服§r]"
+    server1: "[§3小游戏服§r]"
     server2: "[§2生存服§r]"
     proxy: "[§5代理服§r]"
+
+# 为每个服务器分组
+# 一组频道可以有多个子服务器，一个服务器可以在多个频道内
+# 当某个服务器在多个频道同时出现的时候 {channel} 默认替换成 首次 出现的服务器
+# global 为 false 的时候则仅仅频道内的服务器消息互通
+# global 被设置 true 则所有服务器的消息(不论是否在频道内)都会互通
+# 若某个服务器不在频道内，则默认接入global，即全服互通，{channel} 占位符则会被替换成空字符串
+channels:
+  global: false
+  channel-list:
+    login:
+      display: "[§6登录频道§r]"
+      servers:
+        - lobby
+    games:
+      display: "[§6小游戏频道§r]"
+      servers:
+        - server1
+    survive:
+      display: "[§6生存频道§r]"
+      servers:
+        - server2
+    # 可以按照以上的格式往下添加多个频道(请注意格式要保持一致)
 
 # 是否需要在玩家离开/加入 子服务器的时候，在原服务器发送离开消息，在被加入的服务器发送加入消息
 join-leave-broadcast:
@@ -60,8 +85,8 @@ join-leave-proxy-broadcast:
   enable: true
   log-to-console: true
   send-to-all-subServer: true
-  join-prefix: "§a[+]]§r"
-  leave-prefix: "§c[-]]§r"
+  join-prefix: "§a[+]§r"
+  leave-prefix: "§c[-]§r"
   player-join-message: "{Group}{Prefix}{Player}{Suffix} 现在加入了 {Proxy}"
   player-leave-message: "{Group}{Prefix}{Player}{Suffix} 现在离开了 {Proxy}"
 

@@ -4,22 +4,30 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
-import me.waterwood.velochatx.PlayerAttribution;
+import me.waterwood.velochatx.manager.BroadCastManager;
+import me.waterwood.velochatx.manager.PlayerManager;
+import me.waterwood.velochatx.utils.PlayerAttribution;
 import me.waterwood.velochatx.VeloChatX;
 import me.waterwood.velochatx.events.PlayerEvents;
 import me.waterwood.velochatx.methods.Methods;
-import org.waterwood.common.Colors;
+import me.waterwood.velochatx.utils.Channel;
+import me.waterwood.velochatx.utils.SubServer;
+import org.waterwood.utils.Colors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import me.waterwood.velochatx.methods.MsgMethods;
+import me.waterwood.velochatx.methods.MessageMethods;
 
 import java.io.IOException;
 import java.util.*;
 
 public class ControlCommands extends VelocitySimpleCommand implements SimpleCommand {
+    private static final List<String> playerActions = List.of("reject","remove","ignore");
     private static final String PRIMARY_ALIAS = "velochatx";
     private static final String[] ALIASES = {"vcx","chatx","vc"};
+
+    private static final List<String> defaultPlayerCommands = List.of("help", "on", "off", "ignore", "reject", "remove","list");
+    private static final List<String> adminCommands = List.of("show-channel-info","help", "on", "off", "ignore", "reject", "remove","list");
     public static final ArrayList<String> configFiles = new ArrayList<>(Arrays.asList("config","message"));
     @Override
     public void execute(Invocation invocation) {
@@ -38,7 +46,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             if (source.hasPermission("velochatx.admin")) {
                 if (args.length == 1) {
                     VeloChatX.getInstance().reloadConfig();
-                    Methods.load(VeloChatX.getProxyServer());
+                    Methods.load();
                     source.sendMessage(Component.text(getPluginMessage("config-reload-completed-message"), NamedTextColor.GREEN));
                     return;
                 }
@@ -58,6 +66,21 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             }
             return;
         }
+        // global command
+        if(source.hasPermission("velochatx.admin") || source instanceof ConsoleCommandSource){
+            if(args[0].equalsIgnoreCase("show-channel-info")){
+                for(Channel channel: BroadCastManager.getChannels().values()){
+                    source.sendMessage(Component.text(channel.getChannelName() + " | " + channel.getChannelName() + " : ", NamedTextColor.GRAY));
+                    for(SubServer server : channel.getServers()){
+                        source.sendMessage(Component.text("  " + server.getServerDisplayName(), NamedTextColor.GRAY)
+                                .append(Component.text(" : ",NamedTextColor.GRAY))
+                                .append(Component.text(server.getPlayers().size() + " ONLINE",NamedTextColor.GOLD)));
+                    }
+                }
+            }
+        }
+
+        // local command
         if(source instanceof Player sourcePlayer) {
             String language = sourcePlayer.getEffectiveLocale().getLanguage();
                 if (args[0].equalsIgnoreCase("help")) {
@@ -73,7 +96,33 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                     } else if (args[0].equalsIgnoreCase("off")) { //velochatx off command
                         attrs.setAccess(false);
                         source.sendMessage(Component.text(getMessage("disable-vc-chat-message", language), NamedTextColor.DARK_RED));
-                    } else { //velochatx ignore command
+                    } else if(args[0].equalsIgnoreCase("list")) { //velochatx list command
+                        if(!attrs.getIgnorePlayers().isEmpty()){
+                            source.sendMessage(Component.text(getMessage("ignore-list-show-message", language), NamedTextColor.GREEN));
+                            attrs.getIgnorePlayers().forEach(
+                                    playersUUID ->{
+                                        String name = VelocityPlugin.getPlayerName(playersUUID);
+                                        source.sendMessage(Component.text(getMessage(
+                                                "list-show-item-message"
+                                        ).replace("{name}",name)));
+                                    }
+                            );
+                            return;
+                        }
+                        if(!attrs.getIgnorePlayers().isEmpty()){
+                            source.sendMessage(Component.text(getMessage("reject-list-show-message", language), NamedTextColor.GREEN));
+                            attrs.getRejectPlayers().forEach(
+                                    playersUUID ->{
+                                        String name = VelocityPlugin.getPlayerName(playersUUID);
+                                        source.sendMessage(Component.text(getMessage(
+                                                "list-show-item-message"
+                                        ).replace("{name}",name)));
+                                    }
+                            );
+                            return;
+                        }
+                        source.sendMessage(Component.text(getMessage("empty-list-show-message", language)));
+                    }else { //velochatx ignore command
                         String command = args[0].toLowerCase();
                         if (args.length != 2) {
                             illegalArgsMsg(source, "ignore");
@@ -92,11 +141,11 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                         switch (command) {
                             case "ignore" -> {       // velochatX ignore command
                                 attrs.addIgnorePlayers(targetUUID);
-                                sendRawMessage(source, MsgMethods.convertMessage("has-ignore-message", targetPlayer, source));
+                                sendRawMessage(source, MessageMethods.convertMessage("has-ignore-message", targetPlayer, source));
                             }
                             case "reject" -> {                               // velochatX reject command
                                 attrs.addRejectPlayers(targetUUID);
-                                sendRawMessage(source, MsgMethods.convertMessage("has-reject-message", targetPlayer, source));
+                                sendRawMessage(source, MessageMethods.convertMessage("has-reject-message", targetPlayer, source));
                             }
                             case "remove" -> {
                                 Set<UUID> mutedPlayers = new HashSet<>();
@@ -104,10 +153,10 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                                 mutedPlayers.addAll(attrs.getIgnorePlayers());
                                 if (mutedPlayers.contains(targetUUID)) {
                                     attrs.removeIJ(targetUUID);
-                                    sendRawMessage(source, MsgMethods.convertMessage("normal-chat-message", targetPlayer, source));
-                                    sendRawMessage(targetPlayer, MsgMethods.convertMessage("normal-chat-message", source, targetPlayer));
+                                    sendRawMessage(source, MessageMethods.convertMessage("normal-chat-message", targetPlayer, source));
+                                    sendRawMessage(targetPlayer, MessageMethods.convertMessage("normal-chat-message", source, targetPlayer));
                                 } else {
-                                    sendRawMessage(source, MsgMethods.convertMessage("no-in-list-message", targetPlayer, source));
+                                    sendRawMessage(source, MessageMethods.convertMessage("no-in-list-message", targetPlayer, source));
                                 }
                             }
                             default -> UnKnowMessage(source);
@@ -126,15 +175,23 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        if(invocation.arguments().length == 0 || invocation.arguments().length == 1 ) {
+        int argNum = invocation.arguments().length;
+        String[] args = invocation.arguments();
+        if(argNum == 0) {
             if (invocation.source() instanceof ConsoleCommandSource) {
-                return List.of("help", "reload");
+                return List.of("help", "reload","show-channel-info");
             } else {
-                return List.of("help", "on", "off", "ignore", "reject", "remove");
+                if(invocation.source().hasPermission("velochatx.admin")){
+                    return adminCommands;
+                }
+                return defaultPlayerCommands;
             }
-        }else{
-            return List.of();
+        }else if(argNum == 1) {
+            if(playerActions.contains(args[0])) {
+                return PlayerManager.getAllPlayer(invocation.source());
+            }
         }
+        return List.of();
     }
 
     @Override

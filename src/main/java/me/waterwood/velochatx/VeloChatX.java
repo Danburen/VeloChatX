@@ -6,20 +6,20 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.velochatx.events.PlayerEvents;
-import org.waterwood.common.Colors;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 import me.waterwood.velochatx.commands.ControlCommands;
 import me.waterwood.velochatx.commands.MentionCommand;
 import me.waterwood.velochatx.commands.MsgCommand;
 import me.waterwood.velochatx.events.PlayerTabListEvents;
 import me.waterwood.velochatx.methods.Methods;
+import org.waterwood.utils.Colors;
 
 
 @Plugin(
         id = "velochatx",
         name = "VeloChatX",
         authors = "Waterwood",
-        version = "1.3.2")
+        version = "1.3.3")
 public class VeloChatX extends VelocityPlugin {
     private final ProxyServer server;
     private static VeloChatX Instance;
@@ -38,7 +38,8 @@ public class VeloChatX extends VelocityPlugin {
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();
-        checkUpdate("Danburen","VeloChatX","1.3.0");
+        checkUpdate("Danburen","VeloChatX","1.4.0");
+
         getLogger().info(Colors.parseColor(getPluginMessage("config-files-load-message")));
         init();
         getLogger().info(Colors.parseColor(String.format(getPluginMessage("successfully-enable-message"),System.currentTimeMillis() - start)));
@@ -51,7 +52,7 @@ public class VeloChatX extends VelocityPlugin {
         getLogger().info(Colors.parseColor(getPluginMessage("init-process-message")));
         server.getEventManager().register(this, new PlayerEvents());
         server.getEventManager().register(this,new PlayerTabListEvents(getProxyServer(),this));
-        Methods.load(getProxyServer());
+        Methods.load();
         registerCommands();
     }
 

@@ -4,6 +4,7 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.velochatx.events.PlayerEvents;
+import me.waterwood.velochatx.manager.PlayerManager;
 import org.waterwood.io.FileConfiguration;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import me.waterwood.velochatx.methods.MsgMethods;
+import me.waterwood.velochatx.methods.MessageMethods;
 
 import java.time.Duration;
 import java.util.List;
@@ -41,7 +42,7 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
             Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[0]).get();
             if(source instanceof Player sourcePlayer){
                 if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getRejectPlayers().contains(sourcePlayer.getUniqueId())){
-                    sendRawMessage(source,MsgMethods.convertMessage("msg-reject-message", targetPlayer, source));
+                    sendRawMessage(source, MessageMethods.convertMessage("msg-reject-message", targetPlayer, source));
                     return;
                 }
                 if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getIgnorePlayers().contains(sourcePlayer.getUniqueId())){
@@ -50,11 +51,11 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
             }
             if(checkNoSelf(source,targetPlayer)) return;
             FileConfiguration config = getConfigs();
-            sendRawMessage(source,MsgMethods.convertMessage("mention-to-message", targetPlayer, source));
-            sendRawMessage(targetPlayer,MsgMethods.convertMessage("mention-receive-message", source, targetPlayer));
+            sendRawMessage(source, MessageMethods.convertMessage("mention-to-message", targetPlayer, source));
+            sendRawMessage(targetPlayer, MessageMethods.convertMessage("mention-receive-message", source, targetPlayer));
             if(config.getBoolean("mention-show-title.enable")) {
-                String mainTitle = MsgMethods.convertMessage("mention-title-show-main",source,targetPlayer);
-                String subTitle = MsgMethods.convertMessage("mention-title-show-sub",source,targetPlayer);
+                String mainTitle = MessageMethods.convertMessage("mention-title-show-main",source,targetPlayer);
+                String subTitle = MessageMethods.convertMessage("mention-title-show-sub",source,targetPlayer);
                 int[] time = {config.getInteger("mention-show-title.time.fade-in"),
                         config.getInteger("mention-show-title.time.stay"),
                         config.getInteger("mention-show-title.time.fade-out")};
@@ -66,7 +67,7 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        return MsgMethods.getAllPlayer(invocation.source());
+        return PlayerManager.getAllPlayer(invocation.source());
     }
 
     @Override

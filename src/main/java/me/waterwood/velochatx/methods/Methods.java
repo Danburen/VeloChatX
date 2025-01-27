@@ -1,55 +1,61 @@
 package me.waterwood.velochatx.methods;
 
-import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
-import com.velocitypowered.api.scheduler.ScheduledTask;
 import me.waterwood.velochatx.VeloChatX;
+import me.waterwood.velochatx.events.PlayerEvents;
+import me.waterwood.velochatx.manager.BroadCastManager;
+import me.waterwood.velochatx.manager.PlayerManager;
+import me.waterwood.velochatx.utils.SubServer;
 import org.waterwood.hock.LuckPermsHock;
-import org.waterwood.common.Colors;
+import org.waterwood.utils.Colors;
 import org.waterwood.plugin.WaterPlugin;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import me.waterwood.velochatx.TabListManager;
+import me.waterwood.velochatx.manager.TabListManager;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.waterwood.hock.LuckPermsHock.*;
 
 
 public abstract class Methods extends WaterPlugin {
-    private static String chatFormatText;
-    private static Map<String,String> serverDisPlayName = null;
-    private static ScheduledTask scheduler;
-    private static ProxyServer proxyServer;
-    public static void load(ProxyServer proxyServer){
-        LuckPermsHock.checkApi();
-        chatFormatText = getConfigs().getString("chat-format");
-        checkFormat();
-        if(getConfigs().getBoolean("server-display.enable")){
-            serverDisPlayName = getConfigs().getMap("server-display.display");
+    protected static Map<String,String> serverDisplayName;
+    protected static Map<String,String> serverSourceChannelName;
+    protected static Map<String, SubServer> serverInfoMap;
+
+    protected static ProxyServer proxyServer;
+    protected static Object pluginInstance;
+    private static String CHAT_FORMAT;
+
+
+    public static void load(){
+        Methods.proxyServer = VeloChatX.getProxyServer();
+        Methods.pluginInstance = VeloChatX.getInstance();
+        PlayerEvents.setPlayerAttrs(PlayerManager.getOnlinePlayerAttrs());
+        loadChatFormat();
+
+        if(getConfigs().getBoolean("server-display.enable",false)){
+            getAndSetServer();
         }
-        Methods.proxyServer = proxyServer;
-        TabListManager.init(proxyServer);
-        TabListManager.setConstVals();
-        if(scheduler!= null) scheduler.cancel();
-        if(TabListManager.isTabListEnable()){
-//            proxyServer.getAllPlayers().forEach(TabListManager::setUpHeadAndFooter);
-            scheduler = proxyServer.getScheduler().buildTask(VeloChatX.getInstance(), task->{
-                        proxyServer.getAllPlayers().forEach(TabListManager::updateTabList);
-                    })
-                    .delay(1L, TimeUnit.SECONDS)
-                    .repeat(Methods.getConfigs().getInteger("tab-list.interval"), TimeUnit.MILLISECONDS)
-                    .schedule();
-        }
+        TabListManager.initialize();
+        BroadCastManager.initialize();
+        ChatControl.initialize();
     }
 
-    public static void checkFormat(){
-        String chatFormat = chatFormatText.toLowerCase();
+    // Get and set server display name
+    private static void getAndSetServer(){
+        serverDisplayName = getConfigs().getStringMap("server-display.display");
+        serverInfoMap = new HashMap<>();
+        serverDisplayName.forEach((k, v) -> serverInfoMap.put(k,new SubServer(k,v)));
+    }
+
+    public static void loadChatFormat(){
+        LuckPermsHock.checkApi();
+        CHAT_FORMAT = getConfigs().getString("chat-format","[{Server}]{PlayerName}: {Message}");
+        String chatFormat = CHAT_FORMAT.toLowerCase();
         if (chatFormat.contains("{message}") && chatFormat.contains("{player}") && chatFormat.contains("{server}")){
             if (hasLuckPerm()){
                 return;
@@ -63,8 +69,9 @@ public abstract class Methods extends WaterPlugin {
                 + "\n" + getPluginMessage("use-default-chat-format-message"));
         useDefaultFormatChat();
     }
+
     public static String placeChatValue(String message,Player player){
-        return placeChatValue(chatFormatText,message,player);
+        return placeChatValue(CHAT_FORMAT,message,player);
     }
     public static String placeChatValue(String origin,String message,Player player){
         return placeValue(origin,player).replace("{message}",message);
@@ -78,8 +85,10 @@ public abstract class Methods extends WaterPlugin {
     }
     public static String placeValue(String origin,Player player,RegisteredServer targetServer){
         StringBuilder out = placePlayerValue(origin,player);
+        String serverName =  convertServerName(targetServer.getServerInfo().getName());
         replacePlaceholder(out, "{proxy}", convertServerName("proxy"));
-        replacePlaceholder(out, "{server}", convertServerName(targetServer.getServerInfo().getName()));
+        replacePlaceholder(out, "{server}",serverName);
+        replacePlaceholder(out, "{channel}", serverSourceChannelName.getOrDefault(serverName,""));
         replacePlaceholder(out,"{online}", String.valueOf(targetServer.getPlayersConnected().size()));
         replacePlaceholder(out,"{total_online}", String.valueOf(VelocityPlugin.getAllPlayerName().size()));
         return out.toString();
@@ -90,17 +99,24 @@ public abstract class Methods extends WaterPlugin {
         String serverName = optSC.map(ServerConnection::getServerInfo).map(ServerInfo::getName).orElse("Unknown");
         replacePlaceholder(out, "{proxy}", convertServerName("proxy"));
         replacePlaceholder(out, "{server}", convertServerName(serverName));
-        replacePlaceholder(out,"{online}",optSC.map(ServerConnection::getServer).map(RegisteredServer::getPlayersConnected)
+        replacePlaceholder(out, "{channel}",serverSourceChannelName.getOrDefault(serverName,""));
+        replacePlaceholder(out,"{online}",optSC.map(ServerConnection::getServer)
+                .map(RegisteredServer::getPlayersConnected)
                 .map(Collection::size).map(String::valueOf).orElse("0"));
         replacePlaceholder(out,"{total_online}", String.valueOf(VelocityPlugin.getAllPlayerName().size()));
         return out.toString();
     }
+
+    private static String getSafeString(String origin) {
+        return origin == null ? "" : origin;
+    }
+
     public static StringBuilder placePlayerValue(String origin, Player player){
         String in = origin.toLowerCase();
         StringBuilder out = new StringBuilder(in.matches(".*%[^%]+%.*") ? in.replaceAll("%([^%]+)%", "{$1}") : in);
         String playerName = player.getUsername();
         String prefix = getSafeString(getPlayerPrefix(playerName));
-        String suffix = getSafeString(getPlayersuffix(playerName));
+        String suffix = getSafeString(getPlayerSuffix(playerName));
         String groupDisplayName =getSafeString(getPlayerGroupDisplay(playerName));
 
         replacePlaceholder(out, "{player}", playerName);
@@ -112,29 +128,25 @@ public abstract class Methods extends WaterPlugin {
 
         return out;
     }
-    private static String getSafeString(String origin) {
-        return origin == null ? "" : origin;
-    }
 
     public static String convertServerName(String serverName){
-        if(serverDisPlayName == null){
+        if(serverDisplayName == null){
             return serverName;
         }else{
-            return serverDisPlayName.getOrDefault(serverName, serverName);
+            return serverDisplayName.getOrDefault(serverName, serverName);
         }
-    }
-
-    public static List<String> getAllPlayer(CommandSource source) {
-        List<String> players = new ArrayList<>(VelocityPlugin.getAllPlayerName());  // 转换为可变集合
-        if (source instanceof Player player) {
-            players = players.stream()
-                    .filter(p -> !p.equals(player.getUsername()))  // 使用过滤器排除当前玩家
-                    .collect(Collectors.toList());  // 收集到新的 List 中
-        }
-        return players;
     }
     public static void useDefaultFormatChat(){
-       chatFormatText = "{Server}{Player} §7:§r {Message}";
+       CHAT_FORMAT = "{Server}{Player} §7:§r {Message}";
     }
 
+    public static SubServer getSubServer(String serverName){ return serverInfoMap.get(serverName); }
+
+    public static SubServer getSubServer(RegisteredServer registeredServer){
+        return getSubServer(registeredServer.getServerInfo().getName());
+    }
+
+    public static Map<String,SubServer> getSubServerMap(){
+        return serverInfoMap;
+    }
 }

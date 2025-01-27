@@ -1,7 +1,6 @@
-package me.waterwood.velochatx;
+package me.waterwood.velochatx.manager;
 
 import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import me.waterwood.velochatx.methods.Methods;
@@ -12,16 +11,11 @@ import java.util.Map;
 
 public class TabListManager extends Methods {
     private static final Map<Player,ScheduledTask> playerTasks = new HashMap<>();
-    private static boolean TAB_LIST_ENABLE = getConfigs().getBoolean("tab-list.enable");
-    private static String TAB_LIST_FORMAT = getConfigs().getString("tab-list.format");
-    private static String HEADER_FORMAT = getConfigs().getString("tab-list.header");
-    private static String FOOTER_FORMAT = getConfigs().getString("tab-list.footer");
-    private static ProxyServer proxyServer;
-    public static void init(ProxyServer proxyServer){
-        TabListManager.proxyServer = proxyServer;
-        setConstVals();
-    }
-    public static void setConstVals(){
+    private static boolean TAB_LIST_ENABLE;
+    private static String TAB_LIST_FORMAT;
+    private static String HEADER_FORMAT;
+    private static String FOOTER_FORMAT;
+    public static void initialize(){
         TAB_LIST_FORMAT =  getConfigs().getString("tab-list.format");
         HEADER_FORMAT = getConfigs().getString("tab-list.header");
         FOOTER_FORMAT = getConfigs().getString("tab-list.footer");
@@ -68,5 +62,8 @@ public class TabListManager extends Methods {
             proxyServer.getPlayer(tabListEntry.getProfile().getId()).ifPresent(p -> tabListEntry.setDisplayName(Component.text(Methods.placeValue(TabListManager.getTabListFormat(),
                     p))));
         });
+    }
+    public static void updatePlayersTabList(){
+        proxyServer.getAllPlayers().forEach(TabListManager::updateTabList);
     }
 }
