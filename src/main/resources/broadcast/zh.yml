@@ -1,64 +1,55 @@
+# 【自2.0.0更新启用】
 # 是否启用全服广播功能
+# 大部分的文本支持占位符
 enable: true
 # 广播顺序是否打乱
 random: true
 # 每次广播的间隔(秒)
-interval: 60
+# 如果是大型服务器，请将此间隔适当延长，避免占用过多的服务器资源。
+interval: 120
 
-# 全局广播，对所有服务器都生效
-# 请注意:
-# 1. 当全局广播被启用的时候 message-list 也就是广播内容会合并(全局广播的在最上面)
-# 2. 区服广播的 welcome 以及 广播前缀(prefix) 的优先级最高(覆盖掉全局广播)
+# 全局定时广播，对所有服务器都生效
+# 【请注意】
+# 1. 当全局广播被启用的时候 message-list 也就是 广播内容 会合并(全局广播的在最上面)
+# 2. 区服广播的 广播前缀(prefix) 的优先级最高(覆盖掉全局广播)
 global:
+  enable: true
   # 显示广播的前缀
   prefix: "§7[§r§b服务器娘§7]§r §8:§r"
-  # 是否允许全局广播
-  enable: true
   # 广播欢迎消息(会覆盖区服广播的配置如果global被启用)
-  welcome:
-    enable: true
-    # 是否只在玩家第一次进入服务器的时候进行广播
-    only-first-join: true
-    message: "§6欢迎加入服务器大家庭§r"
   message-list:
     - "服务器正在§a搭建§r中，更多精彩内容即将呈现。"
     - "§6欢迎§r加入服务器官方群"
     - "欢迎加入服务器大家庭"
 
+# 区服局部定时广播
+# 【请注意】
+# 1. 若 global 全局广播 enable  = false 则只会单独广播区服的
+# 2. channel-list 以及 server-list 所包括的所有服务器和频道中的服务器均会广播
+# 3. 若一个或多个channel或者server在多个 区服广播 当中
+#     i. prefix 仅会继承最后一个广播的 prefix
+#     ii. 不同区服广播中所含相同的消息会合并重复消息不会增加出现概率
+# 4. 若出现相同的 区服广播 名称，则仅会读取首次读取的 区服广播
 locale:
-  # 是否启用局部广播
   enable: true
   broadcast-list:
-    # 可以按照全局广播的格式,创建对应的区服广播（仅仅对配置的区频道生效,而不是全局)
-    # 根据以及连接至代理服的服务器(插件config以及velocity -> Velocity.toml server中对应的服务器id)
-    # 分别给对应的子服消息进行广播
-    # 子服的广播会选择合并掉全局广播(全局广播必须被应用也就是enable = true才会生效)
-    # 如果 global 全局广播 enable  = false 则只会单独广播区服的
-    # 相同名称的区服广播则会生效最先读取的
+    # server-list 对应 (插件 config 以及velocity -> Velocity.toml server中对应的服务器id)
+    # channel-list 对应 config.yml 中的 channel-list
+    # 子服的广播会选择合并掉全局广播(全局广播必须被应用也就是 enable = true才会生效)
     example:
-      prefix: "[§a服务器娘§r] §8:§r"
       enable: true
-      welcome:
-        enable: true
-        only-first-join: true
-        message: "欢迎加入生存群组"
+      prefix: "[§a服务器娘01§r] §8:§r"
       message-list:
         - "服务器正在§a搭建§r中，更多精彩内容即将呈现。"
         - "§6欢迎§r加入服务器官方群"
         - "欢迎加入服务器大家庭"
       channel-list:
         - lobby
-        - games
-        - survive
       server-list:
         -
     example2:
-      prefix: "[§a服务器娘§r] §8:§r"
       enable: false
-      welcome:
-        enable: true
-        only-first-join: true
-        message: "欢迎加入生存群组"
+      prefix: "[§a服务器娘02§r] §8:§r"
       message-list:
         - "服务器正在§a搭建§r中，更多精彩内容即将呈现。"
         - "§6欢迎§r加入服务器官方群"
@@ -70,7 +61,14 @@ locale:
       server-list:
         -
 
-# Since v1.3.3 转移自config.yml
+# 玩家加入代理服（群组服）的时候广播消息
+welcome-broadcast:
+  enable: true
+  # 是否仅在首次加入代理服的时候进行广播
+  only-first-join: false
+  message: "欢迎加入§5群组§r!"
+
+# Since v1.3.3 转移自 config.yml
 # 是否需要在玩家离开/加入 子服务器的时候，在原服务器发送离开消息，在被加入的服务器发送加入消息
 # log-to-console 是否在终端输出玩家的消息
 # send-to-all-subServer 是否对所有子服进行广播消息(会覆盖下方的broadcast-in-channel)

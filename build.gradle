@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'WaterFun.WaterWood'
-version = '1.4.0'
+version = '2.0.0'
 
 repositories {
     mavenCentral()
@@ -32,7 +32,7 @@ shadowJar {
     }
     manifest {
         attributes(
-                'Main-Class': 'site.hjfunny.velochatx.VeloChatX'
+                'Main-Class': 'me.waterwood.velochatx.VeloChatX'
         )
     }
 }

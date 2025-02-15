@@ -4,11 +4,11 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import me.waterwood.velochatx.events.PlayerEvents;
+import me.waterwood.velochatx.manager.BasicMethods;
 import me.waterwood.velochatx.manager.PlayerManager;
 import org.waterwood.utils.Colors;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import me.waterwood.velochatx.methods.Methods;
-import me.waterwood.velochatx.methods.MessageMethods;
+import me.waterwood.velochatx.manager.MessageManager;
 
 import java.util.List;
 
@@ -34,27 +34,28 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
             failFindPlayerMsg(source,args[0]);
         }else{
             Player targetPlayer = VelocityPlugin.getProxyServer().getPlayer(args[0]).get();
-            if(checkNoSelf(source,targetPlayer)) return;
-            StringBuilder message = new StringBuilder(args[1]);
-            for(int i = 2 ; i < args.length ; i ++){
-                message.append(" ").append(args[i]);
-            }
-            if(source instanceof Player sourcePlayer){
-                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getRejectPlayers().contains(sourcePlayer.getUniqueId())){
-                    sendRawMessage(source, MessageMethods.convertMessage("msg-reject-message", targetPlayer, source));
-                    return;
+            checkNoSelf(source,targetPlayer,() ->{
+                StringBuilder message = new StringBuilder(args[1]);
+                for(int i = 2 ; i < args.length ; i ++){
+                    message.append(" ").append(args[i]);
                 }
-                sendRawMessage(source, Methods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer));
-                if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getIgnorePlayers().contains(sourcePlayer.getUniqueId())){
-                    return;
+                if(source instanceof Player sourcePlayer){
+                    if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getRejectPlayers().contains(sourcePlayer.getUniqueId())){
+                        sendRawMessage(source, MessageManager.convertMessage("msg-reject-message", targetPlayer, source));
+                        return;
+                    }
+                    sendRawMessage(source, BasicMethods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer));
+                    if(PlayerEvents.getPlayerAttrs().get(targetPlayer.getUniqueId()).getIgnorePlayers().contains(sourcePlayer.getUniqueId())){
+                        return;
+                    }
+                    sendRawMessage(targetPlayer, BasicMethods.placeValue(getMessage("msg-receive-message").replace("{Message}", message.toString()),sourcePlayer));
+                }else{
+                    sendRawMessage(source, Colors.parseColor(
+                            BasicMethods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer)));
+                    sendRawMessage(targetPlayer, MessageManager.convertServer(getMessage("msg-receive-message").replace("{Message}", message.toString()), source,targetPlayer));
                 }
-                sendRawMessage(targetPlayer, Methods.placeValue(getMessage("msg-receive-message").replace("{Message}", message.toString()),sourcePlayer));
-            }else{
-                sendRawMessage(source, Colors.parseColor(
-                        Methods.placeValue(getMessage("msg-to-message").replace("{Message}", message.toString()),targetPlayer)));
-                sendRawMessage(targetPlayer, MessageMethods.convertServer(getMessage("msg-receive-message").replace("{Message}", message.toString()), source,targetPlayer));
-            }
 
+            });
         }
     }
 

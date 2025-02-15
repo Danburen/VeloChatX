@@ -1,23 +1,21 @@
 package me.waterwood.velochatx.manager;
 
-import com.velocitypowered.api.scheduler.ScheduledTask;
-import me.waterwood.velochatx.VeloChatX;
-import me.waterwood.velochatx.methods.Methods;
 import net.kyori.adventure.text.Component;
 import org.waterwood.plugin.velocity.util.ScheduledManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * A Class to holder Tasks
- * @since 1.4.0
+ * @since 2.0.0
  * @author Danburen
  */
-public class TaskManager extends Methods {
-    private static ScheduledTask scheduler;
+public class TaskManager extends BasicMethods {
+    private static final Random random;
+    static{
+        random = new Random();
+    }
     public static void initTask(){
         ScheduledManager scheduledManager = new ScheduledManager(proxyServer,pluginInstance);
         scheduledManager.cancelAllTasks();
@@ -28,23 +26,26 @@ public class TaskManager extends Methods {
             scheduler = proxyServer.getScheduler().buildTask(VeloChatX.getInstance(),
                             task-> proxyServer.getAllPlayers().forEach(TabListManager::updateTabList))
                     .delay(1L, TimeUnit.SECONDS)
-                    .repeat(Methods.getConfigs().getInteger("tab-list.interval",1000), TimeUnit.MILLISECONDS)
+                    .repeat(BasicMethods.getConfigs().getInteger("tab-list.interval",1000), TimeUnit.MILLISECONDS)
                     .schedule();
         }*/
 
         // Player's tab list update task
         if(TabListManager.isTabListEnable()) tabListUpdateTask(scheduledManager);
         // Broadcast task
-        if(BroadCastManager.isEnabled()) broadcastMessageTask(scheduledManager);
-
-
+        if(BroadCastManager.isEnabled() && (BroadCastManager.isGlobalEnable() || BroadCastManager.isLocalEnable())) {
+            broadcastMessageTask(scheduledManager,BroadCastManager.isGlobalEnable(),BroadCastManager.isLocalEnable());
+        }
     }
 
     private static void tabListUpdateTask(ScheduledManager scheduledManager){
-        scheduledManager.addRepeatTask("update-tab-list",
-                TabListManager::updatePlayersTabList,
-                getConfigs().getLong("tab-list.interval",1000L),
+        scheduledManager.addRepeatTask("update-tab-list", () ->
+                        proxyServer.getAllPlayers().forEach(TabListManager::updateHeadAndFooter),
+                getConfigs().get("tab-list.interval",1000L),
                 TimeUnit.MILLISECONDS);
+        scheduledManager.addRepeatTask("update-tab-list-utils",() ->{
+            proxyServer.getAllPlayers().forEach(TabListManager::updateTabListUtils);
+        },5L,TimeUnit.SECONDS);
     }
     /**
      * Broadcast Single message to the player which in <b>target server</b>
@@ -63,13 +64,17 @@ public class TaskManager extends Methods {
         });
     }
 
-    private static void broadcastMessageTask(ScheduledManager scheduledManager){
-        List<String> messages = new ArrayList<>();
-        scheduledManager.addRepeatTask("broadcast",
-                ()->{
-
-                },
-                BroadCastManager.getBroadcastConfigs().getLong("interval",60L),
-                TimeUnit.SECONDS);
+    private static void broadcastMessageTask(ScheduledManager scheduledManager,boolean global,boolean local){
+        scheduledManager.addRepeatTask("broadcast", ()->{
+            proxyServer.getAllServers().forEach(server -> {
+                String serverName = server.getServerInfo().getName();
+                List<String> msgList = BroadCastManager.getMessages(serverName);
+                System.out.println( serverName + " broadcast");
+                if(msgList == null || msgList.isEmpty()) return;
+                String message = placeServerValue( new StringBuilder(msgList
+                        .get(random.nextInt( BroadCastManager.getMessageCount(serverName)))),serverName).toString();
+                server.sendMessage(Component.text(message));
+            });
+        }, BroadCastManager.getBroadcastConfigs().get("interval",60L), TimeUnit.SECONDS);
     }
 }

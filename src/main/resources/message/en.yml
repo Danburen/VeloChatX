@@ -19,7 +19,6 @@ only-in-game-message: "This command can only be used in game."
 only-in-console-message: "This command can only be used in console."
 no-permission: "You are not allow to do this!"
 ban-words-message: "Your Message contains prohibited/sensitive vocabulary,broadcasts have been blocked."
-ban-words-log-message: "{Player} §c 's speech contains sensitive/prohibited vocabulary:§r {Message}"
 
 mention-command-format-message: "§6/mention <Player>§r- §4§cMention somebody.§r"
 msg-command-format-message: "§6/vcmsg <Player>§r [Message]- §4Sending a private message to someone.§r"

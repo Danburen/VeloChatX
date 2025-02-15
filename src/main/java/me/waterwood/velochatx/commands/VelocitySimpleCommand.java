@@ -5,16 +5,16 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import org.waterwood.plugin.velocity.util.MethodBase;
 import org.waterwood.utils.Colors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.waterwood.plugin.WaterPlugin;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class VelocitySimpleCommand extends WaterPlugin {
+public abstract class VelocitySimpleCommand extends MethodBase {
     public void register(VelocityPlugin plugin, SimpleCommand command, String PRIMARY_ALIAS, String[] ALIASES, boolean sharp){
         ProxyServer proxy= VelocityPlugin.getProxyServer();
         proxy.getCommandManager().register(PRIMARY_ALIAS,command,ALIASES);
@@ -50,12 +50,12 @@ public abstract class VelocitySimpleCommand extends WaterPlugin {
         }
     }
 
-    public boolean checkNoSelf(CommandSource source,Player targetPlayer){
+    public void checkNoSelf(CommandSource source,Player targetPlayer,commandHandler handler){
         if (source.equals(targetPlayer)) {
             source.sendMessage(Component.text(getMessage("no-self-action-message",targetPlayer.getEffectiveLocale().getLanguage())));
-                return true;
+                return;
         }
-        return false;
+        handler.execute();
     }
     public void sendRawMessage(CommandSource source, String msg){
         source.sendMessage(Component.text(msg));
@@ -65,7 +65,7 @@ public abstract class VelocitySimpleCommand extends WaterPlugin {
         source.sendMessage(Component.text(msg,NamedTextColor.RED));
     }
 
-    public boolean isUnknownCommand(CommandSource source,List<String> commands,String command){
+    public void isUnknownCommand(CommandSource source,List<String> commands,String command,commandHandler handler){
         if(!(commands.contains(command))){
             if(source instanceof Player sourcePlayer){
                 source.sendMessage(Component.text(getMessage("unknown-command-message",
@@ -73,9 +73,8 @@ public abstract class VelocitySimpleCommand extends WaterPlugin {
             }else{
                 sendWarnMessage(source,getMessage("unknown-command-message"));
             }
-            return true;
         }
-        return false;
+        handler.execute();
     }
 
     public void UnKnowMessage(CommandSource source){
@@ -87,6 +86,10 @@ public abstract class VelocitySimpleCommand extends WaterPlugin {
         }
     }
     public abstract void register(VelocityPlugin plugin);
+
+    public interface commandHandler{
+        void execute();
+    }
 }
 
 class ForwardingCommand implements SimpleCommand{

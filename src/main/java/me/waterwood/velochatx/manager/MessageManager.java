@@ -1,21 +1,15 @@
-package me.waterwood.velochatx.methods;
+package me.waterwood.velochatx.manager;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import me.waterwood.velochatx.manager.BroadCastManager;
-import me.waterwood.velochatx.manager.PlayerManager;
+import org.waterwood.plugin.WaterPlugin;
 import org.waterwood.utils.Colors;
 import net.kyori.adventure.text.Component;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-public class MessageMethods extends Methods {
-    private static final ProxyServer proxyServer = VelocityPlugin.getProxyServer();
+public class MessageManager extends BasicMethods {
 
     public static String convertString(String original,CommandSource source,CommandSource target){
         if(source instanceof Player sourcePlayer){
@@ -31,7 +25,7 @@ public class MessageMethods extends Methods {
     public static String convertMessage(String key,CommandSource source,CommandSource target){
         if(source instanceof Player sourcePlayer){
             if(target instanceof Player){
-                return placeValue(getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer)),sourcePlayer);
+                return placeValue(WaterPlugin.getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer)),sourcePlayer);
             }else{
                 return Colors.parseColor(placeValue(getMessage(key),sourcePlayer));
             }
@@ -45,14 +39,14 @@ public class MessageMethods extends Methods {
         if(source instanceof RegisteredServer server){
             out = ValueToServer(out,server.getServerInfo().getName());
         }else{
-            out = ValueToServer(out,"proxy");
+            out = ValueToServer(out, PROXY_DISPLAY);
         }
         return target instanceof Player ? out : Colors.parseColor(out);
     }
 
     public static String getSourceMessage(String key,CommandSource source){
         if(source instanceof Player sourcePlayer) {
-            return getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer));
+            return WaterPlugin.getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer));
         }else{
             return getMessage(key);
         }
@@ -61,7 +55,7 @@ public class MessageMethods extends Methods {
     public static String  ValueToServer(String original,String serverName){
         String out = original.toLowerCase();
         if(out.contains("{")){
-            String serverDisplay = convertServerName(serverName);
+            String serverDisplay = serverDisplayName.getOrDefault(serverName, serverName);
             if(out.contains("{player}")) {
                 out = out.replace("{player}", serverDisplay);
                 return out.replaceAll("\\{.*?\\}","");
@@ -101,7 +95,7 @@ public class MessageMethods extends Methods {
                         if(registeredServer.equals(targetServer)){
                             continue;
                         }
-                        if(ChatControl.canCommunicate(targetServer,registeredServer)){
+                        if(ChatManager.canCommunicate(targetServer,registeredServer)){
                             registeredServer.sendMessage(Component.text(message));
                         }
                     }
@@ -131,14 +125,8 @@ public class MessageMethods extends Methods {
         }
     }
 
-    public static boolean hasBanWords(String message){
-        Set<String> banWords = new HashSet<>(Arrays.asList(
-                getConfigs().getString("ban-words.words", "").split(",")));
-        for(String banWord : banWords){
-            if(message.contains(banWord)){
-                return true;
-            }
-        }
-        return false;
+    public static void broadcastMessage(Player player, String message){
+        player.sendMessage(Component.text(placeValue(message,player)));
     }
+
 }

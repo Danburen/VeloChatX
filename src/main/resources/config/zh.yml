@@ -1,8 +1,8 @@
-# VelochatX 1.4.0
+# VelochatX 2.0.0
 # build java version: JE 17
 # author: waterwood
 # Available language zh,en
-config-version: 1.4.0
+config-version: 2.0.0
 check-update:
   enable: true
   auto-download: true
@@ -38,15 +38,17 @@ log-text:
 # 转换输出的服务器的显示名称
 # display的键对应的必须是Velocity中的服务器名字 -> Velocity.toml -> [servers]
 # proxy表示代理服务器，如Velocity;
+# 如果出现 unknown 或 未知字样则表示下方缺少对应的服务器
 # e.g. [Lobby]steven: hello -> [大厅服]steven: hello
 server-display:
   enable: true
+  proxy: "[§5代理服§r]"
   display:
     lobby: "[§d大厅服§r]"
     server1: "[§3小游戏服§r]"
     server2: "[§2生存服§r]"
-    proxy: "[§5代理服§r]"
 
+# @自 1.4.0 版本加入
 # 为每个服务器分组
 # 一组频道可以有多个子服务器，一个服务器可以在多个频道内
 # 当某个服务器在多个频道同时出现的时候 {channel} 默认替换成 首次 出现的服务器
@@ -58,37 +60,26 @@ channels:
   channel-list:
     login:
       display: "[§6登录频道§r]"
+      welcome:
+        enable: true
+        message: "欢迎加入登录频道"
       servers:
         - lobby
     games:
       display: "[§6小游戏频道§r]"
+      welcome:
+        enable: true
+        message: "欢迎加入小游戏频道"
       servers:
         - server1
     survive:
       display: "[§6生存频道§r]"
+      welcome:
+        enable: true
+        message: "欢迎加入生存频道"
       servers:
         - server2
     # 可以按照以上的格式往下添加多个频道(请注意格式要保持一致)
-
-# 是否需要在玩家离开/加入 子服务器的时候，在原服务器发送离开消息，在被加入的服务器发送加入消息
-join-leave-broadcast:
-  enable: true
-  log-to-console: true
-  send-to-all-subServer: false
-  join-prefix: "§a(+)§r"
-  leave-prefix: "§c(-)§r"
-  player-join-message: "{Group}{Prefix}{Player}{Suffix} 加入了 {Server}"
-  player-leave-message: "{Group}{Prefix}{Player}{Suffix} 离开了 {Server}"
-
-# 是否需要在玩家离开/加入 群组服务器的时候，在原服务器发送离开消息，在被加入的服务器发送加入消息
-join-leave-proxy-broadcast:
-  enable: true
-  log-to-console: true
-  send-to-all-subServer: true
-  join-prefix: "§a[+]§r"
-  leave-prefix: "§c[-]§r"
-  player-join-message: "{Group}{Prefix}{Player}{Suffix} 现在加入了 {Proxy}"
-  player-leave-message: "{Group}{Prefix}{Player}{Suffix} 现在离开了 {Proxy}"
 
 # 是否在提醒的时候给玩家大屏幕显示标题
 mention-show-title:
@@ -101,13 +92,12 @@ mention-show-title:
 
 # 为原本的玩家Tab替换，每个玩家前面加上显示当前的服务器
 # interval 请注意该选项在玩家多的时候尽量设置较大的数值，玩家越多占用的资源会更大
-# {online} 占位符需要子服插件支持(未来会开发)
 tab-list:
   enable: true
   interval: 1000 #刷新间隔，毫秒为单位 输入0则表示不刷新
   format: "{server}{prefix}{player}{Suffix}" #显示的每行的每个玩家的tab的格式  可以参考chat的format的占位符以及服务器的占位符
   header: "欢迎加入{proxy} 当前服务器: {server}"
-  footer: "全服在线人数 §8{total_online}§r | Ping: §8{ping}"
+  footer: "在线人数 §8{online}§r / §8{total_online}§r | Ping: §8{ping}"
 
 # 违禁词语,以","分隔
 ban-words:
