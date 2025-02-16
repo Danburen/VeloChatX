@@ -69,7 +69,6 @@ public class TaskManager extends BasicMethods {
             proxyServer.getAllServers().forEach(server -> {
                 String serverName = server.getServerInfo().getName();
                 List<String> msgList = BroadCastManager.getMessages(serverName);
-                System.out.println( serverName + " broadcast");
                 if(msgList == null || msgList.isEmpty()) return;
                 String message = placeServerValue( new StringBuilder(msgList
                         .get(random.nextInt( BroadCastManager.getMessageCount(serverName)))),serverName).toString();

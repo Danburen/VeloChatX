@@ -191,7 +191,6 @@ public class BroadCastManager extends BasicMethods {
                 msgPrefix.put(server, globalBCT.getPrefix());
         });
         localBCT.forEach(bct->{
-                    System.out.println(bct.getName() + " : " + bct.getMessageList() + " servers " + bct.getServerSet());
                     bct.getServerSet().stream()
                             .map(SubServer::getServerName)
                             .collect(Collectors.toSet()).forEach(server->

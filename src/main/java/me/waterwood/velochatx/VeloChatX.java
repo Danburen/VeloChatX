@@ -6,12 +6,15 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.velochatx.events.PlayerEvents;
+import org.waterwood.io.web.ChangelogGetter;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 import me.waterwood.velochatx.commands.ControlCommands;
 import me.waterwood.velochatx.commands.MentionCommand;
 import me.waterwood.velochatx.commands.MsgCommand;
 import me.waterwood.velochatx.manager.BasicMethods;
 import org.waterwood.utils.Colors;
+
+import java.util.Locale;
 
 
 @Plugin(
@@ -38,6 +41,8 @@ public class VeloChatX extends VelocityPlugin {
         Instance = this;
         this.loadConfig();
         checkUpdate("Danburen","VeloChatX","2.0.0");
+        System.out.println(
+                ChangelogGetter.getChangelog("Danburen","VeloChatX","2.0.0", Locale.getDefault().getLanguage()));
         init();
         getLogger().info(Colors.parseColor(String.format(getPluginMessage("successfully-enable-message"),System.currentTimeMillis() - start)));
         Metrics metrics = metricsFactory.make(this, 23273);
