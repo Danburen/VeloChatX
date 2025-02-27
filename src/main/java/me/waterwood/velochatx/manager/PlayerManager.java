@@ -2,6 +2,7 @@ package me.waterwood.velochatx.manager;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
+import me.waterwood.velochatx.mapper.FilePlayerMapper;
 import me.waterwood.velochatx.mapper.PlayerMapper;
 import me.waterwood.velochatx.utils.PlayerAttribution;
 import me.waterwood.velochatx.utils.SubServer;
@@ -17,7 +18,9 @@ public class PlayerManager extends BasicMethods {
 
     //use static block to make sure mapper class be initialized once.
     public static void initialize() {
-        PLAYER_MAPPER = new PlayerMapper();
+        if (PlayerManager.PLAYER_MAPPER == null) {
+            PlayerManager.PLAYER_MAPPER = new PlayerMapper();
+        }
     }
 
     public static void removePlayer(Player player){
@@ -35,31 +38,36 @@ public class PlayerManager extends BasicMethods {
      * @return is player exist
      */
     public static boolean storeOrUpdatePlayer(Player player){
-        String playerName = PLAYER_MAPPER.getPlayerName(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        String playerName = PLAYER_MAPPER.getPlayerName(uuid);
         if(playerName == null){
-            PLAYER_MAPPER.insertPlayerRecord(player.getUniqueId(),player.getUsername());
-            return true;
+            PLAYER_MAPPER.insertPlayerRecord(uuid,player.getUsername());
+            return false;
         }else{
             if(! playerName.equals(player.getUsername())){
-                PLAYER_MAPPER.updatePlayerName(player.getUniqueId(),player.getUsername());
+                PLAYER_MAPPER.updatePlayerName(uuid,player.getUsername());
             }
         }
-        return false;
+        return true;
     }
 
-    public static void updatePlayerFirstJoinTime(Player player,Long time){
-        PLAYER_MAPPER.updatePlayerFirstJoinTime(player.getUniqueId(),new Timestamp(time));
+    public static void updatePlayerFirstJoinTime(UUID uuid,Long time){
+        PLAYER_MAPPER.updatePlayerFirstJoinTime(uuid,new Timestamp(time));
     }
 
-    public static void updatePlayerLeftTime(Player player,Long time){
-        PLAYER_MAPPER.updatePlayerLeftTime(player.getUniqueId(),new Timestamp(time));
+    public static void updatePlayerLeftTime(UUID uuid,Long time){
+        PLAYER_MAPPER.updatePlayerLeftTime(uuid,new Timestamp(time));
     }
 
-    public static void updatePlayerAttrs(Player player,PlayerAttribution attribution){
-        PLAYER_MAPPER.updatePlayerBanList(player.getUniqueId(),attribution);
-        PLAYER_MAPPER.updatePlayerChatOffline(player.getUniqueId(),attribution.isChatOffLine());
+    public static void updatePlayerAttrs(UUID uuid,PlayerAttribution attribution){
+        PLAYER_MAPPER.updatePlayerBanList(uuid,attribution);
+        PLAYER_MAPPER.updatePlayerChatOffline(uuid,attribution.isChatOffLine());
     }
 
+    /**
+     * Get online player's PlayerAttribution.
+     * @return map of PlayerAttribution key to uuid
+     */
     public static Map<UUID, PlayerAttribution> getOnlinePlayerAttrs(){
         Map<UUID,PlayerAttribution> onlinePlayerAttrs = new HashMap<>();
         proxyServer.getAllPlayers().forEach(player -> {
@@ -68,6 +76,10 @@ public class PlayerManager extends BasicMethods {
             );
         });
         return onlinePlayerAttrs;
+    }
+
+    public static PlayerAttribution getPlayerAttribution(UUID uuid){
+        return PLAYER_MAPPER.getPlayerAttribution(uuid);
     }
 
     public static String getPlayerName(UUID uuid){
@@ -93,5 +105,9 @@ public class PlayerManager extends BasicMethods {
                     .collect(Collectors.toList());
         }
         return players;
+    }
+
+    public static PlayerMapper getPlayerMapper() {
+        return PLAYER_MAPPER;
     }
 }

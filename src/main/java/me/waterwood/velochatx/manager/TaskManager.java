@@ -34,7 +34,7 @@ public class TaskManager extends BasicMethods {
         if(TabListManager.isTabListEnable()) tabListUpdateTask(scheduledManager);
         // Broadcast task
         if(BroadCastManager.isEnabled() && (BroadCastManager.isGlobalEnable() || BroadCastManager.isLocalEnable())) {
-            broadcastMessageTask(scheduledManager,BroadCastManager.isGlobalEnable(),BroadCastManager.isLocalEnable());
+            broadcastMessageTask(scheduledManager);
         }
     }
 
@@ -64,15 +64,15 @@ public class TaskManager extends BasicMethods {
         });
     }
 
-    private static void broadcastMessageTask(ScheduledManager scheduledManager,boolean global,boolean local){
+    private static void broadcastMessageTask(ScheduledManager scheduledManager){
         scheduledManager.addRepeatTask("broadcast", ()->{
             proxyServer.getAllServers().forEach(server -> {
                 String serverName = server.getServerInfo().getName();
                 List<String> msgList = BroadCastManager.getMessages(serverName);
                 if(msgList == null || msgList.isEmpty()) return;
-                String message = placeServerValue( new StringBuilder(msgList
+                String message = placeServerValue(new StringBuilder(msgList
                         .get(random.nextInt( BroadCastManager.getMessageCount(serverName)))),serverName).toString();
-                server.sendMessage(Component.text(message));
+                server.sendMessage(Component.text(BroadCastManager.getMsgPrefix(serverName) + message));
             });
         }, BroadCastManager.getBroadcastConfigs().get("interval",60L), TimeUnit.SECONDS);
     }

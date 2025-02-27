@@ -26,13 +26,11 @@ import java.util.*;
 public class PlayerEvents extends MethodBase {
     private final ProxyServer proxyServer = VelocityPlugin.getProxyServer();
     private static final Map<UUID,PlayerAttribution> playerAttrs;
+
     static{
         playerAttrs = new HashMap<>();
     }
-    public static void setPlayerAttrs(Map<UUID,PlayerAttribution> playerAttrs) {
-        if(playerAttrs == null) playerAttrs = new HashMap<>();
-        PlayerEvents.playerAttrs.putAll(playerAttrs);
-    }
+
     public static Map<UUID, PlayerAttribution> getPlayerAttrs() {
         return playerAttrs;
     }
@@ -108,32 +106,40 @@ public class PlayerEvents extends MethodBase {
     }
     @Subscribe(priority = 0)
     public void onProxyConnect(LoginEvent evt){
+        Player player = evt.getPlayer();
+        UUID uuid = player.getUniqueId();
+        boolean isFirstJoin = ! PlayerManager.storeOrUpdatePlayer(player);
         // add player data to memory
-        playerAttrs.put(evt.getPlayer().getUniqueId(), new PlayerAttribution(new HashSet<>(), new HashSet<>()));
-        boolean isPlayerExist = PlayerManager.storeOrUpdatePlayer(evt.getPlayer());
+        if(isFirstJoin){
+            playerAttrs.put(uuid, new PlayerAttribution(new HashSet<>(), new HashSet<>()));
+        }else{
+            playerAttrs.put(uuid,PlayerManager.getPlayerAttribution(uuid));
+        }
 
         // broadcast proxy join message(multiple player)
-        MessageManager.broadcastProxyMessage(evt.getPlayer(),true);
-        //welcome message broadcast(singal player)
+        MessageManager.broadcastProxyMessage(player,true);
+        //welcome message broadcast(single player)
         if(BroadCastManager.isWelcomeEnabled()){
-            if(BroadCastManager.isWelcomeJoinFirst() && ! isPlayerExist) {
-                MessageManager.broadcastMessage(evt.getPlayer(),BroadCastManager.getWelcomeMessage());
+            if(BroadCastManager.isWelcomeJoinFirst() && isFirstJoin) {
+                MessageManager.broadcastMessage(player,BroadCastManager.getWelcomeMessage());
                 return;
             }
-            MessageManager.broadcastMessage(evt.getPlayer(),BroadCastManager.getWelcomeMessage());
+            MessageManager.broadcastMessage(player,BroadCastManager.getWelcomeMessage());
         }
     }
 
     @Subscribe(priority = 0)
     public void onDisConnect(DisconnectEvent evt){
         Player player = evt.getPlayer();
+        UUID uuid = player.getUniqueId();
         // store and clean memory player data
-        playerAttrs.remove(player.getUniqueId());
         PlayerManager.removePlayer(player);
-        PlayerManager.updatePlayerLeftTime(player,System.currentTimeMillis());
+        PlayerManager.updatePlayerLeftTime(uuid,System.currentTimeMillis());
+        PlayerManager.updatePlayerAttrs(uuid,playerAttrs.get(uuid));
+        playerAttrs.remove(uuid);
         // update player tab list
         if(TabListManager.isTabListEnable()) {
-            proxyServer.getAllPlayers().forEach(p -> p.getTabList().removeEntry(player.getUniqueId()));
+            proxyServer.getAllPlayers().forEach(p -> p.getTabList().removeEntry(uuid));
         }
 
         // proxy leave message broadcast

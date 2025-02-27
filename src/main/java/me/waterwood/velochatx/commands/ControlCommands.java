@@ -53,9 +53,10 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             }else{
                 source.sendMessage(Component.text(VeloChatX.getInstance().getPluginInfo()));
                 for (String cmd : source.hasPermission("velochatx.admin") ? adminCommands : defaultPlayerCommands) {
-                    source.sendMessage(Component.text(getMessage(cmd + "-command-format-message")));
+                    source.sendMessage(Component.text(getPluginMessage(cmd + "-command-format-message")));
                 }
             }
+            return;
         }
 
         // command that console or admin execute
@@ -108,11 +109,11 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             List<String> players = VelocityPlugin.getAllPlayerName();
             //velochatx on command
             if (args[0].equalsIgnoreCase("on")) {
-                attrs.setAccess(true);
+                attrs.setChatOffLine(false);
                 source.sendMessage(Component.text(getMessage("enable-vc-chat-message", language), NamedTextColor.GREEN));
             } else if (args[0].equalsIgnoreCase("off")) {
                 //velochatx off command
-                attrs.setAccess(false);
+                attrs.setChatOffLine(true);
                 source.sendMessage(Component.text(getMessage("disable-vc-chat-message", language), NamedTextColor.DARK_RED));
             } else if(args[0].equalsIgnoreCase("list")) {
                 //velochatx list command
@@ -121,29 +122,23 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                     attrs.getIgnorePlayers().forEach(
                             playersUUID ->{
                                 String name = VelocityPlugin.getPlayerName(playersUUID);
-                                source.sendMessage(Component.text(getMessage(
-                                        "list-show-item-message"
-                                ).replace("{name}",name)));
+                                source.sendMessage(Component.text("§6*§r " + name));
                             }
                     );
-                    return;
-                }
-                if(!attrs.getIgnorePlayers().isEmpty()){
-                    source.sendMessage(Component.text(getMessage("reject-list-show-message", language), NamedTextColor.GREEN));
-                    attrs.getRejectPlayers().forEach(
-                            playersUUID ->{
-                                String name = VelocityPlugin.getPlayerName(playersUUID);
-                                source.sendMessage(Component.text(getMessage(
-                                        "list-show-item-message"
-                                ).replace("{name}",name)));
-                            }
-                    );
+                    if(!attrs.getRejectPlayers().isEmpty()){
+                        source.sendMessage(Component.text(getMessage("reject-list-show-message", language), NamedTextColor.GREEN));
+                        attrs.getRejectPlayers().forEach(playersUUID ->{
+                            String name = VelocityPlugin.getPlayerName(playersUUID);
+                            source.sendMessage(Component.text("§6*§r " + name));
+                        });
+                    }
                     return;
                 }
                 source.sendMessage(Component.text(getMessage("empty-list-show-message", language)));
             }else {
                 //velochatx ignore command
                 String command = args[0].toLowerCase();
+                if(! defaultPlayerCommands.contains(command)) UnKnowMessage(sourcePlayer);
                 if (args.length != 2) {
                     illegalArgsMsg(source, "ignore");
                     return;
@@ -191,7 +186,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
     public List<String> suggest(Invocation invocation) {
         int argNum = invocation.arguments().length;
         String[] args = invocation.arguments();
-        if(argNum == 0) {
+        if(argNum == 0 || argNum == 1) {
             if (invocation.source() instanceof ConsoleCommandSource) {
                 return consoleCommands;
             } else {
@@ -200,7 +195,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                 }
                 return defaultPlayerCommands;
             }
-        }else if(argNum == 1) {
+        }else if(argNum == 2) {
             if(invocation.source() instanceof ConsoleCommandSource){
                 if(args[0].equalsIgnoreCase("reload")){
                     return configFiles;

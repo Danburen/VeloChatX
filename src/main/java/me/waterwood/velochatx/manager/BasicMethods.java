@@ -4,8 +4,8 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.velochatx.VeloChatX;
-import me.waterwood.velochatx.events.PlayerEvents;
 import me.waterwood.velochatx.utils.Channel;
+import me.waterwood.velochatx.utils.PlayerAttribution;
 import me.waterwood.velochatx.utils.SubServer;
 import org.waterwood.plugin.velocity.util.MethodBase;
 import org.waterwood.plugin.velocity.VelocityPlugin;
@@ -43,9 +43,6 @@ public abstract class BasicMethods extends MethodBase {
         PlayerManager.initialize();
         ChatManager.initialize();
         TaskManager.initTask();
-
-        PlayerEvents.setPlayerAttrs(PlayerManager.getOnlinePlayerAttrs());
-
     }
 
     // Get and set server display name

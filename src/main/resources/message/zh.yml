@@ -1,3 +1,7 @@
+# 以下是游戏中展示给玩家的消息配置
+# 所有的键都不能删除或更改，所有的值可以自定义更改
+# 部分文本支持VeloChatX占位符
+
 mention-to-message: "§2你提及了玩家 {Server}{Group}{Prefix}{Player}{Suffix}"
 mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix} §6提及了你!"
 no-self-action-message: "§c你无法对自己执行这个操作§r"
@@ -19,19 +23,6 @@ only-in-game-message: "此命令只能在游戏中使用。"
 only-in-console-message: "此命令只能在控制台使用。"
 no-permission: "您无权使用该命令！"
 ban-words-message: "您当前的发言存在违禁/敏感词汇,已屏蔽您对其他服的广播。"
-reject-list-show-message: "以下玩家的消息被§6忽略§r"
-ignore-list-show-message: "以下玩家的消息被§c拒收§r"
-list-show-item-message: " §6*§r {player}"
+reject-list-show-message: "来自以下玩家的消息被§6忽略§r并且被§6拒收§r"
+ignore-list-show-message: "来自以下玩家的消息被§c忽略§r"
 empty-list-show-message: "§6你的拒收和忽略列表不存在任何玩家。§r"
-  
-mention-command-format-message: "§6/mention <玩家名字>§r - §4对某人显示提及消息。§r"
-msg-command-format-message: "§6/vcmsg <玩家名字> [消息文本]§r - §4对某人发送私聊消息。§r"
-reload-command-format-message: "§6/velochatx reload [config/message]§r - §4重载插件[config/message/broadcast]的配置，默认重载所有。§r"
-help-command-format-message: "§6/velochatx help§r - §4所有有关VeloChatX帮助(vcx/chatx)§r"
-on-command-format-message: "§6/velochatx on§r - §4开启当前你对跨服聊天的支持§r"
-off-command-format-message: "§6/velochatx off§r - §4关闭当前你对跨服聊天的支持§r"
-ignore-command-format-message: "§6/velochatx ignore <玩家名字>§r - §4忽略来自某位玩家的所有信息§r"
-reject-command-format-message: "§6/velochatx reject <玩家名字>§r - §4拒收来自某位玩家的所有信息§r"
-remove-command-format-message: "§6/velochatx remove <玩家名字>§r - §4移除忽视/拒收某人消息§r"
-control-command-format-message: "§6/velochatx <on/off/ignore/reject/help>§r"
-show-channel-info-command-format-message: "§6/velochatx show-channel-info§r - §4显示所有频道的信息§r"

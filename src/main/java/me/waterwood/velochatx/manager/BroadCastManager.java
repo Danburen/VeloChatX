@@ -100,20 +100,20 @@ public class BroadCastManager extends BasicMethods {
         isRandom = broadCastConfig.getBoolean("random",true);
         GlobalEnable = broadCastConfig.get("global.enable",true);
         LocalEnable = broadCastConfig.get("locale.enable",false);
-        channelGlobal = getConfigs().getBoolean("channel-global",true);
+        channelGlobal = getConfigs().getBoolean("channels-global",true);
 
-        WelcomeEnabled = broadCastConfig.getBoolean("welcome-broadcast.enable");
-        WelcomeJoinFirst = broadCastConfig.getBoolean("welcome-broadcast.only-first-join");
+        WelcomeEnabled = broadCastConfig.getBoolean("welcome-broadcast.enable",false);
+        WelcomeJoinFirst = broadCastConfig.getBoolean("welcome-broadcast.only-first-join",false);
 
         WELCOME_MESSAGE = broadCastConfig.getString("welcome-broadcast.message","");
 
-        BROADCAST_ENABLED = broadCastConfig.getBoolean("join-leave-broadcast.enable");
-        LOG_ENABLE = broadCastConfig.getBoolean("join-leave-broadcast.log-to-console");
-        SEND_TO_ALL = broadCastConfig.getBoolean("join-leave-broadcast.send-to-all-subServer");
-        BROADCAST_PROXY_ENABLED = broadCastConfig.getBoolean("join-leave-proxy-broadcast.enable");
-        LOG_PROXY_ENABLE = broadCastConfig.getBoolean("join-leave-proxy-broadcast.log-to-console");
-        SEND_TO_ALL_PROXY = broadCastConfig.getBoolean("join-leave-proxy-broadcast.send-to-all-subServer");
-        BROADCAST_IN_CHANNEL = broadCastConfig.getBoolean("join-leave-broadcast.broadcast-in-channel");
+        BROADCAST_ENABLED = broadCastConfig.getBoolean("join-leave-broadcast.enable",true);
+        LOG_ENABLE = broadCastConfig.getBoolean("join-leave-broadcast.log-to-console",true);
+        SEND_TO_ALL = broadCastConfig.getBoolean("join-leave-broadcast.send-to-all-subServer",false);
+        BROADCAST_PROXY_ENABLED = broadCastConfig.getBoolean("join-leave-proxy-broadcast.enable",true);
+        LOG_PROXY_ENABLE = broadCastConfig.getBoolean("join-leave-proxy-broadcast.log-to-console",true);
+        SEND_TO_ALL_PROXY = broadCastConfig.getBoolean("join-leave-proxy-broadcast.send-to-all-subServer",true);
+        BROADCAST_IN_CHANNEL = broadCastConfig.getBoolean("join-leave-broadcast.broadcast-in-channel",true);
 
         JOIN_PREFIX = broadCastConfig.getString("join-leave-broadcast.join-prefix","§a(+)§r");
         LEAVE_PREFIX = broadCastConfig.getString("join-leave-broadcast.leave-prefix","§c(-)§r");
@@ -286,6 +286,9 @@ public class BroadCastManager extends BasicMethods {
         return messages.get(serverName).size();
     }
 
+    public static String getMsgPrefix(String serverName) {
+        return msgPrefix.get(serverName);
+    }
     /**
      * Return the remaining server local broadcast left from global
      * @return set of SubServer

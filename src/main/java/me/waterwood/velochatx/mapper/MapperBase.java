@@ -1,7 +1,7 @@
 package me.waterwood.velochatx.mapper;
 
 import me.waterwood.velochatx.VeloChatX;
-import org.waterwood.io.DataBase.H2DataBase;
+import org.waterwood.io.database.H2DataBase;
 import org.waterwood.plugin.WaterPlugin;
 
 public abstract class MapperBase extends H2DataBase {

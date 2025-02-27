@@ -3,9 +3,11 @@ package me.waterwood.velochatx;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.velochatx.events.PlayerEvents;
+import me.waterwood.velochatx.manager.BroadCastManager;
 import org.waterwood.io.web.ChangelogGetter;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 import me.waterwood.velochatx.commands.ControlCommands;
@@ -40,22 +42,25 @@ public class VeloChatX extends VelocityPlugin {
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();
-        checkUpdate("Danburen","VeloChatX","2.0.0");
-        System.out.println(
-                ChangelogGetter.getChangelog("Danburen","VeloChatX","2.0.0", Locale.getDefault().getLanguage()));
         init();
-        getLogger().info(Colors.parseColor(String.format(getPluginMessage("successfully-enable-message"),System.currentTimeMillis() - start)));
+        checkUpdate("Danburen","VeloChatX","2.0.0",
+                getConfigs(), BroadCastManager.getBroadcastConfigs());
+        logMsg(String.format(getPluginMessage("successfully-enable-message"),System.currentTimeMillis() - start));
         Metrics metrics = metricsFactory.make(this, 23273);
     }
+
     @Subscribe
+    public void onProxyShutdown(ProxyShutdownEvent event) {
+
+    }
+    
     public void init(){
-        getLogger().info(Colors.parseColor(getPluginMessage("init-process-message")));
+        logMsg(getPluginMessage("init-process-message"));
         server.getEventManager().register(this, new PlayerEvents());
         BasicMethods.load();
         registerCommands();
     }
 
-    @Subscribe
     public void registerCommands(){
         new MentionCommand().register(this);
         new MsgCommand().register(this);

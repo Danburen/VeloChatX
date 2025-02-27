@@ -17,7 +17,7 @@ import java.util.List;
 public abstract class VelocitySimpleCommand extends MethodBase {
     public void register(VelocityPlugin plugin, SimpleCommand command, String PRIMARY_ALIAS, String[] ALIASES, boolean sharp){
         ProxyServer proxy= VelocityPlugin.getProxyServer();
-        proxy.getCommandManager().register(PRIMARY_ALIAS,command,ALIASES);
+        proxy.getCommandManager().register(PRIMARY_ALIAS, command, ALIASES);
         if(sharp){
             String SHARP_PRIMARY_ALIAS = '/' + PRIMARY_ALIAS;
             String[] SHARP_ALIASES = Arrays.stream(ALIASES).map(s -> "/" + s).toArray(String[]::new);
@@ -29,6 +29,8 @@ public abstract class VelocitySimpleCommand extends MethodBase {
             },SHARP_ALIASES);
         }
     }
+
+
 
     public void illegalArgsMsg(CommandSource source,String command){
         if(source instanceof Player sourcePlayer) {

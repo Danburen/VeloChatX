@@ -1,9 +1,12 @@
 package me.waterwood.velochatx.mapper;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import me.waterwood.velochatx.utils.PlayerAttribution;
-import org.waterwood.io.DataBase.DatabaseHelper;
+import org.waterwood.io.database.DatabaseHelper;
 import org.waterwood.utils.JsonStringParser;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -42,7 +45,7 @@ public class PlayerMapper extends MapperBase {
 
     public void insertPlayerRecord(UUID uuid, String name) {
         String insertPlayerSQL = "MERGE INTO player (uuid, name) VALUES (?, ?)";
-        String insertPlayerStatusSQL = "MERGE INTO player_status (uuid,first_join_time) VALUES (?,?)";
+        String insertPlayerStatusSQL = "MERGE INTO player_status (uuid,first_join_time) VALUES (?, ?)";
         DatabaseHelper.executeSQL(connection,insertPlayerSQL,stmt -> {
             stmt.setString(1, uuid.toString());
             stmt.setString(2, name);
@@ -51,6 +54,7 @@ public class PlayerMapper extends MapperBase {
             stmt.setString(1, uuid.toString());
             stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
         },"Error when insert player_status");
+
     }
 
     public void updatePlayerName(UUID uuid, String newName) {
@@ -67,9 +71,6 @@ public class PlayerMapper extends MapperBase {
                 List.of(attribution.getIgnorePlayers(),attribution.getRejectPlayers()),
                 "ignoreList","rejectList"
         );
-
-        System.out.println(jsonData);
-
         DatabaseHelper.executeSQL(connection,updateSQL,stmt -> {
             stmt.setString(1,jsonData);
             stmt.setString(2, uuid.toString());
@@ -80,6 +81,7 @@ public class PlayerMapper extends MapperBase {
         String updateSQL = "UPDATE player_status SET is_chat_offline = ? WHERE uuid = ?";
         DatabaseHelper.executeSQL(connection,updateSQL,stmt -> {
             stmt.setInt(1,offline ? 1 : 0);
+            stmt.setString(2, uuid.toString());
         });
     }
 
@@ -99,7 +101,13 @@ public class PlayerMapper extends MapperBase {
         });
     }
 
-    public String getPlayerName(UUID uuid) {
+    /**
+     * Get the player name from player table
+     * if not exist return null
+     * @param uuid uuid of player
+     * @return player's name
+     */
+    public @Nullable String getPlayerName(UUID uuid) {
         String selectSQL = "SELECT name FROM player WHERE uuid = ?";
         final String[] playerName = new String[1];
         DatabaseHelper.executeSQL(connection,selectSQL,stmt -> {
@@ -107,14 +115,16 @@ public class PlayerMapper extends MapperBase {
         },"Error when selecting player's name",rs -> {
             if(rs.next()) {
                 playerName[0] = rs.getString("name");
-            }else{
-                System.out.println("player name not found " + uuid.toString() );
             }
         });
         return playerName[0];
     }
 
-    public Map<String,String> getPlayerNames() {
+    /**
+     * Return the map of player's info which made up of UUID and Name
+     * @return player's info map
+     */
+    public Map<String,String> getPlayerMap() {
         String selectSQL = "SELECT * FROM player";
         final Map<String,String> playerInfoMap = new LinkedHashMap<>();
         DatabaseHelper.executeSQL(connection,selectSQL,stmt -> {}, rs -> {
@@ -131,23 +141,54 @@ public class PlayerMapper extends MapperBase {
         DatabaseHelper.executeSQL(connection,selectSQL,stmt -> {
             stmt.setString(1,uuid.toString());
         },rs -> {
-            Map<String,HashSet<String>> rsMap = JsonStringParser
-                    .JsonToStringHashMap(rs.getString("ban_list"));
-            rsMap.get("ignoreList").forEach(stringUUID-> attribution.addIgnorePlayers(UUID.fromString(stringUUID)));
-            rsMap.get("rejectList").forEach(stringUUID-> attribution.addRejectPlayers(UUID.fromString(stringUUID)));
-            attribution.setAccess(!isPlayerChatOffline(uuid));
+            if(rs.next()) {
+                String banList = rs.getString("ban_list");
+                if(banList != null) {
+                    JsonObject jsonObject = JsonParser.parseString(banList).getAsJsonObject();
+                    jsonObject.getAsJsonArray("ignoreList").forEach(item->{
+                        attribution.addIgnorePlayers(UUID.fromString(item.getAsString()));
+                    });
+                    jsonObject.getAsJsonArray("rejectList").forEach(item->{
+                        attribution.addRejectPlayers(UUID.fromString(item.getAsString()));
+                    });
+                }else{
+                    System.out.println("Player" + uuid + "'s Ban List is empty");
+                }
+                attribution.setChatOffLine(getPlayerChatOffline(uuid));
+            }else{
+                System.out.println("No data found for UUID: " + uuid.toString());
+            }
+
         });
        return attribution;
     }
 
-    public boolean isPlayerChatOffline(UUID uuid) {
+    public boolean getPlayerChatOffline(UUID uuid) {
         String selectSQL = "SELECT is_chat_offline FROM player_status WHERE uuid = ?";
         final Integer[] offline = new Integer[1];
         DatabaseHelper.executeSQL(connection,selectSQL,stmt -> {
             stmt.setString(1,uuid.toString());
         }, rs->{
-            offline[0] = rs.getInt("is_chat_offline");
+            if(rs.next()){
+                int chatOffLine = rs.getInt("is_chat_offline");
+                offline[0] = chatOffLine;
+            }
         });
         return offline[0] == 1;
+    }
+
+    public void showPlayerStatus(UUID uuid) {
+        String selectSQL = "SELECT * FROM player_status WHERE uuid = ?";
+        DatabaseHelper.executeSQL(connection, selectSQL, stmt -> {
+            stmt.setString(1,uuid.toString());
+        }, rs -> {
+            if(rs.next()){
+                System.out.println("UUID: " + rs.getString("uuid"));
+                System.out.println("First Join Time: " + rs.getString("first_join_time"));
+                System.out.println("Left Time: " + rs.getString("left_time"));
+                System.out.println("Is Chat Offline: " + rs.getString("is_chat_offline"));
+                System.out.println("Ban List: " + rs.getString("ban_list"));
+            }
+        });
     }
 }

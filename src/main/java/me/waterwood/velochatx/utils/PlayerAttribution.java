@@ -59,7 +59,7 @@ public class PlayerAttribution {
         this.chatOffLine = true;
     }
 
-    public void setAccess(boolean accessToLine) {
-        this.chatOffLine = ! accessToLine;
+    public void setChatOffLine(boolean offLine) {
+        this.chatOffLine = offLine;
     }
 }

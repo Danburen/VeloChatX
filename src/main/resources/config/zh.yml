@@ -2,7 +2,10 @@
 # build java version: JE 17
 # author: waterwood
 # Available language zh,en
+
+# 此文件的版本，通常不需要改变，检测更新需要用到
 config-version: 2.0.0
+# 自动更新 / 自动下载
 check-update:
   enable: true
   auto-download: true
@@ -19,8 +22,7 @@ check-update:
 # 支持mc的颜色格式包括 §和& 颜色代码，会覆盖原有的颜色
 chat-format: "{channel}{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 
-# this option change plugin messages. it won't change message.yml && config.yml!
-# usually config.yml && message.yml generate depending on your VCM default language.
+# 插件消息文件的语音版本，通常依据于您的Java JVM的版本自动设置
 locale: zh
 
 # global/locale 这个选项设置在显示给玩家信息(提及，私聊等)是否根据玩家客户端还是服务器的语言显示？
