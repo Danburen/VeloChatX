@@ -1,7 +1,6 @@
 # 以下是游戏中展示给玩家的消息配置
 # 所有的键都不能删除或更改，所有的值可以自定义更改
 # 部分文本支持VeloChatX占位符
-
 mention-to-message: "§2你提及了玩家 {Server}{Group}{Prefix}{Player}{Suffix}"
 mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix} §6提及了你!"
 no-self-action-message: "§c你无法对自己执行这个操作§r"

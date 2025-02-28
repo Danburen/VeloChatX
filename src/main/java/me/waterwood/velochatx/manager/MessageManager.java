@@ -78,7 +78,7 @@ public class MessageManager extends BasicMethods {
             final String message = placeValue(isJoin ? BroadCastManager.getJoinMessage() : BroadCastManager.getLeaveMessage()
                             ,player,targetServer);
             targetServer.sendMessage(Component.text(
-                    isJoin ? BroadCastManager.getJoinPrefix() : BroadCastManager.getLeavePrefix() + message));
+                    isJoin ? BroadCastManager.getJoinPrefix() + message: BroadCastManager.getLeavePrefix() + message));
             if(BroadCastManager.isLogEnable()) {
                 getLogger().info(Colors.parseColor(message));
             }

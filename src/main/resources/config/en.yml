@@ -1,98 +1,115 @@
-# VelochatX 1.0beta
+# VelochatX 2.0.0
 # build java version: JE 17
 # author: waterwood
 # Available language zh,en
-config-version: 1.3.2
+
+# This version of the file, usually does not need to be changed, the update check uses it
+config-version: 2.0.0
+# Auto update / Auto download
 check-update:
   enable: true
   auto-download: true
 
-# use like {xxx} to parse values for your chat text
-# Group: return the Group DisplayName which the player is in.
-# Prefix/Suffix: return pre/suffix of the player
-# Server: return which server player is in(display can be replaced below);
-# player: return player's name
-# Message: player's chat text
-# NOTE : SERVER && MESSAGE && PlayName are both required,necessity.
-# if one of them is missing, it will use default chat format:[{Server}]{PlayerName}: {Message}
-# you can use like §x to change the text color(covering original display color of luckperms)
-chat-format: "{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
+# Configure the format of chat output. {xxx} represents replaced variables
+# In the message, these rules are also applicable
+# channel: returns the server channel where the player is located
+# Group: returns the player's group
+# Prefix/Suffix: returns the player's prefix/suffix
+# Server: returns the server the player is on, the server display name can be converted below in server-display before output;
+# player: returns the player's name
+# Message: the player's message text
+# NOTE: SERVER && MESSAGE && PlayerName are required, if missing, it will use the default output format: [{Server}]{PlayerName}: {Message}
+# Supports mc color codes including § and & color codes, which will overwrite the original color
+chat-format: "{channel}{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 
-# this option change plugin messages. it won't change message.yml && config.yml!
-# usually config.yml && message.yml generate depending on your VCM default language.
-locale: en
+# Plugin message file's language version, typically set automatically based on your Java JVM version
+locale: zh
 
-# global/locale  set to display player information (mentions, private chats, etc.)
-# -whether based on the language of the player's client or server.
-# global: display to players based on the language of the server (customizable message settings can be changed)
-# locale: display various player messages based on the language of the player's client (unable to customize me
-#  -ssages, only built-in default plugin messages can be displayed)
+# global/locale option here determines if the information displayed to the player (mentions, private messages, etc.) is based on the player's client or the server language?
+# global: Display to the player based on server language (customizable messages can be changed)
+# locale: Display messages to players based on their client's language (cannot customize messages, only show built-in default plugin messages)
 player-locale: global
 
-# whether log all players' chat message in the terminal?
-# if this was disabled can save your server's memory(a little)
-# if your server has huge number of players,i recommended set the attribute(enable) to disable.
-# will not influence in game color output
+# Whether to output all player text to the console
+# If the server is running low on memory, you can disable this feature, especially when the number of players is very large
 log-text:
   enable: true
-  # whether convert the mc color code "§/&" to ANSI to show text color in terminal.
-  # if set false,will remove all the chat code and output text
+  # Whether to convert the text output in the console to match the color (achieves the same effect as in the game, logs will not show color codes, does not affect the game output colors)
   convert: true
 
-# convert the server name to the display name of the server.
-# below the "display" are servers' name in your velocity server -> Velocity.toml -> [servers]
-# which are replaced when play send messages.
+# Convert the server's display name
+# The keys corresponding to the display must match the server names in Velocity.toml -> [servers]
+# proxy represents the proxy server, such as Velocity;
+# If "unknown" or "未known" appears, it indicates the corresponding server is missing below
 # e.g. [Lobby]steven: hello -> [大厅服]steven: hello
 server-display:
   enable: true
+  proxy: "[§5Proxy Server§r]"
   display:
-    lobby: "[§dLobby§r]"
-    server2: "[§2Survivor§r]"
-    proxy: "[§5VCLO]§r"
+    lobby: "[§dLobby Server§r]"
+    server1: "[§3Mini Game Server§r]"
+    server2: "[§2Survival Server§r]"
 
-# Do need to send a departure message on the original server and a join message on the joined server when
-# -the player leaves/joins the sub server
-join-leave-broadcast:
-  enable: true
-  log-to-console: true
-  send-to-all-subServer: false
-  join-prefix: "§a(+)§r"
-  leave-prefix: "§c(-)§r"
-  player-join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} has joined the {Server}"
-  player-leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} has left the {Server}"
+# @from version 1.4.0
+# Group each server
+# A channel group can have multiple sub-servers, and a server can belong to multiple channels
+# When a server appears in multiple channels simultaneously, {channel} is replaced with the first server it appears in
+# If global is set to false, only servers in the same channel can communicate with each other
+# If global is set to true, messages from all servers (whether in the channel or not) will be communicated
+# If a server is not in the channel, it will default to global, and {channel} placeholder will be replaced with an empty string
+channels:
+  global: false
+  channel-list:
+    login:
+      display: "[§6Login Channel§r]"
+      welcome:
+        enable: true
+        message: "Welcome to the Login Channel"
+      servers:
+        - lobby
+    games:
+      display: "[§6Mini Game Channel§r]"
+      welcome:
+        enable: true
+        message: "Welcome to the Mini Game Channel"
+      servers:
+        - server1
+    survive:
+      display: "[§6Survival Channel§r]"
+      welcome:
+        enable: true
+        message: "Welcome to the Survival Channel"
+      servers:
+        - server2
+    # You can add more channels following the above format (please maintain the consistency of the format)
 
-# Do need to send a departure message on the proxy server and a join message on the proxy server when
-# -the player leaves/joins the proxy
-join-leave-proxy-broadcast:
-  enable: true
-  log-to-console: true
-  send-to-all-subServer: true
-  join-prefix: "§a[+]]§r"
-  leave-prefix: "§c[-]]§r"
-  player-join-message: "{Group}{Prefix}{Player}{Suffix} 现在加入了 {Proxy}"
-  player-leave-message: "{Group}{Prefix}{Player}{Suffix} 现在离开了 {Proxy}"
-
-# Whether show title to target player when mention him.
+# Whether to show a title on the player's screen when mentioning them
 mention-show-title:
   enable: true
-  # how long will the title stay.fade in,out.Use seconds.(Integer)
+  # Time to show the Title, in seconds. Supports integers, non-integer values are automatically rounded. Time includes fade-in, stay, and fade-out durations.
   time:
     fade-in: 1
     stay: 2
     fade-out: 1
 
-# replace tab-list scoreboard when play press tab button
-# interval should be higher when player's total number is large.
-# it might take lots of resources when player's number getting larger.
+# Replace the original player's Tab with the current server displayed in front of each player's name
+# interval: Please note that for servers with many players, setting a larger value will reduce resource usage. The larger the player count, the more resources it will consume.
 tab-list:
   enable: true
-  interval: 1000 # refresh interval use millions seconds (ms)
-  format: "{server}{prefix}{player}{Suffix}" #display each row of tab list  reference by chat format and server placeholder
-  header: "Welcome you Join {proxy} Current Server: {server}"
-  footer: "ONLINES:  §8{total_online}§r | Ping: §8{ping}"
+  interval: 1000 # Refresh interval in milliseconds, enter 0 if no refresh is needed
+  format: "{server}{prefix}{player}{Suffix}" # Format for each player's tab row. You can refer to the chat format placeholders and server placeholders
+  header: "Welcome to {proxy} Current Server: {server}"
+  footer: "Online Players §8{online}§r / §8{total_online}§r | Ping: §8{ping}"
 
-# ban words,split with ","
+# Forbidden words, separated by ","
 ban-words:
   enable: true
   log-to-console: true
-  words: "fuck,bitch,baga,son of bitch"
+  words: "fuck,damn,shit,dog,junk,**"
+
+# Whether to enable the player's cross-server blocking function (future updates, currently enabled by default)
+# max-list represents how many players to store (for large servers, a smaller value is better)
+# Stored in the database as UUID, each player takes approximately 16B
+ban-list:
+  enable: true
+  max-player: 20

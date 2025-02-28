@@ -24,18 +24,24 @@ public class PlayerMapper extends MapperBase {
     protected void createTable() {
         String createTableSQL =
                 // player(uuid,name)
-                "CREATE TABLE IF NOT EXISTS player ("  +
-                    "uuid TEXT PRIMARY KEY, "  +
-                    "name TEXT NOT NULL ); "  +
-                // player_status(uuid,ban_list,is_chat_offline,first_join_time,left_time)
+                "CREATE TABLE IF NOT EXISTS player (" +
+                        "uuid TEXT PRIMARY KEY, "  +
+                        "name TEXT NOT NULL, " +
+                        "is_deleted INTEGER DEFAULT 0, " +
+                        "player_ind INTEGER NOT NULL AUTO_INCREMENT); "  +
+                // player_status(uuid,is_chat_offline,first_join_time,left_time)
                 "CREATE TABLE IF NOT EXISTS player_status (" +
-                    "uuid TEXT PRIMARY KEY," +
-                    "ban_list TEXT DEFAULT NULL,"  +
-                    "is_chat_offline INTEGER DEFAULT 0," +
-                    "first_join_time TIMESTAMP NOT NULL," +
-                    "left_time TIMESTAMP DEFAULT NULL," +
-                    "FOREIGN KEY (uuid) REFERENCES player(uuid) ON DELETE CASCADE ON UPDATE CASCADE ); ";
-                // player_data(uuid,server_name,online_time)...
+                        "uuid TEXT PRIMARY KEY," +
+                        "is_chat_offline INTEGER DEFAULT 0," +
+                        "first_join_time TIMESTAMP NOT NULL," +
+                        "left_time TIMESTAMP DEFAULT NULL," +
+                        "FOREIGN KEY (uuid) REFERENCES player(uuid) ON DELETE CASCADE ON UPDATE CASCADE ); "+
+                // player_ban_list
+                "CREATE TABLE IF NOT EXISTS player_ban_list (" +
+                        "uuid TEXT PRIMARY KEY, " +
+                        "ignore_list TEXT DEFAULT NULL, " +
+                        "reject_list TEXT DEFAULT NULL, " +
+                        "FOREIGN KEY (uuid) REFERENCES player(uuid) ON DELETE CASCADE ON UPDATE CASCADE ); ";
         try{
             executeCreateSQL(connection, createTableSQL);
         }catch (SQLException e){
@@ -44,17 +50,23 @@ public class PlayerMapper extends MapperBase {
     }
 
     public void insertPlayerRecord(UUID uuid, String name) {
-        String insertPlayerSQL = "MERGE INTO player (uuid, name) VALUES (?, ?)";
-        String insertPlayerStatusSQL = "MERGE INTO player_status (uuid,first_join_time) VALUES (?, ?)";
+        String insertPlayerSQL = "INSERT INTO player (uuid, name) VALUES (?, ?)";
+        String insertPlayerStatusSQL = "INSERT  INTO player_status (uuid,first_join_time) VALUES (?, ?)";
+        String insertPlayerBanListSQL = "INSERT INTO player_ban_list (uuid) VALUES (?)";
+
+        String uuidStr = uuid.toString();
+
         DatabaseHelper.executeSQL(connection,insertPlayerSQL,stmt -> {
-            stmt.setString(1, uuid.toString());
+            stmt.setString(1, uuidStr);
             stmt.setString(2, name);
         },"Error when insert player");
         DatabaseHelper.executeSQL(connection,insertPlayerStatusSQL,stmt -> {
-            stmt.setString(1, uuid.toString());
+            stmt.setString(1, uuidStr);
             stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
         },"Error when insert player_status");
-
+        DatabaseHelper.executeSQL(connection,insertPlayerBanListSQL,stmt -> {
+            stmt.setString(1, uuidStr);
+        });
     }
 
     public void updatePlayerName(UUID uuid, String newName) {
@@ -65,15 +77,20 @@ public class PlayerMapper extends MapperBase {
         });
     }
 
-    public void updatePlayerBanList(UUID uuid, PlayerAttribution attribution) {
-        String updateSQL = "UPDATE player_status SET ban_list = ? WHERE uuid = ?";
-        String jsonData = JsonStringParser.hashSetToJson(
-                List.of(attribution.getIgnorePlayers(),attribution.getRejectPlayers()),
-                "ignoreList","rejectList"
-        );
+    /**
+     * Persistent player ban list data
+     * @param uuid uuid of player
+     * @param ignore ignore set
+     * @param reject reject set
+     */
+    public void updatePlayerBanList(UUID uuid, Set<UUID> ignore,Set<UUID> reject) {
+        String updateSQL = "UPDATE player_ban_list SET ignore_list = ?,reject_list = ? WHERE uuid = ?";
+        String ignoreJson = JsonStringParser.hashSetToJsonArray(ignore);
+        String rejectJson = JsonStringParser.hashSetToJsonArray(reject);
         DatabaseHelper.executeSQL(connection,updateSQL,stmt -> {
-            stmt.setString(1,jsonData);
-            stmt.setString(2, uuid.toString());
+            stmt.setString(1,ignoreJson);
+            stmt.setString(2,rejectJson);
+            stmt.setString(3, uuid.toString());
         },"Error when update player ban_list");
     }
 
@@ -136,24 +153,16 @@ public class PlayerMapper extends MapperBase {
     }
 
     public PlayerAttribution getPlayerAttribution(UUID uuid) {
-        String selectSQL = "SELECT ban_list FROM player_status WHERE uuid = ?";
+        String selectSQL = "SELECT ignore_list,reject_list FROM player_ban_list WHERE uuid = ?";
         final PlayerAttribution attribution = new PlayerAttribution();
         DatabaseHelper.executeSQL(connection,selectSQL,stmt -> {
             stmt.setString(1,uuid.toString());
         },rs -> {
             if(rs.next()) {
-                String banList = rs.getString("ban_list");
-                if(banList != null) {
-                    JsonObject jsonObject = JsonParser.parseString(banList).getAsJsonObject();
-                    jsonObject.getAsJsonArray("ignoreList").forEach(item->{
-                        attribution.addIgnorePlayers(UUID.fromString(item.getAsString()));
-                    });
-                    jsonObject.getAsJsonArray("rejectList").forEach(item->{
-                        attribution.addRejectPlayers(UUID.fromString(item.getAsString()));
-                    });
-                }else{
-                    System.out.println("Player" + uuid + "'s Ban List is empty");
-                }
+                JsonParser.parseString(rs.getString("ignore_list")).getAsJsonArray()
+                        .forEach(uid-> attribution.addIgnorePlayers(UUID.fromString(uid.getAsString())));
+                JsonParser.parseString(rs.getString("reject_list")).getAsJsonArray()
+                        .forEach(uid-> attribution.addRejectPlayers(UUID.fromString(uid.getAsString())));
                 attribution.setChatOffLine(getPlayerChatOffline(uuid));
             }else{
                 System.out.println("No data found for UUID: " + uuid.toString());
@@ -187,7 +196,22 @@ public class PlayerMapper extends MapperBase {
                 System.out.println("First Join Time: " + rs.getString("first_join_time"));
                 System.out.println("Left Time: " + rs.getString("left_time"));
                 System.out.println("Is Chat Offline: " + rs.getString("is_chat_offline"));
-                System.out.println("Ban List: " + rs.getString("ban_list"));
+            }
+        });
+        String selectSQL2 = "SELECT * FROM player_ban_list WHERE uuid = ?";
+        DatabaseHelper.executeSQL(connection,selectSQL2,stmt -> {
+            stmt.setString(1,uuid.toString());
+        },rs->{
+            if(rs.next()){
+                System.out.println("UUID: " + rs.getString("uuid"));
+                String ignoreList = rs.getString("ignore_list");
+                if(ignoreList != null){
+                    System.out.println("Ignore List: " + JsonParser.parseString(rs.getString("ignore_list")).getAsJsonArray().toString());
+                }
+                String rejectList = rs.getString("reject_list");
+                if(rejectList != null){
+                    System.out.println("Reject List: " + JsonParser.parseString(rs.getString("reject_list")).getAsJsonArray().toString());
+                }
             }
         });
     }

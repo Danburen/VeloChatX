@@ -106,3 +106,10 @@ ban-words:
   enable: true
   log-to-console: true
   words: "操,干,日,狗,垃圾,傻逼"
+
+# 是否启用玩家的跨服屏蔽功能(未来更新功能，当前版本默认启用)
+# max-list 表示最多存储多少个玩家(对于超大型服务器这个值越小越好)
+# 以 UUID 形式存储在数据库当中，一个玩家约 16B
+ban-list:
+  enable: true
+  max-player: 20

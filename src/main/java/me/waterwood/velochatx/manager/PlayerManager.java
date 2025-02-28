@@ -60,7 +60,13 @@ public class PlayerManager extends BasicMethods {
     }
 
     public static void updatePlayerAttrs(UUID uuid,PlayerAttribution attribution){
-        PLAYER_MAPPER.updatePlayerBanList(uuid,attribution);
+        Set<UUID> rejectPlayers = attribution.getRejectPlayers();
+        Set<UUID> ignorePlayers = new HashSet<>(attribution.getIgnorePlayers());
+        // make sure ignore reject do not contain same player to save memory
+        ignorePlayers.removeAll(attribution.getRejectPlayers());
+        System.out.println("reject set: " + rejectPlayers.toString());
+        System.out.println("ignore set: " + ignorePlayers.toString());
+        PLAYER_MAPPER.updatePlayerBanList(uuid,ignorePlayers,rejectPlayers);
         PLAYER_MAPPER.updatePlayerChatOffline(uuid,attribution.isChatOffLine());
     }
 
