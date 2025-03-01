@@ -1,8 +1,6 @@
-# VeloChatX
-
+# VeloChatX 
 ![icon_middle_2](https://github.com/user-attachments/assets/2ce8ffa3-19b9-4905-aa50-5bd1a4386ad3)
-
-
+## [zh](https://github.com/Danburen/VeloChatX/tree/main/docs/zh)
 ### 🧐 Introduction
   a plugin that Velocity server distribute players' messages to its sub servers.
   It can also automatically broadcasting message from player and timed broadcast
