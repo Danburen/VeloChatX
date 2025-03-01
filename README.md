@@ -1,8 +1,13 @@
 # VeloChatX
+
+![icon_middle_2](https://github.com/user-attachments/assets/2ce8ffa3-19b9-4905-aa50-5bd1a4386ad3)
+
+
 ### Introduction
   a plugin that Velocity server distribute players' messages to its sub servers.
+  It can also automatically broadcasting message from player and timed broadcast
   
-### plugin features
+### 🤠 plugin features
 * When player join/leave server,broadcast the join/leave message to previous server and the present server.
 * Automatically parse chat color logging out in proxy server.
 * Support message customization
@@ -10,11 +15,20 @@
 * i18n support, support language en_US, zh_CN
 * auto fix the language for the player join the game
 * auto update
-* ban words
+* ban words filter
+* timed broadcast support
+* persist data with database
 * tab list replace
 * flexable inner server placeholder
 
-### Build
+### 👉 Getting Start
+* Download the plugin from latest [Release](https://github.com/Danburen/VeloChatX/releases)
+* Put ```VeloChatX``` file to your ```Velocity``` plugin file
+* **Start** the server and the plugin will generate config files for you
+* **Stop** the server and configurate the configs file
+* **Restart** the server and enjoy.
+
+### 🧱 How to Build
 * Java 17 or newer.
 * [JitPack](https://www.jitpack.io/#Danburen/WaterAPI)
 ```Gradle:
@@ -32,6 +46,8 @@ dependencies {
 	implementation 'com.github.Danburen:WaterAPI:-SHAPSHOT'
 }
 ```
-### Stats
+### 📊 Stats
 ![Bstats](https://bstats.org/signatures/velocity/VeloChatX.svg)
 
+### 😍 Support Us
+[![](https://pic1.afdiancdn.com/static/img/welcome/button-sponsorme.png)](https://afdian.com/a/WaterWood/plan)
