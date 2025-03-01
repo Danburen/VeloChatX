@@ -58,7 +58,7 @@ server-display:
 # If global is set to true, messages from all servers (whether in the channel or not) will be communicated
 # If a server is not in the channel, it will default to global, and {channel} placeholder will be replaced with an empty string
 channels:
-  global: false
+  global: true
   channel-list:
     login:
       display: "[§6Login Channel§r]"

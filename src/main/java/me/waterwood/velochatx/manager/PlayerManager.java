@@ -64,8 +64,6 @@ public class PlayerManager extends BasicMethods {
         Set<UUID> ignorePlayers = new HashSet<>(attribution.getIgnorePlayers());
         // make sure ignore reject do not contain same player to save memory
         ignorePlayers.removeAll(attribution.getRejectPlayers());
-        System.out.println("reject set: " + rejectPlayers.toString());
-        System.out.println("ignore set: " + ignorePlayers.toString());
         PLAYER_MAPPER.updatePlayerBanList(uuid,ignorePlayers,rejectPlayers);
         PLAYER_MAPPER.updatePlayerChatOffline(uuid,attribution.isChatOffLine());
     }

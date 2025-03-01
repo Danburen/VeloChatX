@@ -58,7 +58,7 @@ server-display:
 # global 被设置 true 则所有服务器的消息(不论是否在频道内)都会互通
 # 若某个服务器不在频道内，则默认接入global，即全服互通，{channel} 占位符则会被替换成空字符串
 channels:
-  global: false
+  global: true
   channel-list:
     login:
       display: "[§6登录频道§r]"

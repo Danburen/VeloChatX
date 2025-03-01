@@ -39,6 +39,11 @@ public class PlayerEvents extends MethodBase {
     public void onPlayChat(PlayerChatEvent evt){
         String message = evt.getMessage();
         Player source = evt.getPlayer();
+        UUID sourceUuid = source.getUniqueId();
+        // source player chat offline
+        if(playerAttrs.get(sourceUuid).isChatOffLine()){
+            return;
+        }
         if(ChatManager.isBanWorldEnable()) {
             if (ChatManager.hasBanWords(message)) {
                 source.sendMessage(Component.text(MessageManager.getMessage("ban-words-message"), NamedTextColor.RED));
@@ -49,20 +54,21 @@ public class PlayerEvents extends MethodBase {
             }
         }
         String finalMessage = ChatManager.placeChatValue(message,source);
-        if(getConfigs().getBoolean("log-text.enable",false)) getLogger().info(Colors.parseColor(finalMessage,! getConfigs().getBoolean("log-text.convert",true)));
+        if(LogManager.isLogToConsole()) getLogger().info(Colors.parseColor(finalMessage,! LogManager.isLogColorConvert()));
         String sourceServerName = source.getCurrentServer()
                 .map(serverConnection -> serverConnection.getServerInfo().getName())
                 .orElse("unknown");
         proxyServer.getAllPlayers().forEach(player -> {
+            UUID uuid = player.getUniqueId();
             String playerServerName = player.getCurrentServer()
                     .map(serverConnection -> serverConnection.getServerInfo().getName())
                     .orElse("unknown");
             //chat offline
-            if(playerAttrs.get(player.getUniqueId()).isChatOffLine()) return;
+            if(playerAttrs.get(uuid).isChatOffLine()) return;
             // same server
             if(playerServerName.equals(sourceServerName)) return;
-            // white list
-            if(playerAttrs.get(player.getUniqueId()).getIgnorePlayers().contains(source.getUniqueId())) return;
+            // black list
+            if(playerAttrs.get(uuid).getIgnorePlayers().contains(sourceUuid)) return;
             // same channel communicate
             if(!ChatManager.canCommunicate(playerServerName,sourceServerName) && ! BroadCastManager.isChannelGlobal()) return;
             player.sendMessage(Component.text(finalMessage));

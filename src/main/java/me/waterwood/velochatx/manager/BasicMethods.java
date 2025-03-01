@@ -38,6 +38,7 @@ public abstract class BasicMethods extends MethodBase {
         if(getConfigs().getBoolean("server-display.enable",false)){
             getAndSetServer();
         }
+        LogManager.init();
         TabListManager.initialize();
         BroadCastManager.initialize();
         PlayerManager.initialize();
