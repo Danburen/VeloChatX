@@ -18,7 +18,7 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
     private final  static  String PRIMARY_ALIAS = "mention";
     private final static String[] ALIASES = {"men","at"};
     public void register(VelocityPlugin plugin){
-        this.register(plugin,this,PRIMARY_ALIAS,ALIASES,false);
+        this.register(plugin,this,PRIMARY_ALIAS,ALIASES);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class  MentionCommand extends VelocitySimpleCommand implements SimpleComm
         String[] args = invocation.arguments();
         List<String> players = VelocityPlugin.getAllPlayerName();
         if(args.length != 1){
-            illegalArgsMsg(source,"mention");
+            illegalArgsMsg(source);
             return;
         }
         if(! players.contains(args[0])){

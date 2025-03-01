@@ -49,13 +49,13 @@ public class TabListManager extends BasicMethods {
     public static void updateTabListUtils(Player player){
         player.getTabList().getEntries().forEach(tabListEntry ->
                 proxyServer.getPlayer(tabListEntry.getProfile().getId()).ifPresent(p ->
-                        tabListEntry.setDisplayName(Component.text(BasicMethods.placeValue(TabListManager.getTabListFormat(), p)))));
+                        tabListEntry.setDisplayName(Component.text(BasicMethods.placeValue(TAB_LIST_FORMAT, p)))));
     }
 
     public static void tabListAddPlayer(Player sourcePlayer,Player targetPlayer){
         targetPlayer.getTabList().addEntry(TabListEntry.builder()
                 .profile(sourcePlayer.getGameProfile())
-                .displayName(Component.text(BasicMethods.placeValue(TabListManager.getTabListFormat(),sourcePlayer)))
+                .displayName(Component.text(BasicMethods.placeValue(TAB_LIST_FORMAT,sourcePlayer)))
                 .tabList(targetPlayer.getTabList()).build());
     }
 }

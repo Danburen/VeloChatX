@@ -17,7 +17,7 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
     private final static String[] ALIASES = {"vctell"};
     @Override
     public void register(VelocityPlugin plugin){
-            this.register(plugin,this,PRIMARY_ALIAS,ALIASES,false);
+            this.register(plugin,this,PRIMARY_ALIAS,ALIASES);
 
     }
 
@@ -26,7 +26,7 @@ public class MsgCommand extends VelocitySimpleCommand implements SimpleCommand {
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
         if(args.length <2 ){
-            illegalArgsMsg(source,"msg");
+            illegalArgsMsg(source);
             return;
         }
         List<String> players = VelocityPlugin.getAllPlayerName();

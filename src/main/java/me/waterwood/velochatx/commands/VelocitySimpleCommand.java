@@ -1,5 +1,7 @@
 package me.waterwood.velochatx.commands;
 
+import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
@@ -15,31 +17,20 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class VelocitySimpleCommand extends MethodBase {
-    public void register(VelocityPlugin plugin, SimpleCommand command, String PRIMARY_ALIAS, String[] ALIASES, boolean sharp){
+    public void register(VelocityPlugin plugin, SimpleCommand command, String PRIMARY_ALIAS, String[] ALIASES){
         ProxyServer proxy= VelocityPlugin.getProxyServer();
-        proxy.getCommandManager().register(PRIMARY_ALIAS, command, ALIASES);
-        if(sharp){
-            String SHARP_PRIMARY_ALIAS = '/' + PRIMARY_ALIAS;
-            String[] SHARP_ALIASES = Arrays.stream(ALIASES).map(s -> "/" + s).toArray(String[]::new);
-            proxy.getCommandManager().register(SHARP_PRIMARY_ALIAS,new ForwardingCommand(command){
-                @Override
-                public boolean hasPermission(final Invocation invocation){
-                    return invocation.source() instanceof ConsoleCommandSource;
-                }
-            },SHARP_ALIASES);
-        }
+        CommandManager commandManager = proxy.getCommandManager();
+        CommandMeta meta = commandManager.metaBuilder(PRIMARY_ALIAS).aliases(ALIASES).plugin(plugin).build();
+        commandManager.register(meta,command);
     }
 
 
 
-    public void illegalArgsMsg(CommandSource source,String command){
+    public void illegalArgsMsg(CommandSource source){
         if(source instanceof Player sourcePlayer) {
-            String lang = sourcePlayer.getEffectiveLocale().getLanguage();
-            source.sendMessage(Component.text(getMessage("incorrect-command-arguments-message", lang)
-                    .formatted(getMessage(command + "-command-format-message"),lang), NamedTextColor.RED));
+            source.sendMessage(Component.text(getPluginMessage("incorrect-command-arguments-message"), NamedTextColor.RED));
         }else{
-            source.sendMessage(Component.text(Colors.parseColor(getMessage("incorrect-command-arguments-message")
-                    .formatted(getMessage(command + "-command-format-message"))), NamedTextColor.RED));
+            source.sendMessage(Component.text(Colors.parseColor(getPluginMessage("incorrect-command-arguments-message")), NamedTextColor.RED));
         }
     }
 
@@ -48,7 +39,7 @@ public abstract class VelocitySimpleCommand extends MethodBase {
             source.sendMessage(Component.text(getMessage("fail-find-player-message",
                     sourcePlayer.getEffectiveLocale().getLanguage()).formatted(playerName)));
         }else{
-            source.sendMessage(Component.text(Colors.parseColor(getMessage("fail-find-player-message").formatted(playerName))));
+            source.sendMessage(Component.text(Colors.parseColor(getPluginMessage("fail-find-player-message").formatted(playerName))));
         }
     }
 

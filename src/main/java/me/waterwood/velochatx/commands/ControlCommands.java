@@ -27,7 +27,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
 
     private static final List<String> consoleCommands = List.of("help", "reload","show-channel-info");
     private static final List<String> defaultPlayerCommands = List.of("help", "on", "off", "ignore", "reject", "remove","list");
-    private static final List<String> adminCommands = List.of("help","show-channel-info", "on", "off", "ignore", "reject", "remove","list");
+    private static final List<String> adminCommands = List.of("help","show-channel-info","placeholder", "on", "off", "ignore", "reject", "remove","list");
     public static final ArrayList<String> configFiles = new ArrayList<>(Arrays.asList("config","message","broadcast"));
     @Override
     public void execute(Invocation invocation) {
@@ -35,11 +35,11 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
         String[] args = invocation.arguments();
         List<String> subCmds = this.suggest(invocation);
         if(args.length > 2){
-            illegalArgsMsg(source,"control");
+            illegalArgsMsg(source);
             return;
         }
         if(args.length == 0){
-            source.sendMessage(Component.text(Colors.parseColor(VeloChatX.getInstance().getPluginInfo())));
+            source.sendMessage(Component.text(VeloChatX.getInstance().getPluginInfo()));
             return;
         }
 
@@ -99,6 +99,15 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                                 .append(Component.text(server.getPlayers().size() + " ONLINE",NamedTextColor.GOLD)));
                     }
                 }
+                return;
+            }
+            if(args[0].equalsIgnoreCase("placeholder")){
+                if(args.length == 2){
+                    if(source instanceof  Player player){
+                        source.sendMessage(Component.text( BasicMethods.placeValue(args[1],player)));
+                    }
+                }
+                return;
             }
         }
 
@@ -138,9 +147,12 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             }else {
                 //velochatx ignore command
                 String command = args[0].toLowerCase();
-                if(! defaultPlayerCommands.contains(command)) UnKnowMessage(sourcePlayer);
+                if(! defaultPlayerCommands.contains(command)) {
+                    UnKnowMessage(sourcePlayer);
+                    return;
+                }
                 if (args.length != 2) {
-                    illegalArgsMsg(source, "ignore");
+                    illegalArgsMsg(source);
                     return;
                 }
                 if (!(players.contains(args[1]))) {
@@ -216,6 +228,6 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
 
     @Override
     public void register(VelocityPlugin plugin){
-        this.register(plugin,this,PRIMARY_ALIAS,ALIASES,false);
+        this.register(plugin,this,PRIMARY_ALIAS,ALIASES);
     }
 }

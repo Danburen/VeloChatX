@@ -13,7 +13,6 @@ normal-chat-message: "§aYour chat to §r {Group}{Prefix}{Player}{Suffix} §a is
 no-in-list-message: "Player {Group}{Prefix}{Player}{Suffix} wasn't in ignore/reject list!"
 enable-vc-chat-message: "You have connect to crossing server chat system"
 disable-vc-chat-message: "You have disconnect the crossing server chat system."
-incorrect-command-arguments-message: "Unsupported command format。\n usage: %s"
 unknown-command-message: "Unknown command."
 only-in-game-message: "This command can only be used in game."
 only-in-console-message: "This command can only be used in console."
