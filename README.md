@@ -3,7 +3,7 @@
 ![icon_middle_2](https://github.com/user-attachments/assets/2ce8ffa3-19b9-4905-aa50-5bd1a4386ad3)
 
 
-### Introduction
+### 🧐 Introduction
   a plugin that Velocity server distribute players' messages to its sub servers.
   It can also automatically broadcasting message from player and timed broadcast
   
@@ -20,6 +20,13 @@
 * persist data with database
 * tab list replace
 * flexable inner server placeholder
+
+> [!NOTE]
+> See version changes:
+> 
+> Change Log: [简体中文](https://github.com/Danburen/VeloChatX/tree/main/docs/zh/changelog) / [English](https://github.com/Danburen/VeloChatX/tree/main/docs/en/changelog)
+> 
+> To Upgrade : [简体中文](https://github.com/Danburen/VeloChatX/tree/main/docs/en/upgrade) / [English](https://github.com/Danburen/VeloChatX/tree/main/docs/zh/upgrade)
 
 ### 👉 Getting Start
 * Download the plugin from latest [Release](https://github.com/Danburen/VeloChatX/releases)
@@ -49,5 +56,5 @@ dependencies {
 ### 📊 Stats
 ![Bstats](https://bstats.org/signatures/velocity/VeloChatX.svg)
 
-### 😍 Support Us
+### ❤️ Support Us
 [![](https://pic1.afdiancdn.com/static/img/welcome/button-sponsorme.png)](https://afdian.com/a/WaterWood/plan)
