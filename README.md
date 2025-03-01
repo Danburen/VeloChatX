@@ -4,7 +4,6 @@
 ### 🧐 Introduction
   a plugin that Velocity server distribute players' messages to its sub servers.
   It can also automatically broadcasting message from player and timed broadcast
-  
 ### 🤠 plugin features
 * When player join/leave server,broadcast the join/leave message to previous server and the present server.
 * Automatically parse chat color logging out in proxy server.
@@ -22,9 +21,9 @@
 > [!NOTE]
 > See version changes:
 > 
-> Change Log: [简体中文](https://github.com/Danburen/VeloChatX/tree/main/docs/zh/changelog) / [English](https://github.com/Danburen/VeloChatX/tree/main/docs/en/changelog)
+> 📖 Change Log: [简体中文](https://github.com/Danburen/VeloChatX/tree/main/docs/zh/changelog) / [English](https://github.com/Danburen/VeloChatX/tree/main/docs/en/changelog)
 > 
-> To Upgrade : [简体中文](https://github.com/Danburen/VeloChatX/tree/main/docs/en/upgrade) / [English](https://github.com/Danburen/VeloChatX/tree/main/docs/zh/upgrade)
+> 🔧 To Upgrade : [简体中文](https://github.com/Danburen/VeloChatX/tree/main/docs/en/upgrade) / [English](https://github.com/Danburen/VeloChatX/tree/main/docs/zh/upgrade)
 
 ### 👉 Getting Start
 * Download the plugin from latest [Release](https://github.com/Danburen/VeloChatX/releases)
