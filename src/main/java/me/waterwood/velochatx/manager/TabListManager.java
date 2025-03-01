@@ -23,7 +23,7 @@ public class TabListManager extends BasicMethods {
 
     public static void updateHeadAndFooter(Player player){
         player.sendPlayerListHeaderAndFooter(
-                Component.text( placeValue(HEADER_FORMAT,player)),Component.text(placeValue(FOOTER_FORMAT,player)));
+                Component.text(placeValue(HEADER_FORMAT,player)),Component.text(placeValue(FOOTER_FORMAT,player)));
     }
 
     public static Map<Player,ScheduledTask> getAllPlayerTask(){

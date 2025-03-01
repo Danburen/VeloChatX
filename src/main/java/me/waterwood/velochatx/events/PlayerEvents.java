@@ -40,8 +40,17 @@ public class PlayerEvents extends MethodBase {
         String message = evt.getMessage();
         Player source = evt.getPlayer();
         UUID sourceUuid = source.getUniqueId();
+
+        PlayerAttribution sourceAttrs;
+        if(playerAttrs.containsKey(sourceUuid)){
+            sourceAttrs = playerAttrs.get(sourceUuid);
+        }else{
+            sourceAttrs = new PlayerAttribution();
+            playerAttrs.put(sourceUuid, sourceAttrs);
+        }
+
         // source player chat offline
-        if(playerAttrs.get(sourceUuid).isChatOffLine()){
+        if(sourceAttrs.isChatOffLine()){
             return;
         }
         if(ChatManager.isBanWorldEnable()) {
@@ -60,22 +69,29 @@ public class PlayerEvents extends MethodBase {
                 .orElse("unknown");
         proxyServer.getAllPlayers().forEach(player -> {
             UUID uuid = player.getUniqueId();
+            PlayerAttribution attrs = playerAttrs.get(uuid);
             String playerServerName = player.getCurrentServer()
                     .map(serverConnection -> serverConnection.getServerInfo().getName())
                     .orElse("unknown");
-            //chat offline
-            if(playerAttrs.get(uuid).isChatOffLine()) return;
+
+            if(attrs ==null){
+               attrs = new PlayerAttribution();
+               playerAttrs.put(uuid, attrs);
+            }else{
+                //chat offline
+                if(attrs.isChatOffLine()) return;
+                // black list
+                if(attrs.getIgnorePlayers().contains(sourceUuid)) return;
+            }
             // same server
             if(playerServerName.equals(sourceServerName)) return;
-            // black list
-            if(playerAttrs.get(uuid).getIgnorePlayers().contains(sourceUuid)) return;
             // same channel communicate
             if(!ChatManager.canCommunicate(playerServerName,sourceServerName) && ! BroadCastManager.isChannelGlobal()) return;
             player.sendMessage(Component.text(finalMessage));
         });
     }
 
-    @Subscribe(priority = 0)
+    @Subscribe(priority = 1)
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
         RegisteredServer server = evt.getServer();
@@ -110,7 +126,7 @@ public class PlayerEvents extends MethodBase {
 
         }
     }
-    @Subscribe(priority = 0)
+    @Subscribe(priority = 3)
     public void onProxyConnect(LoginEvent evt){
         Player player = evt.getPlayer();
         UUID uuid = player.getUniqueId();
@@ -134,7 +150,7 @@ public class PlayerEvents extends MethodBase {
         }
     }
 
-    @Subscribe(priority = 0)
+    @Subscribe(priority = 2)
     public void onDisConnect(DisconnectEvent evt){
         Player player = evt.getPlayer();
         UUID uuid = player.getUniqueId();
@@ -147,7 +163,6 @@ public class PlayerEvents extends MethodBase {
         if(TabListManager.isTabListEnable()) {
             proxyServer.getAllPlayers().forEach(p -> p.getTabList().removeEntry(uuid));
         }
-
         // proxy leave message broadcast
         MessageManager.broadcastProxyMessage(player,false);
     }

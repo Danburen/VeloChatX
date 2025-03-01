@@ -12,7 +12,7 @@ import java.util.UUID;
 public class PlayerAttribution {
     private HashSet<UUID> ignorePlayers;
     private HashSet<UUID> rejectPlayers;
-    private boolean chatOffLine;
+    private boolean chatOffLine = false;
 
     public HashSet<UUID> getRejectPlayers() {
         return rejectPlayers;

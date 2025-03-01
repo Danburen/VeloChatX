@@ -159,10 +159,16 @@ public class PlayerMapper extends MapperBase {
             stmt.setString(1,uuid.toString());
         },rs -> {
             if(rs.next()) {
-                JsonParser.parseString(rs.getString("ignore_list")).getAsJsonArray()
-                        .forEach(uid-> attribution.addIgnorePlayers(UUID.fromString(uid.getAsString())));
-                JsonParser.parseString(rs.getString("reject_list")).getAsJsonArray()
-                        .forEach(uid-> attribution.addRejectPlayers(UUID.fromString(uid.getAsString())));
+                String ignore = rs.getString("ignore_list");
+                if(ignore != null) {
+                    JsonParser.parseString(rs.getString("ignore_list")).getAsJsonArray()
+                            .forEach(uid-> attribution.addIgnorePlayers(UUID.fromString(uid.getAsString())));
+                }
+                String reject = rs.getString("reject_list");
+                if(reject != null) {
+                    JsonParser.parseString(rs.getString("reject_list")).getAsJsonArray()
+                            .forEach(uid-> attribution.addRejectPlayers(UUID.fromString(uid.getAsString())));
+                }
                 attribution.setChatOffLine(getPlayerChatOffline(uuid));
             }else{
                 System.out.println("No data found for UUID: " + uuid.toString());
