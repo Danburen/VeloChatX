@@ -22,5 +22,9 @@
 
 ## [2.0.1] - [2025.4.5]
 ### Fixed
-- fix Global broadcast util when global broadcast enable which throw a null pointer exception
-- fix the problem of local broadcast can't be able to read.
+- Fix Global broadcast util when global broadcast enable which throw a null pointer exception
+- Fix the problem of local broadcast can't be able to read.
+- Fix ChangLogs cannot be obtained normally
+
+### Changes
+- Adjusted the structure of the log
