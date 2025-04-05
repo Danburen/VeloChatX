@@ -8,15 +8,13 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.velochatx.events.PlayerEvents;
 import me.waterwood.velochatx.manager.BroadCastManager;
+import org.waterwood.enums.TAGS;
 import org.waterwood.io.web.ChangelogGetter;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 import me.waterwood.velochatx.commands.ControlCommands;
 import me.waterwood.velochatx.commands.MentionCommand;
 import me.waterwood.velochatx.commands.MsgCommand;
 import me.waterwood.velochatx.manager.BasicMethods;
-import org.waterwood.utils.Colors;
-
-import java.util.Locale;
 
 
 @Plugin(
