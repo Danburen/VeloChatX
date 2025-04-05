@@ -174,7 +174,6 @@ public class BroadCastManager extends BasicMethods {
         };
         if(LocalEnable) {
             loadLocalBCTs();
-
             // record the remaining server
             Set<SubServer> toRemoveServers = localBCT.stream()
                     .flatMap(bct-> bct.getServerSet().stream())
@@ -186,17 +185,26 @@ public class BroadCastManager extends BasicMethods {
     public static void loadMessages(){
         messages = new HashMap<>();
         msgPrefix = new HashMap<>();
-        serverInfoMap.keySet().forEach(server-> {
-                messages.put(server, GlobalEnable ? globalBCT.getMessageList() : List.of());
+        if(GlobalEnable) {
+            serverInfoMap.keySet().forEach(server-> {
+                messages.put(server,globalBCT.getMessageList());
                 msgPrefix.put(server, globalBCT.getPrefix());
-        });
-        localBCT.forEach(bct->{
-                    bct.getServerSet().stream()
-                            .map(SubServer::getServerName)
-                            .collect(Collectors.toSet()).forEach(server->
-                                    messages.get(server).addAll(bct.getMessageList()));
-                });
-
+            });
+        }
+        if(LocalEnable) {
+            localBCT.forEach(bct->{
+                bct.getServerSet().stream()
+                        .map(SubServer::getServerName)
+                        .collect(Collectors.toSet()).forEach(server->{
+                            if (messages.containsKey(server)) {
+                                messages.get(server).addAll(bct.getMessageList());
+                            }else{
+                                messages.put(server,bct.getMessageList());
+                            }
+                            msgPrefix.put(server, bct.getPrefix());
+                        });
+            });
+        }
         // distinct the message
         messages.forEach((server,msgList)->
                 messages.put(server, new ArrayList<>(new LinkedHashSet<>(msgList))));

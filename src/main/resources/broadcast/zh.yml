@@ -55,7 +55,7 @@ locale:
         - "欢迎加入服务器大家庭"
         - "§d服务器§r内有丰富的§a游戏模式§r，快来体验吧！"
       channel-list:
-        - lobby
+        - login
       server-list:
         -
     example2:
