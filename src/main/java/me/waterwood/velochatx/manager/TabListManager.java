@@ -53,6 +53,7 @@ public class TabListManager extends BasicMethods {
     }
 
     public static void tabListAddPlayer(Player sourcePlayer,Player targetPlayer){
+        if (targetPlayer.getTabList().containsEntry(sourcePlayer.getUniqueId())) return;
         targetPlayer.getTabList().addEntry(TabListEntry.builder()
                 .profile(sourcePlayer.getGameProfile())
                 .displayName(Component.text(BasicMethods.placeValue(TAB_LIST_FORMAT,sourcePlayer)))

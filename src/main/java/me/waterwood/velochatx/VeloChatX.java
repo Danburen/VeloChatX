@@ -21,7 +21,7 @@ import me.waterwood.velochatx.manager.BasicMethods;
         id = "velochatx",
         name = "VeloChatX",
         authors = "Waterwood",
-        version = "2.0.1")
+        version = "2.0.2")
 public class VeloChatX extends VelocityPlugin {
     private final ProxyServer server;
     private static VeloChatX Instance;

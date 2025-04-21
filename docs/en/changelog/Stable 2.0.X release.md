@@ -28,3 +28,10 @@
 
 ### Changes
 - Adjusted the structure of the log
+
+## [2.0.2] - [2025.4.21]
+### Fixed
+- Fix player frequent join/left throw out an error of tab list uuid repeat error
+
+### Features
+- add new version download file check
