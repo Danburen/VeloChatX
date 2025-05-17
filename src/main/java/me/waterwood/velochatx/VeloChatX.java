@@ -8,6 +8,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.velochatx.events.PlayerEvents;
 import me.waterwood.velochatx.manager.BroadCastManager;
+import org.waterwood.enums.COLOR;
 import org.waterwood.enums.TAGS;
 import org.waterwood.io.web.ChangelogGetter;
 import org.waterwood.plugin.velocity.VelocityPlugin;
@@ -42,7 +43,7 @@ public class VeloChatX extends VelocityPlugin {
         this.loadConfig();
         logMsg(getPluginMessage("init-process-message"));
         if(! getConfigs().get("enable",true)) {
-            logMsg(getPluginMessage("plugin-disable-message"));
+            logMsg(getPluginMessage("plugin-disable-message"),COLOR.RED);
             return;
         }
         init();
