@@ -109,18 +109,20 @@ public class MessageManager extends BasicMethods {
      * @param isJoin join or leave
      */
     public static void broadcastProxyMessage(Player player, boolean isJoin){
-        if(BroadCastManager.isBroadcastEnabledProxy()) {
-            final String message = placeValue(
-                    isJoin ? BroadCastManager.getFullJoinProxyMessage() :
-                            BroadCastManager.getFullLeaveProxyMessage(),player);
-            ProxyServer proxyServer = VelocityPlugin.getProxyServer();
-            if(BroadCastManager.isLogProxyEnable()){
-                getLogger().info(Colors.parseColor(message));
-            }
-            if(BroadCastManager.isSendToAllProxy()){
-                proxyServer.getAllServers().forEach(registeredServer ->
-                        registeredServer.sendMessage(Component.text(message))
-                );
+        if(BroadCastManager.isEnabled()){
+            if(BroadCastManager.isBroadcastEnabledProxy()) {
+                final String message = placeValue(
+                        isJoin ? BroadCastManager.getFullJoinProxyMessage() :
+                                BroadCastManager.getFullLeaveProxyMessage(),player);
+                ProxyServer proxyServer = VelocityPlugin.getProxyServer();
+                if(BroadCastManager.isLogProxyEnable()){
+                    getLogger().info(Colors.parseColor(message));
+                }
+                if(BroadCastManager.isSendToAllProxy()){
+                    proxyServer.getAllServers().forEach(registeredServer ->
+                            registeredServer.sendMessage(Component.text(message))
+                    );
+                }
             }
         }
     }

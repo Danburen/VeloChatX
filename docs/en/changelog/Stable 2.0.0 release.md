@@ -35,3 +35,11 @@
 
 ### Features
 - add new version download file check
+
+## [2.0.3] - [2025.5.11]
+### Features
+- Add switches for broadcasting and cross server chat
+### Changes
+- Removed the  switch in the broadcast
+- Add switch for cross server chat and broadcast in config. yml
+- The activation/deactivation of broadcasting now will affect the player inbound and outbound broadcasting

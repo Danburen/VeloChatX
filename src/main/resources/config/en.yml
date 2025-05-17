@@ -4,11 +4,19 @@
 # Available language zh,en
 
 # This version of the file, usually does not need to be changed, the update check uses it
-config-version: 2.0.0
+config-version: 2.0.1
 # Auto update / Auto download
 check-update:
   enable: true
   auto-download: true
+
+# whether enable the plugin
+enable: true
+
+# whether enable crossing chat
+crossing-chat-enable: true
+# whether enable broadcast
+broadcast-enable: true
 
 # Configure the format of chat output. {xxx} represents replaced variables
 # In the message, these rules are also applicable

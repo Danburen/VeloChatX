@@ -4,11 +4,19 @@
 # Available language zh,en
 
 # 此文件的版本，通常不需要改变，检测更新需要用到
-config-version: 2.0.0
+config-version: 2.0.1
 # 自动更新 / 自动下载
 check-update:
   enable: true
   auto-download: true
+
+# 插件所有功能是否启用（包括跨服聊天，广播等）
+enable: true
+
+# 跨服功能是否启用
+crossing-chat-enable: true
+# 广播功能是否启用 (广播配置请前往broadcast.yml更改)
+broadcast-enable: true
 
 # 配置聊天输出的格式{xxx}代表替换的变量
 # 在message里，这些规则也适用

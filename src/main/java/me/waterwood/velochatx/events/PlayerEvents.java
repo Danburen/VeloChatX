@@ -64,6 +64,7 @@ public class PlayerEvents extends MethodBase {
         }
         String finalMessage = ChatManager.placeChatValue(message,source);
         if(LogManager.isLogToConsole()) getLogger().info(Colors.parseColor(finalMessage,! LogManager.isLogColorConvert()));
+        if (! ChatManager.isCrossingChatEnabled()) return;
         String sourceServerName = source.getCurrentServer()
                 .map(serverConnection -> serverConnection.getServerInfo().getName())
                 .orElse("unknown");
@@ -95,7 +96,6 @@ public class PlayerEvents extends MethodBase {
     public void onConnectServer(ServerConnectedEvent evt){
         Player player = evt.getPlayer();
         RegisteredServer server = evt.getServer();
-
         try {
             VeloChatX.getInstance().loadLocale(PlayerManager.getPlayerLangCode(player));
         }catch(NullPointerException e){
@@ -137,7 +137,6 @@ public class PlayerEvents extends MethodBase {
         }else{
             playerAttrs.put(uuid,PlayerManager.getPlayerAttribution(uuid));
         }
-
         // broadcast proxy join message(multiple player)
         MessageManager.broadcastProxyMessage(player,true);
         //welcome message broadcast(single player)

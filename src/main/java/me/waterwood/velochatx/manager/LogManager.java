@@ -6,7 +6,7 @@ public class LogManager extends MethodBase {
     private static boolean LOG_TO_CONSOLE = true;
     private static boolean LOG_COLOR_CONVERT = true;
 
-    public static void init(){
+    public static void initialize(){
         LOG_TO_CONSOLE = getConfigs().getBoolean("log-text.enable",true);
         LOG_COLOR_CONVERT = getConfigs().getBoolean("log-text.convert",true);
     }

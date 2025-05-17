@@ -23,11 +23,13 @@ public class ChatManager extends BasicMethods {
     private static boolean BanWordLOG;
 
     private static String CHAT_FORMAT;
+    private static boolean IS_CROSSING_CHAT_ENABLED;
 
     public static void initialize() {
         loadChatFormat();
         BanWordEnable = getConfigs().getBoolean("ban-words.enable",false);
         BanWordLOG = getConfigs().getBoolean("ban-words.log-to-console",false);
+        IS_CROSSING_CHAT_ENABLED = getConfigs().getBoolean("crossing-chat-enable",false);
     }
     /**
      * Judge whether two server can communicate
@@ -107,5 +109,9 @@ public class ChatManager extends BasicMethods {
 
     public static String placeChatValue(String origin, String message, Player player){
         return placeValue(origin,player).replace("{message}",message);
+    }
+
+    public static boolean isCrossingChatEnabled() {
+        return IS_CROSSING_CHAT_ENABLED;
     }
 }

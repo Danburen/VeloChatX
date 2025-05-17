@@ -96,7 +96,7 @@ public class BroadCastManager extends BasicMethods {
     }
 
     public static void loadData(){
-        isEnabled = broadCastConfig.getBoolean("enable",false);
+        isEnabled = getConfigs().getBoolean("broadcast-enable",false);
         isRandom = broadCastConfig.getBoolean("random",true);
         GlobalEnable = broadCastConfig.get("global.enable",true);
         LocalEnable = broadCastConfig.get("locale.enable",false);

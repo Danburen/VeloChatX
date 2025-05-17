@@ -21,7 +21,7 @@ import me.waterwood.velochatx.manager.BasicMethods;
         id = "velochatx",
         name = "VeloChatX",
         authors = "Waterwood",
-        version = "2.0.2")
+        version = "2.0.3")
 public class VeloChatX extends VelocityPlugin {
     private final ProxyServer server;
     private static VeloChatX Instance;
@@ -40,9 +40,12 @@ public class VeloChatX extends VelocityPlugin {
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();
+        logMsg(getPluginMessage("init-process-message"));
+        if(! getConfigs().get("enable",true)) {
+            logMsg(getPluginMessage("plugin-disable-message"));
+            return;
+        }
         init();
-        checkUpdate("Danburen","VeloChatX","2.0.0",
-                getConfigs(), BroadCastManager.getBroadcastConfigs());
         logMsg(String.format(getPluginMessage("successfully-enable-message"),System.currentTimeMillis() - start));
         Metrics metrics = metricsFactory.make(this, 23273);
     }
@@ -53,10 +56,10 @@ public class VeloChatX extends VelocityPlugin {
     }
     
     public void init(){
-        logMsg(getPluginMessage("init-process-message"));
-        server.getEventManager().register(this, new PlayerEvents());
         BasicMethods.load();
+        server.getEventManager().register(this, new PlayerEvents());
         registerCommands();
+        checkUpdate("Danburen","VeloChatX","2.0.1", getConfigs(), BroadCastManager.getBroadcastConfigs());
     }
 
     public void registerCommands(){
