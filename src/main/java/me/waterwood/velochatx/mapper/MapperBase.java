@@ -10,9 +10,9 @@ public abstract class MapperBase extends H2DataBase {
     public MapperBase() {
         super(dbFilePath);
         if(connection == null) {
-            VeloChatX.getLogger().warning(WaterPlugin.getPluginMessage("error-connect-database-message").formatted(dbFilePath));
+            VeloChatX.getInstance().getLogger().warning(WaterPlugin.getPluginMessage("error-connect-database-message").formatted(dbFilePath));
         }else{
-            VeloChatX.getLogger().info(WaterPlugin.getPluginMessage("success-connect-database-message"));
+            VeloChatX.getInstance().getLogger().info(WaterPlugin.getPluginMessage("success-connect-database-message"));
             createTable();
         }
     }

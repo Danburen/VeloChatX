@@ -68,8 +68,4 @@ public class VeloChatX extends VelocityPlugin {
         new MsgCommand().register(this);
         new ControlCommands().register(this);
     }
-
-    public static VeloChatX getInstance(){
-        return Instance;
-    }
 }

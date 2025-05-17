@@ -93,7 +93,7 @@ public class ChatManager extends BasicMethods {
             if (hasLuckPerm()){
                 return;
             }else{
-                WaterPlugin.getLogger().info(Colors.parseColor(getPluginMessage("no-api-support-message")
+                getLogger().info(Colors.parseColor(getPluginMessage("no-api-support-message")
                         .formatted("LuckPerms")));
             }
             return;
