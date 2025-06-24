@@ -5,7 +5,13 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.0'
 }
 
-group = 'WaterFun.WaterWood'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+group = 'me.waterwood'
 version = '2.0'
 
 repositories {
@@ -20,50 +26,9 @@ repositories {
 dependencies {
     implementation 'net.luckperms:api:5.4'
     implementation 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'
+    annotationProcessor 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     implementation 'org.slf4j:jul-to-slf4j:2.0.12'
     implementation 'org.slf4j:slf4j-jdk14:2.0.12'
     implementation project(':WaterAPI')
 }
-shadowJar {
-    dependencies {
-        include(dependency('com.github.Danburen:WaterAPI:1.0.2'))
-    }
-    manifest {
-        attributes(
-                'Main-Class': 'me.waterwood.velochatx.VeloChatX'
-        )
-    }
-}
-def targetJavaVersion = 17
-java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release = targetJavaVersion
-    }
-}
-
-def templateSource = file('src/main/templates')
-def templateDest = layout.buildDirectory.dir('generated/sources/templates')
-def generateTemplates = tasks.register('generateTemplates', Copy) { task ->
-    def props = [
-            'version': project.version
-    ]
-    task.inputs.properties props
-
-    task.from templateSource
-    task.into templateDest
-    task.expand props
-}
-sourceSets.main.java.srcDir(generateTemplates.map { it.outputs })
-
-rootProject.idea.project.settings.taskTriggers.afterSync generateTemplates
-project.eclipse.synchronizationTasks(generateTemplates)
