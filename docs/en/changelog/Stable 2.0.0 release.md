@@ -43,3 +43,11 @@
 - Removed the  switch in the broadcast
 - Add switch for cross server chat and broadcast in config. yml
 - The activation/deactivation of broadcasting now will affect the player inbound and outbound broadcasting
+
+## [2.0.4] - [2025.6.24]
+### Features
+- Added placeholder for channel player counts on the specified channel {xxx_channel_online}
+- Added placeholder for player counts on the specified server {xxx_server_online}
+### Changes
+- Used the latest LP API and Velocity API
+- when using placeholders in English, they are not forcibly converted to lowercase
