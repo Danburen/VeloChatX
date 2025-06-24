@@ -74,15 +74,15 @@ public class MessageManager extends BasicMethods {
      * @param isJoin join or leave
      */
     public static void broadcastServerMessage(Player player, RegisteredServer targetServer,boolean isJoin){
-        if(BroadCastManager.isBroadcastEnabled()) {
-            final String message = placeValue(isJoin ? BroadCastManager.getJoinMessage() : BroadCastManager.getLeaveMessage()
+        if(ChannelManager.isBroadcastEnabled()) {
+            final String message = placeValue(isJoin ? ChannelManager.getJoinMessage() : ChannelManager.getLeaveMessage()
                             ,player,targetServer);
             targetServer.sendMessage(Component.text(
-                    isJoin ? BroadCastManager.getJoinPrefix() + message: BroadCastManager.getLeavePrefix() + message));
-            if(BroadCastManager.isLogEnable()) {
+                    isJoin ? ChannelManager.getJoinPrefix() + message: ChannelManager.getLeavePrefix() + message));
+            if(ChannelManager.isLogEnable()) {
                 getLogger().info(Colors.parseColor(message));
             }
-            if(BroadCastManager.isSendToAll()){
+            if(ChannelManager.isSendToAll()){
                 for(RegisteredServer registeredServer : proxyServer.getAllServers()){
                     if(registeredServer.equals(targetServer)){
                         continue;
@@ -90,7 +90,7 @@ public class MessageManager extends BasicMethods {
                     registeredServer.sendMessage(Component.text(message));
                 }
             }else{
-                if(BroadCastManager.isBroadcastInChannel()){
+                if(ChannelManager.isBroadcastInChannel()){
                     for(RegisteredServer registeredServer : proxyServer.getAllServers()){
                         if(registeredServer.equals(targetServer)){
                             continue;
@@ -109,16 +109,16 @@ public class MessageManager extends BasicMethods {
      * @param isJoin join or leave
      */
     public static void broadcastProxyMessage(Player player, boolean isJoin){
-        if(BroadCastManager.isEnabled()){
-            if(BroadCastManager.isBroadcastEnabledProxy()) {
+        if(ChannelManager.isEnabled()){
+            if(ChannelManager.isBroadcastEnabledProxy()) {
                 final String message = placeValue(
-                        isJoin ? BroadCastManager.getFullJoinProxyMessage() :
-                                BroadCastManager.getFullLeaveProxyMessage(),player);
+                        isJoin ? ChannelManager.getFullJoinProxyMessage() :
+                                ChannelManager.getFullLeaveProxyMessage(),player);
                 ProxyServer proxyServer = VelocityPlugin.getProxyServer();
-                if(BroadCastManager.isLogProxyEnable()){
+                if(ChannelManager.isLogProxyEnable()){
                     getLogger().info(Colors.parseColor(message));
                 }
-                if(BroadCastManager.isSendToAllProxy()){
+                if(ChannelManager.isSendToAllProxy()){
                     proxyServer.getAllServers().forEach(registeredServer ->
                             registeredServer.sendMessage(Component.text(message))
                     );

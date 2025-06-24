@@ -2,15 +2,14 @@ package me.waterwood.velochatx.manager;
 
 import me.waterwood.velochatx.VeloChatX;
 import me.waterwood.velochatx.utils.BroadCastUtil;
-import me.waterwood.velochatx.utils.Channel;
+import me.waterwood.velochatx.entity.Channel;
 import me.waterwood.velochatx.utils.SubServer;
 import org.waterwood.io.FileConfiguration;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class BroadCastManager extends BasicMethods {
+public class ChannelManager extends BasicMethods {
     public static boolean channelGlobal;
     private static Map<String,Channel> channels;
     private static Map<String,List<String>> messages;
@@ -70,7 +69,7 @@ public class BroadCastManager extends BasicMethods {
         }
         localBCT.add(
                 new BroadCastUtil(name,prefix,msgSet,channelSet.stream()
-                        .map(BroadCastManager::getChannel)
+                        .map(ChannelManager::getChannel)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet()),
                         serverSet.stream()

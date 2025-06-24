@@ -12,7 +12,7 @@ import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.velochatx.VeloChatX;
 import me.waterwood.velochatx.manager.*;
 import org.waterwood.plugin.velocity.util.MethodBase;
-import me.waterwood.velochatx.utils.Channel;
+import me.waterwood.velochatx.entity.Channel;
 import me.waterwood.velochatx.utils.SubServer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -87,7 +87,7 @@ public class PlayerEvents extends MethodBase {
             // same server
             if(playerServerName.equals(sourceServerName)) return;
             // same channel communicate
-            if(!ChatManager.canCommunicate(playerServerName,sourceServerName) && ! BroadCastManager.isChannelGlobal()) return;
+            if(!ChatManager.canCommunicate(playerServerName,sourceServerName) && ! ChannelManager.isChannelGlobal()) return;
             player.sendMessage(Component.text(finalMessage));
         });
     }
@@ -140,12 +140,12 @@ public class PlayerEvents extends MethodBase {
         // broadcast proxy join message(multiple player)
         MessageManager.broadcastProxyMessage(player,true);
         //welcome message broadcast(single player)
-        if(BroadCastManager.isWelcomeEnabled()){
-            if(BroadCastManager.isWelcomeJoinFirst() && isFirstJoin) {
-                MessageManager.broadcastMessage(player,BroadCastManager.getWelcomeMessage());
+        if(ChannelManager.isWelcomeEnabled()){
+            if(ChannelManager.isWelcomeJoinFirst() && isFirstJoin) {
+                MessageManager.broadcastMessage(player, ChannelManager.getWelcomeMessage());
                 return;
             }
-            MessageManager.broadcastMessage(player,BroadCastManager.getWelcomeMessage());
+            MessageManager.broadcastMessage(player, ChannelManager.getWelcomeMessage());
         }
     }
 

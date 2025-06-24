@@ -1,6 +1,7 @@
-package me.waterwood.velochatx.utils;
+package me.waterwood.velochatx.entity;
 
 import com.velocitypowered.api.proxy.Player;
+import me.waterwood.velochatx.utils.SubServer;
 
 import java.util.ArrayList;
 import java.util.List;

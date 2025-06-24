@@ -4,12 +4,13 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.velochatx.VeloChatX;
-import me.waterwood.velochatx.utils.Channel;
+import me.waterwood.velochatx.entity.Channel;
 import me.waterwood.velochatx.utils.SubServer;
 import org.waterwood.plugin.velocity.util.MethodBase;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.waterwood.hock.LuckPermsHock.*;
 
@@ -21,6 +22,8 @@ public abstract class BasicMethods extends MethodBase {
 
     protected static ProxyServer proxyServer;
     protected static Object pluginInstance;
+
+    private static final Pattern PERCENT_PATTERN = Pattern.compile("%([^%]+)%");
 
 
     protected static String PROXY_DISPLAY;
@@ -39,12 +42,12 @@ public abstract class BasicMethods extends MethodBase {
         }
         LogManager.initialize();
         TabListManager.initialize();
-        BroadCastManager.initialize();
+        ChannelManager.initialize();
         PlayerManager.initialize();
         ChatManager.initialize();
         TaskManager.initTask();
 
-        if(! BroadCastManager.isEnabled()){
+        if(! ChannelManager.isEnabled()){
             VeloChatX.getInstance().logMsg(getPluginMessage("broadcast-disable-message"));
         }
         if(! ChatManager.isCrossingChatEnabled()){
@@ -84,8 +87,13 @@ public abstract class BasicMethods extends MethodBase {
             index += value.length();
         }
     }
+
     public static String placeValue(String origin,Player player,RegisteredServer targetServer){
-        return placeServerValue(placePlayerValue(origin,player),targetServer.getServerInfo().getName()).toString();
+        StringBuilder out = new StringBuilder(
+                PERCENT_PATTERN.matcher(origin).replaceAll("{$1}").toLowerCase());
+        placePlayerValue(out, player);
+        placeNoTargetValue(out);
+        return placeServerValue(out,targetServer.getServerInfo().getName()).toString();
     }
 
     /**
@@ -95,10 +103,13 @@ public abstract class BasicMethods extends MethodBase {
      * @return value placed
      */
     public static String placeValue(String origin, Player player){
-        StringBuilder out = placePlayerValue(origin,player);
+        StringBuilder out = new StringBuilder(
+                PERCENT_PATTERN.matcher(origin).replaceAll("{$1}").toLowerCase());
+        placePlayerValue(out,player);
         String serverName = player.getCurrentServer().map(sc ->
                sc.getServerInfo().getName()).orElse("unknown");
         placeServerValue(out, serverName);
+        placeNoTargetValue(out);
         return out.toString();
     }
 
@@ -118,24 +129,33 @@ public abstract class BasicMethods extends MethodBase {
         return original;
     }
 
-    public static StringBuilder placePlayerValue(String origin, Player player){
-        String in = origin.toLowerCase();
-        StringBuilder out = new StringBuilder(in.matches(".*%[^%]+%.*") ? in.replaceAll("%([^%]+)%", "{$1}") : in);
+    public static void placePlayerValue(StringBuilder origin, Player player){
         String playerName = player.getUsername();
         String prefix = getPlayerPrefix(playerName);
         String suffix = getPlayerSuffix(playerName);
         String groupDisplayName = getPlayerGroupDisplay(playerName);
 
-        replacePlaceholder(out, "{player}", playerName);
-        replacePlaceholder(out, "{prefix}", prefix);
-        replacePlaceholder(out, "{suffix}", suffix);
-        replacePlaceholder(out, "{group}", groupDisplayName);
-        replacePlaceholder(out, "{ping}", String.valueOf(player.getPing()));
-        replacePlaceholder(out, "&", "§");
-
-        return out;
+        replacePlaceholder(origin, "{player}", playerName);
+        replacePlaceholder(origin, "{prefix}", prefix);
+        replacePlaceholder(origin, "{suffix}", suffix);
+        replacePlaceholder(origin, "{group}", groupDisplayName);
+        replacePlaceholder(origin, "{ping}", String.valueOf(player.getPing()));
+        replacePlaceholder(origin, "&", "§");
     }
 
+    public static void placeNoTargetValue(StringBuilder original){
+        ChannelManager.getChannels().forEach(
+                (channelKey,channel) ->
+                        replacePlaceholder(original, "{%s_channel_online}".formatted(channelKey),
+                        String.valueOf(channel.getOnlinePlayerCount())));
+        serverInfoMap.forEach(
+                (id,display) ->
+                        replacePlaceholder(original, "{%s_server_online}".formatted(id),
+                                String.valueOf(Optional.of(serverInfoMap.get(id))
+                                        .map(SubServer::getPlayerCount).orElse(0))
+        ));
+
+    }
     public static SubServer getSubServer(String serverName){
         return Optional.of(serverInfoMap.get(serverName)).orElse(serverInfoMap.get("unknown"));
     }

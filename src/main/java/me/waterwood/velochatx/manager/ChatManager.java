@@ -2,10 +2,9 @@ package me.waterwood.velochatx.manager;
 
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import me.waterwood.velochatx.utils.Channel;
+import me.waterwood.velochatx.entity.Channel;
 import me.waterwood.velochatx.utils.SubServer;
 import org.waterwood.hock.LuckPermsHock;
-import org.waterwood.plugin.WaterPlugin;
 import org.waterwood.utils.Colors;
 
 import java.util.*;

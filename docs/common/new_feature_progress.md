@@ -1,0 +1,3 @@
+- Placeholder 
+  - [x] players' count channel
+  - [x] servers' players online count

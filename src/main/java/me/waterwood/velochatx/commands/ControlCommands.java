@@ -4,13 +4,13 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
-import me.waterwood.velochatx.manager.BroadCastManager;
+import me.waterwood.velochatx.manager.ChannelManager;
 import me.waterwood.velochatx.manager.PlayerManager;
 import me.waterwood.velochatx.utils.PlayerAttribution;
 import me.waterwood.velochatx.VeloChatX;
 import me.waterwood.velochatx.events.PlayerEvents;
 import me.waterwood.velochatx.manager.BasicMethods;
-import me.waterwood.velochatx.utils.Channel;
+import me.waterwood.velochatx.entity.Channel;
 import me.waterwood.velochatx.utils.SubServer;
 import org.waterwood.utils.Colors;
 import net.kyori.adventure.text.Component;
@@ -73,7 +73,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
                     switch (args[1]){
                         case "config": VeloChatX.getInstance().reloadConfig();break;
                         case "message": VeloChatX.getInstance().reloadPluginMessage();break;
-                        case "broadcast": BroadCastManager.initialize();break;
+                        case "broadcast": ChannelManager.initialize();break;
                         default:
                     }
                     source.sendMessage(Component.text(getPluginMessage("config-file-reload-message")
@@ -86,7 +86,7 @@ public class ControlCommands extends VelocitySimpleCommand implements SimpleComm
             // show-channel-info-command
             if(args[0].equalsIgnoreCase("show-channel-info")){
                 source.sendMessage(Component.text( getPluginMessage("show-channel-info-command-title")));
-                for(Channel channel: BroadCastManager.getChannels().values()){
+                for(Channel channel: ChannelManager.getChannels().values()){
                     String channelDisplayName = source instanceof ConsoleCommandSource ?
                             Colors .parseColor( channel.getChannelDisplayName() ) : channel.getChannelDisplayName();
                     source.sendMessage(Component.text(channel.getChannelName() + " | " + channelDisplayName  + " : ")

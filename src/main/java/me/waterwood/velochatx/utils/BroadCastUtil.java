@@ -1,5 +1,7 @@
 package me.waterwood.velochatx.utils;
 
+import me.waterwood.velochatx.entity.Channel;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

@@ -7,10 +7,8 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import me.waterwood.velochatx.events.PlayerEvents;
-import me.waterwood.velochatx.manager.BroadCastManager;
+import me.waterwood.velochatx.manager.ChannelManager;
 import org.waterwood.enums.COLOR;
-import org.waterwood.enums.TAGS;
-import org.waterwood.io.web.ChangelogGetter;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 import me.waterwood.velochatx.commands.ControlCommands;
 import me.waterwood.velochatx.commands.MentionCommand;
@@ -60,7 +58,7 @@ public class VeloChatX extends VelocityPlugin {
         BasicMethods.load();
         server.getEventManager().register(this, new PlayerEvents());
         registerCommands();
-        checkUpdate("Danburen","VeloChatX","2.0.1", getConfigs(), BroadCastManager.getBroadcastConfigs());
+        checkUpdate("Danburen","VeloChatX","2.0.1", getConfigs(), ChannelManager.getBroadcastConfigs());
     }
 
     public void registerCommands(){

@@ -2,6 +2,7 @@ package me.waterwood.velochatx.utils;
 
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import me.waterwood.velochatx.entity.Channel;
 import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;
