@@ -1,4 +1,4 @@
-# VeloChatX 
+# VeloChatX [Docs](https://danburen.github.io/VeloChatX-Docs/)
 ![icon_middle_2](https://github.com/user-attachments/assets/2ce8ffa3-19b9-4905-aa50-5bd1a4386ad3)
 
 ![GitHub Release](https://img.shields.io/github/v/release/Danburen/VeloChatX?label=Latest%20Release)
