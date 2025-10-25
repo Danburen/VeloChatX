@@ -28,7 +28,7 @@ public class ChatManager extends BasicMethods {
         loadChatFormat();
         BanWordEnable = getConfigs().getBoolean("ban-words.enable",false);
         BanWordLOG = getConfigs().getBoolean("ban-words.log-to-console",false);
-        IS_CROSSING_CHAT_ENABLED = getConfigs().getBoolean("crossing-chat-enable",false);
+        IS_CROSSING_CHAT_ENABLED = getConfigs().getBoolean("crossing-chat-enable",true);
     }
     /**
      * Judge whether two server can communicate
