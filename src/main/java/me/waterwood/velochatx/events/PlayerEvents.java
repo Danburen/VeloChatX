@@ -78,12 +78,14 @@ public class PlayerEvents extends MethodBase {
             if(attrs ==null){
                attrs = new PlayerAttribution();
                playerAttrs.put(uuid, attrs);
-            }else{
-                //chat offline
-                if(attrs.isChatOffLine()) return;
-                // black list
-                if(attrs.getIgnorePlayers().contains(sourceUuid)) return;
             }
+//            getLogger().info("Cross-server chat enabled: " + ChatManager.isCrossingChatEnabled());
+//            getLogger().info("Source server: " + sourceServerName);
+//            getLogger().info("Channel is global: " + ChannelManager.isChannelGlobal());
+
+            if(attrs.isChatOffLine()) return;
+            // black list
+            if(attrs.getIgnorePlayers().contains(sourceUuid)) return;
             // same server
             if(playerServerName.equals(sourceServerName)) return;
             // same channel communicate
