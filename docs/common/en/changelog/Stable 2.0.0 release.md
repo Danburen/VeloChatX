@@ -52,9 +52,9 @@
 - Used the latest LP API and Velocity API
 - when using placeholders in English, they are not forcibly converted to lowercase
 
-##[2.0.5] - [2025.10.25]
+##[2.0.5] - [2025.10.26]
 ### Fixed
 - Fixed the null pointer exception caused by missing key value pairs when the player's message is set to global.
-  Fixed the null pointer exception problem when the server cannot be recognized
+- Fixed the null pointer exception problem when the server cannot be recognized
 ### Changes
 - Now the default is to enable full-service chat.
