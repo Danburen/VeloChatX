@@ -151,13 +151,13 @@ public abstract class BasicMethods extends MethodBase {
         serverInfoMap.forEach(
                 (id,display) ->
                         replacePlaceholder(original, "{%s_server_online}".formatted(id),
-                                String.valueOf(Optional.of(serverInfoMap.get(id))
+                                String.valueOf(Optional.ofNullable(serverInfoMap.get(id))
                                         .map(SubServer::getPlayerCount).orElse(0))
         ));
 
     }
     public static SubServer getSubServer(String serverName){
-        return Optional.of(serverInfoMap.get(serverName)).orElse(serverInfoMap.get("unknown"));
+        return Optional.ofNullable(serverInfoMap.get(serverName)).orElse(serverInfoMap.get("unknown"));
     }
 
     public static SubServer getSubServer(RegisteredServer registeredServer){
