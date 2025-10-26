@@ -4,7 +4,7 @@
 enable: true
 
 # Version of this file, generally does not need to be changed, used for update checks
-config-version: 2.0.0
+config-version: 2.0.1
 
 # Whether to shuffle the broadcast order
 random: true

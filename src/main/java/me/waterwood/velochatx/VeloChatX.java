@@ -41,7 +41,7 @@ public class VeloChatX extends VelocityPlugin {
         this.loadConfig();
         logMsg(getPluginMessage("init-process-message"));
         if(! getConfigs().get("enable",true)) {
-            logMsg(getPluginMessage("plugin-disable-message"),COLOR.RED);
+            loggerService.logMessage(getPluginMessage("plugin-disable-message"),COLOR.RED);
             return;
         }
         init();
@@ -58,7 +58,9 @@ public class VeloChatX extends VelocityPlugin {
         BasicMethods.load();
         server.getEventManager().register(this, new PlayerEvents());
         registerCommands();
-        checkUpdate("Danburen","VeloChatX","2.0.1", getConfigs(), ChannelManager.getBroadcastConfigs());
+        checkUpdate("Danburen","VeloChatX","2.0.1",
+                getConfigs(),
+                ChannelManager.getBroadcastConfigs());
     }
 
     public void registerCommands(){

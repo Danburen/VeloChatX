@@ -25,7 +25,7 @@ public class MessageManager extends BasicMethods {
     public static String convertMessage(String key,CommandSource source,CommandSource target){
         if(source instanceof Player sourcePlayer){
             if(target instanceof Player){
-                return placeValue(WaterPlugin.getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer)),sourcePlayer);
+                return placeValue(WaterPlugin.getInstance().getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer)),sourcePlayer);
             }else{
                 return Colors.parseColor(placeValue(getMessage(key),sourcePlayer));
             }
@@ -46,7 +46,7 @@ public class MessageManager extends BasicMethods {
 
     public static String getSourceMessage(String key,CommandSource source){
         if(source instanceof Player sourcePlayer) {
-            return WaterPlugin.getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer));
+            return WaterPlugin.getInstance().getMessage(key, PlayerManager.getPlayerLangCode(sourcePlayer));
         }else{
             return getMessage(key);
         }
