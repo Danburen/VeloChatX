@@ -99,7 +99,7 @@ public class ChannelManager extends BasicMethods {
         isRandom = broadCastConfig.getBoolean("random",true);
         GlobalEnable = broadCastConfig.get("global.enable",true);
         LocalEnable = broadCastConfig.get("locale.enable",false);
-        channelGlobal = getConfigs().getBoolean("channels-global",true);
+        channelGlobal = getConfigs().getBoolean("channels.global",true);
 
         WelcomeEnabled = broadCastConfig.getBoolean("welcome-broadcast.enable",false);
         WelcomeJoinFirst = broadCastConfig.getBoolean("welcome-broadcast.only-first-join",false);

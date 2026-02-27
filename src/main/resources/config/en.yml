@@ -12,7 +12,8 @@ check-update:
 
 # whether enable the plugin
 enable: true
-
+# whether enable the debug mode, unrecommended setting this ture;
+debug : false
 # whether enable crossing chat
 crossing-chat-enable: true
 # whether enable broadcast

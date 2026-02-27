@@ -14,6 +14,7 @@ import me.waterwood.velochatx.commands.ControlCommands;
 import me.waterwood.velochatx.commands.MentionCommand;
 import me.waterwood.velochatx.commands.MsgCommand;
 import me.waterwood.velochatx.manager.BasicMethods;
+import org.waterwood.utils.DebugUtil;
 
 
 @Plugin(
@@ -39,6 +40,7 @@ public class VeloChatX extends VelocityPlugin {
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();
+        DebugUtil.init(getConfigs().getBoolean("debug", false), loggerService, this);
         logMsg(getPluginMessage("init-process-message"));
         if(! getConfigs().get("enable",true)) {
             loggerService.logMessage(getPluginMessage("plugin-disable-message"),COLOR.RED);
