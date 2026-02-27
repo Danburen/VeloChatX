@@ -40,7 +40,7 @@ public class VeloChatX extends VelocityPlugin {
         long start = System.currentTimeMillis();
         Instance = this;
         this.loadConfig();
-        DebugUtil.init(getConfigs().getBoolean("debug", false), loggerService, this);
+        DebugUtil.init(Boolean.TRUE.equals(getConfigs().get("debug")), loggerService, this);
         logMsg(getPluginMessage("init-process-message"));
         if(! getConfigs().get("enable",true)) {
             loggerService.logMessage(getPluginMessage("plugin-disable-message"),COLOR.RED);
