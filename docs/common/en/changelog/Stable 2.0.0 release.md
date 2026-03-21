@@ -61,5 +61,9 @@
 
 ## [2.0.6] -[2025.10.27]
 ### Fixed
--Fixed some null pointer problems that caused internal read disorder in the plug-in
--Fixed the problem that the default value was incorrectly configured due to the missing configuration.
+- Fixed some null pointer problems that caused internal read disorder in the plug-in
+- Fixed the problem that the default value was incorrectly configured due to the missing configuration.
+
+## [2.0.7] - [2026.3.21]
+### Changes
+- We downgrade the java jdk compilation version from 22 to 17
