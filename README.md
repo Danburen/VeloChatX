@@ -5,8 +5,11 @@
 
 ## [zh](https://github.com/Danburen/VeloChatX/tree/main/docs/zh)
 ### 🧐 Introduction
-  a plugin that Velocity server distribute players' messages to its sub servers.
-  It can also automatically broadcasting message from player and timed broadcast
+VeloChatX is a modern chat solution designed for Minecraft Velocity servers, focused on delivering fast, clean, and reliable real-time communication across your proxy network.
+  
+It is built with a lightweight and extensible architecture, making it easy to maintain, customize, and scale as your server community grows.
+  
+Whether you want a solid out-of-the-box chat experience or a flexible foundation for advanced features, VeloChatX is designed to support both.
 ### 🤠 plugin features
 * When player join/leave server,broadcast the join/leave message to previous server and the present server.
 * Automatically parse chat color logging out in proxy server.
