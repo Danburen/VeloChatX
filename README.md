@@ -2,6 +2,9 @@
 <img src="https://danburen.github.io/VeloChatX-Docs/favicon.svg" width="480" height="480" alt="VeloChatX">
 
 ![GitHub Release](https://img.shields.io/github/v/release/Danburen/VeloChatX?label=Latest%20Release)
+![GitHub License](https://img.shields.io/github/license/danburen/VeloChatX?label=License)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/danburen/VeloChatX/total)
+![bStats Servers](https://img.shields.io/bstats/servers/23273)
 
 ## [zh](https://github.com/Danburen/VeloChatX/tree/main/docs/zh)
 ### 🧐 Introduction
