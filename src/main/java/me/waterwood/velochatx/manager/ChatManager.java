@@ -34,9 +34,9 @@ public class ChatManager extends BasicMethods {
         BanWordLOG = getConfigs().getBoolean("ban-words.log-to-console",false);
         IS_CROSSING_CHAT_ENABLED = getConfigs().getBoolean("crossing-chat-enable",true);
 
-        CHATFORMAT_MODEL = switch (getConfigs().getString("chat-format-model","none").toUpperCase()) {
-            case "LEGACY" -> ChatFormatModel.LEGACY;
-            case "MINI_MESSAGE" -> ChatFormatModel.MINI_MESSAGE;
+        CHATFORMAT_MODEL = switch (getConfigs().getString("chat-format-model","none").toLowerCase()) {
+            case "legacy" -> ChatFormatModel.LEGACY;
+            case "mini-message" -> ChatFormatModel.MINI_MESSAGE;
             default -> ChatFormatModel.NONE;
         };
     }
