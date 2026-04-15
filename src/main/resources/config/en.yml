@@ -4,7 +4,7 @@
 # Available language zh,en
 
 # This version of the file, usually does not need to be changed, the update check uses it
-config-version: 2.0.1
+config-version: 2.0.2
 # Auto update / Auto download
 check-update:
   enable: true
@@ -30,6 +30,11 @@ broadcast-enable: true
 # NOTE: SERVER && MESSAGE && PlayerName are required, if missing, it will use the default output format: [{Server}]{PlayerName}: {Message}
 # Supports mc color codes including § and & color codes, which will overwrite the original color
 chat-format: "{channel}{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
+
+# none: won't convert, suitable for the original client version, send the original text directly (compatible with older versions, Fabric may display anomalies)
+# legacy: Convert to Adventure Legacy Component (recommended, compatible with all servers, but some older clients may not fully support it)
+# mini-message: Convert to MiniMessage format (supports rich text effects)
+chat-format-model: "none"
 
 # Plugin message file's language version, typically set automatically based on your Java JVM version
 locale: zh

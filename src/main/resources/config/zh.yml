@@ -4,7 +4,7 @@
 # Available language zh,en
 
 # 此文件的版本，通常不需要改变，检测更新需要用到
-config-version: 2.0.1
+config-version: 2.0.2
 # 自动更新 / 自动下载
 check-update:
   enable: true
