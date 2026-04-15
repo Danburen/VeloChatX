@@ -42,8 +42,11 @@ Whether you want a solid out-of-the-box chat experience or a flexible foundation
 * **Restart** the server and enjoy.
 
 ### 🧱 How to Build
-* Java 17 or newer.
-* [JitPack](https://www.jitpack.io/#Danburen/WaterAPI)
+1. clone the repository from remote
+```bash:
+git clone https://github.com/Danburen/VeloChatX
+```
+2. add dependency of WaterAPI with jitpack
 ```Gradle:
 dependencyResolutionManagement {
 	repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -53,7 +56,7 @@ dependencyResolutionManagement {
 	}
 }
 ```
-dependency:
+
 ```Gradle:
 dependencies {
 	implementation 'com.github.Danburen:WaterAPI:-SHAPSHOT'
