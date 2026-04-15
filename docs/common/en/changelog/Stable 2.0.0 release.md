@@ -67,3 +67,9 @@
 ## [2.0.7] - [2026.3.21]
 ### Changes
 - We downgrade the java jdk compilation version from 22 to 17
+
+## [2.0.8] - [2026.4.15]
+### Fixed
+- Fixed the problem that the player's message forwarding is not escaped for some clients.
+### Features
+- Users can choose different conversion models by changing the 'chat-format-model' in the configuration file.
