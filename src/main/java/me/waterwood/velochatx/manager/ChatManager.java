@@ -2,8 +2,10 @@ package me.waterwood.velochatx.manager;
 
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import lombok.Getter;
 import me.waterwood.velochatx.entity.Channel;
 import me.waterwood.velochatx.utils.SubServer;
+import org.waterwood.enums.ChatFormatModel;
 import org.waterwood.hock.LuckPermsHock;
 import org.waterwood.utils.Colors;
 
@@ -23,12 +25,20 @@ public class ChatManager extends BasicMethods {
 
     private static String CHAT_FORMAT;
     private static boolean IS_CROSSING_CHAT_ENABLED;
+    @Getter
+    private static ChatFormatModel CHATFORMAT_MODEL;
 
     public static void initialize() {
         loadChatFormat();
         BanWordEnable = getConfigs().getBoolean("ban-words.enable",false);
         BanWordLOG = getConfigs().getBoolean("ban-words.log-to-console",false);
         IS_CROSSING_CHAT_ENABLED = getConfigs().getBoolean("crossing-chat-enable",true);
+
+        CHATFORMAT_MODEL = switch (getConfigs().getString("chat-format-model","none").toUpperCase()) {
+            case "LEGACY" -> ChatFormatModel.LEGACY;
+            case "MINI_MESSAGE" -> ChatFormatModel.MINI_MESSAGE;
+            default -> ChatFormatModel.NONE;
+        };
     }
     /**
      * Judge whether two server can communicate

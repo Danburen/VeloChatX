@@ -31,6 +31,11 @@ broadcast-enable: true
 # 支持mc的颜色格式包括 §和& 颜色代码，会覆盖原有的颜色
 chat-format: "{channel}{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"
 
+
+# none:      不转换，适合原版客户端，直接发送原始文本（兼容旧版，Fabric可能显示异常）
+# legacy:    转换为 Adventure Legacy Component（推荐，兼容所有服务端，有些老的客户端不是很支持）
+# mini-message: 转换为 MiniMessage 格式（支持富文本效果）
+chat-format-model: "none"
 # 插件消息文件的语音版本，通常依据于您的Java JVM的版本自动设置
 locale: zh
 

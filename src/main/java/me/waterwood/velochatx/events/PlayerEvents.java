@@ -11,6 +11,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.velochatx.VeloChatX;
 import me.waterwood.velochatx.manager.*;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.waterwood.plugin.velocity.util.MethodBase;
 import me.waterwood.velochatx.entity.Channel;
 import me.waterwood.velochatx.utils.SubServer;
@@ -20,6 +21,7 @@ import me.waterwood.velochatx.utils.PlayerAttribution;
 import me.waterwood.velochatx.manager.BasicMethods;
 import org.waterwood.plugin.velocity.VelocityPlugin;
 import org.waterwood.utils.Colors;
+import org.waterwood.utils.MessageConverter;
 
 import java.util.*;
 
@@ -63,11 +65,17 @@ public class PlayerEvents extends MethodBase {
             }
         }
         String finalMessage = ChatManager.placeChatValue(message,source);
-        if(LogManager.isLogToConsole()) getLogger().info(Colors.parseColor(finalMessage,! LogManager.isLogColorConvert()));
-        if (! ChatManager.isCrossingChatEnabled()) return;
+        if(LogManager.isLogToConsole()) {
+            getLogger().info(Colors.parseColor(finalMessage,! LogManager.isLogColorConvert()));
+        }
+        if (! ChatManager.isCrossingChatEnabled()) {
+            return;
+        }
+
         String sourceServerName = source.getCurrentServer()
                 .map(serverConnection -> serverConnection.getServerInfo().getName())
                 .orElse("unknown");
+
         proxyServer.getAllPlayers().forEach(player -> {
             UUID uuid = player.getUniqueId();
             PlayerAttribution attrs = playerAttrs.get(uuid);
@@ -90,7 +98,8 @@ public class PlayerEvents extends MethodBase {
             if(playerServerName.equals(sourceServerName)) return;
             // same channel communicate
             if(!ChatManager.canCommunicate(playerServerName,sourceServerName) && ! ChannelManager.isChannelGlobal()) return;
-            player.sendMessage(Component.text(finalMessage));
+
+            player.sendMessage(MessageConverter.convert(ChatManager.getCHATFORMAT_MODEL(), finalMessage));
         });
     }
 
