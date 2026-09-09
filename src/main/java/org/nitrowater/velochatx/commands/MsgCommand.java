@@ -5,10 +5,10 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import org.nitrowater.velochatx.events.PlayerEvents;
 import org.nitrowater.velochatx.manager.BasicMethods;
-import org.nitrowater.velochatx.manager.PlayerManager;
-import org.waterwood.utils.Colors;
-import org.waterwood.plugin.velocity.VelocityPlugin;
 import org.nitrowater.velochatx.manager.MessageManager;
+import org.nitrowater.velochatx.manager.PlayerManager;
+import org.waterwood.plugin.velocity.VelocityPlugin;
+import org.waterwood.utils.Colors;
 
 import java.util.List;
 

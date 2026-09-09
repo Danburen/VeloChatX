@@ -1,14 +1,16 @@
 package org.nitrowater.velochatx.domain.server;
 
-import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
+import org.nitrowater.waterapi.domain.shared.config.Config;
+import org.nitrowater.waterapi.domain.shared.service.EventListener;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

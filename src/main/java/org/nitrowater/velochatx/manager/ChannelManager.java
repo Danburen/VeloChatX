@@ -1,8 +1,8 @@
 package org.nitrowater.velochatx.manager;
 
 import org.nitrowater.velochatx.VeloChatX;
-import org.nitrowater.velochatx.utils.BroadCastUtil;
 import org.nitrowater.velochatx.entity.Channel;
+import org.nitrowater.velochatx.utils.BroadCastUtil;
 import org.nitrowater.velochatx.utils.SubServer;
 import org.waterwood.io.FileConfiguration;
 

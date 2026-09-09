@@ -2,8 +2,8 @@ package org.nitrowater.velochatx.utils;
 
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import org.nitrowater.velochatx.entity.Channel;
 import org.jspecify.annotations.NonNull;
+import org.nitrowater.velochatx.entity.Channel;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

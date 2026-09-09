@@ -6,10 +6,12 @@ import com.velocitypowered.api.proxy.server.RegisteredServer;
 import org.nitrowater.velochatx.VeloChatX;
 import org.nitrowater.velochatx.entity.Channel;
 import org.nitrowater.velochatx.utils.SubServer;
-import org.waterwood.plugin.velocity.util.MethodBase;
 import org.waterwood.plugin.velocity.VelocityPlugin;
+import org.waterwood.plugin.velocity.util.MethodBase;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static org.waterwood.hock.LuckPermsHock.*;

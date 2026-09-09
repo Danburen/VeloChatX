@@ -2,14 +2,14 @@ package org.nitrowater.velochatx.domain.tablist;
 
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
-import org.nitrowater.waterapi.domain.shared.service.SchedulerService;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
+import org.nitrowater.waterapi.domain.shared.config.Config;
+import org.nitrowater.waterapi.domain.shared.service.EventListener;
+import org.nitrowater.waterapi.domain.shared.service.SchedulerService;
 import org.nitrowater.waterapi.domain.spi.TabListProvider;
 import org.nitrowater.waterapi.utils.StringUtil;
 

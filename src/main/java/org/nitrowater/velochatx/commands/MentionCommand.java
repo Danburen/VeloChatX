@@ -3,14 +3,14 @@ package org.nitrowater.velochatx.commands;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.nitrowater.velochatx.events.PlayerEvents;
+import org.nitrowater.velochatx.manager.MessageManager;
 import org.nitrowater.velochatx.manager.PlayerManager;
 import org.nitrowater.velochatx.utils.TitleShow;
 import org.waterwood.io.FileConfiguration;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
 import org.waterwood.plugin.velocity.VelocityPlugin;
-import org.nitrowater.velochatx.manager.MessageManager;
 
 import java.util.List;
 

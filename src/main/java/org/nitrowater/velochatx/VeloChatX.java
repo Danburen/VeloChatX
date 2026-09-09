@@ -6,14 +6,14 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
-import org.nitrowater.velochatx.events.PlayerEvents;
-import org.nitrowater.velochatx.manager.ChannelManager;
-import org.waterwood.enums.COLOR;
-import org.waterwood.plugin.velocity.VelocityPlugin;
 import org.nitrowater.velochatx.commands.ControlCommands;
 import org.nitrowater.velochatx.commands.MentionCommand;
 import org.nitrowater.velochatx.commands.MsgCommand;
+import org.nitrowater.velochatx.events.PlayerEvents;
 import org.nitrowater.velochatx.manager.BasicMethods;
+import org.nitrowater.velochatx.manager.ChannelManager;
+import org.waterwood.enums.COLOR;
+import org.waterwood.plugin.velocity.VelocityPlugin;
 import org.waterwood.utils.DebugUtil;
 
 

@@ -1,8 +1,8 @@
 package org.nitrowater.velochatx.domain.broadcast;
 
+import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
-import org.nitrowater.waterapi.domain.model.UPlayer;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,21 +1,17 @@
 package org.nitrowater.velochatx.domain.chat;
 
 import org.nitrowater.velochatx.domain.shared.VeloChatXMessage;
-import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
-import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
+import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
+import org.nitrowater.waterapi.domain.shared.config.Config;
+import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.utils.StringUtil;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implementation of {@link ChatService}.

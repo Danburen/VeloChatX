@@ -2,7 +2,6 @@ package org.nitrowater.velochatx.mapper;
 
 import org.nitrowater.velochatx.VeloChatX;
 import org.nitrowater.waterapi.domain.infra.io.database.H2DataBase;
-import org.waterwood.io.database.H2DataBase;
 import org.waterwood.plugin.WaterPlugin;
 
 public abstract class MapperBase extends H2DataBase {

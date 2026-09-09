@@ -1,5 +1,6 @@
 package org.nitrowater.velochatx.mapper;
 
+import com.google.gson.JsonObject;
 import org.nitrowater.velochatx.VeloChatX;
 import org.nitrowater.velochatx.utils.PlayerAttribution;
 import org.waterwood.io.file.FileMapperBase;
@@ -8,8 +9,6 @@ import org.waterwood.utils.JsonStringParser;
 import java.io.File;
 import java.sql.Timestamp;
 import java.util.*;
-
-import com.google.gson.JsonObject;
 
 /**
  * A class to handle player data with file

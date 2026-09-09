@@ -1,7 +1,7 @@
 package org.nitrowater.velochatx.domain.tablist;
 
-import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
+import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
 
 /**
  * Service interface for tab list customization.

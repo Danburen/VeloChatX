@@ -5,42 +5,22 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
-import com.velocitypowered.api.proxy.Player;
 import org.nitrowater.velochatx.domain.event.handler.VCXEventHandler;
 import org.nitrowater.velochatx.domain.event.player.PlayerJoinServerEvent;
-import org.nitrowater.velochatx.domain.player.PlayerAttribution;
-import org.nitrowater.velochatx.domain.server.ServerService;
-import org.nitrowater.velochatx.entity.Channel;
-import org.nitrowater.velochatx.manager.*;
-import org.nitrowater.velochatx.utils.SubServer;
-import org.nitrowater.waterapi.domain.event.player.PlayerDisconnectEvent;
 import org.nitrowater.waterapi.domain.event.player.PlayerLoginEvent;
-import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UPlayerRegistry;
 import org.nitrowater.waterapi.domain.model.UServer;
-import org.nitrowater.waterapi.domain.model.WProxyServer;
-
-import java.util.HashSet;
-import java.util.UUID;
 
 public class PlayerEventManager {
-    private final WProxyServer proxyServer;
 
     private final UPlayerRegistry playerCachePool;
     private final VCXEventHandler vcxEventHandler;
-    private final MessageLoggerService messageLoggerService;
-    private final ServerService serverService;
 
     public PlayerEventManager(UPlayerRegistry playerCachePool,
-                        MessageLoggerService messageLoggerService,
-                        WProxyServer proxyServer,
-                        VCXEventHandler vcxEventHandler, ServerService serverService) {
+                              VCXEventHandler vcxEventHandler) {
         this.playerCachePool = playerCachePool;
-        this.messageLoggerService = messageLoggerService;
-        this.proxyServer = proxyServer;
         this.vcxEventHandler = vcxEventHandler;
-        this.serverService = serverService;
     }
 
     @Subscribe(priority = 0)

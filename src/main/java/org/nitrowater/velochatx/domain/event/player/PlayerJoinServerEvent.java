@@ -4,8 +4,6 @@ import lombok.Getter;
 import org.nitrowater.waterapi.domain.event.GameEvent;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 
-import java.util.Optional;
-
 /**
  * Player join server event.
  * Fired when a player connects to a backend server.

@@ -9,7 +9,9 @@ import org.waterwood.enums.ChatFormatModel;
 import org.waterwood.hock.LuckPermsHock;
 import org.waterwood.utils.Colors;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.waterwood.hock.LuckPermsHock.hasLuckPerm;
 

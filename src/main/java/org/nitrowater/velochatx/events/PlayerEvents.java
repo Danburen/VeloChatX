@@ -10,19 +10,22 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import me.waterwood.velochatx.VeloChatX;
-import me.waterwood.velochatx.manager.*;
-import org.waterwood.plugin.velocity.util.MethodBase;
 import me.waterwood.velochatx.entity.Channel;
+import me.waterwood.velochatx.manager.*;
+import me.waterwood.velochatx.manager.BasicMethods;
+import me.waterwood.velochatx.utils.PlayerAttribution;
 import me.waterwood.velochatx.utils.SubServer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import me.waterwood.velochatx.utils.PlayerAttribution;
-import me.waterwood.velochatx.manager.BasicMethods;
 import org.waterwood.plugin.velocity.VelocityPlugin;
+import org.waterwood.plugin.velocity.util.MethodBase;
 import org.waterwood.utils.Colors;
 import org.waterwood.utils.MessageConverter;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
 
 public class PlayerEvents extends MethodBase {
     private final ProxyServer proxyServer = VelocityPlugin.getProxyServer();

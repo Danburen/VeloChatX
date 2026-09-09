@@ -4,16 +4,14 @@ import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
-import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import org.waterwood.plugin.velocity.util.MethodBase;
-import org.waterwood.utils.Colors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.waterwood.plugin.velocity.VelocityPlugin;
+import org.waterwood.plugin.velocity.util.MethodBase;
+import org.waterwood.utils.Colors;
 
-import java.util.Arrays;
 import java.util.List;
 
 public abstract class VelocitySimpleCommand extends MethodBase {
