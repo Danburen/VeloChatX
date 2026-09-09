@@ -88,55 +88,22 @@ public interface BroadcastService extends ConfigurableService<BroadcastConfigKey
     int getMessageCount(String serverName);
 
     /**
-     * Broadcast player join event (first join to proxy).
-     * <p>
-     * Handles the join broadcast based on the entry-broadcast configuration.
-     * Supports hierarchical broadcasting:
-     * <ul>
-     *   <li>Level 1: Player joins proxy server</li>
-     *   <li>Level 2: Player switches channel</li>
-     *   <li>Level 3: Player joins backend server</li>
-     * </ul>
-     * </p>
-     *
-     * @param player        the player who joined
-     * @param currentServer the server the player joined
-     */
-    void broadcastPlayerJoin(UPlayer player, UServer currentServer);
-
-    /**
      * Broadcast player join event (switch server).
      * <p>
      * Handles the join broadcast based on the entry-broadcast configuration.
      * Supports hierarchical broadcasting:
      * <ul>
-     *   <li>Level 1: Player joins proxy server</li>
-     *   <li>Level 2: Player switches channel</li>
-     *   <li>Level 3: Player joins backend server</li>
+     *   <li>Level 1 (highest): Player switches channel</li>
+     *   <li>Level 2 (lowest): Player joins backend server</li>
      * </ul>
+     * Note: Proxy join broadcast is handled by {@link #broadcastProxyJoin(UPlayer)}.
      * </p>
      *
      * @param player         the player who joined
      * @param currentServer  the server the player joined
-     * @param previousServer the server the player left
+     * @param previousServer the server the player left (null if first join)
      */
     void broadcastPlayerJoin(UPlayer player, UServer currentServer, UServer previousServer);
-
-    /**
-     * Broadcast player leave event (leave proxy).
-     * <p>
-     * Handles the leave broadcast based on the entry-broadcast configuration.
-     * Supports hierarchical broadcasting:
-     * <ul>
-     *   <li>Level 1: Player leaves proxy server</li>
-     *   <li>Level 2: Player switches channel</li>
-     *   <li>Level 3: Player leaves backend server</li>
-     * </ul>
-     * </p>
-     *
-     * @param player the player who left
-     */
-    void broadcastPlayerProxyLeave(UPlayer player);
 
     /**
      * Broadcast player leave event (switch server).
@@ -144,14 +111,36 @@ public interface BroadcastService extends ConfigurableService<BroadcastConfigKey
      * Handles the leave broadcast based on the entry-broadcast configuration.
      * Supports hierarchical broadcasting:
      * <ul>
-     *   <li>Level 1: Player leaves proxy server</li>
-     *   <li>Level 2: Player switches channel</li>
-     *   <li>Level 3: Player leaves backend server</li>
+     *   <li>Level 1 (highest): Player switches channel</li>
+     *   <li>Level 2 (lowest): Player leaves backend server</li>
      * </ul>
+     * Note: Proxy leave broadcast is handled by {@link #broadcastProxyLeave(UPlayer)}.
      * </p>
      *
      * @param player         the player who left
      * @param previousServer the server the player left
      */
     void broadcastPlayerLeave(UPlayer player, UServer previousServer);
+
+    /**
+     * Broadcast player proxy join event.
+     * <p>
+     * Broadcasts to all online players (no server scope).
+     * Used when player first joins the proxy (LoginEvent).
+     * </p>
+     *
+     * @param player the player who joined
+     */
+    void broadcastProxyJoin(UPlayer player);
+
+    /**
+     * Broadcast player proxy leave event.
+     * <p>
+     * Broadcasts to all online players (no server scope).
+     * Used when player disconnects from proxy (DisconnectEvent).
+     * </p>
+     *
+     * @param player the player who left
+     */
+    void broadcastProxyLeave(UPlayer player);
 }

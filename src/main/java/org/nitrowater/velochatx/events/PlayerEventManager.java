@@ -13,6 +13,7 @@ import org.nitrowater.velochatx.domain.server.ServerService;
 import org.nitrowater.velochatx.entity.Channel;
 import org.nitrowater.velochatx.manager.*;
 import org.nitrowater.velochatx.utils.SubServer;
+import org.nitrowater.waterapi.domain.event.player.PlayerDisconnectEvent;
 import org.nitrowater.waterapi.domain.event.player.PlayerLoginEvent;
 import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
@@ -75,7 +76,13 @@ public class PlayerEventManager {
     }
 
     @Subscribe(priority = 2)
-    public void onDisConnect(DisconnectEvent evt){
-
+    public void onDisConnect(DisconnectEvent evt) {
+        UPlayer player = playerCachePool.getOrCreate(evt.getPlayer());
+        org.nitrowater.waterapi.domain.event.player.PlayerDisconnectEvent disconnectEvent =
+                new org.nitrowater.waterapi.domain.event.player.PlayerDisconnectEvent(
+                        player,
+                        player.getCurrentServer().map(UServer::getName).orElse(null)
+                );
+        vcxEventHandler.onDisconnect(disconnectEvent);
     }
 }

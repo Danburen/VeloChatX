@@ -2,7 +2,6 @@ package org.nitrowater.velochatx.domain.player;
 
 import org.nitrowater.waterapi.domain.model.UPlayer;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,7 +26,7 @@ public interface PlayerService {
      * @param player the player to store or update
      * @return {@code true} if player already existed, {@code false} if newly created
      */
-    boolean storeOrUpdatePlayer(UPlayer player);
+    boolean storeOrUpdatePlayerBaseInfo(UPlayer player);
 
     /**
      * Get player's attribution (ignore/reject lists, chat offline status).
@@ -44,14 +43,6 @@ public interface PlayerService {
      * @param attribution the new attribution data
      */
     void updatePlayerAttribution(UUID uuid, PlayerAttribution attribution);
-
-    /**
-     * Update player's first join time.
-     *
-     * @param uuid the player's UUID
-     * @param time join time in milliseconds
-     */
-    void updateFirstJoinTime(UUID uuid, long time);
 
     /**
      * Update player's last leave time.

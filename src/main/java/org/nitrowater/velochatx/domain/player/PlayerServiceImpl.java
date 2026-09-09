@@ -33,7 +33,7 @@ public class PlayerServiceImpl implements PlayerService, PlaceholdersContributor
     }
 
     @Override
-    public boolean storeOrUpdatePlayer(UPlayer player) {
+    public boolean storeOrUpdatePlayerBaseInfo(UPlayer player) {
         UUID uuid = player.getUuid();
         boolean exists = attributions.containsKey(uuid);
         if (!exists) {
@@ -45,7 +45,9 @@ public class PlayerServiceImpl implements PlayerService, PlaceholdersContributor
             playerMapper.insertPlayerRecord(uuid, player.getLoginName());
             exists = false;
         } else {
-            playerMapper.updatePlayerName(uuid, player.getLoginName());
+            if(! playerName.equals(player.getLoginName())) {
+                playerMapper.updatePlayerName(uuid, player.getLoginName());
+            }
             exists = true;
         }
         return exists;
@@ -59,11 +61,6 @@ public class PlayerServiceImpl implements PlayerService, PlaceholdersContributor
     @Override
     public void updatePlayerAttribution(UUID uuid, PlayerAttribution attribution) {
         attributions.put(uuid, attribution);
-    }
-
-    @Override
-    public void updateFirstJoinTime(UUID uuid, long time) {
-        playerMapper.updatePlayerFirstJoinTime(uuid, new Timestamp(time));
     }
 
     @Override

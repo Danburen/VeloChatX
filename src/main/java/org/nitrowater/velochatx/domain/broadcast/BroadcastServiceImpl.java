@@ -114,13 +114,7 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
     }
 
     @Override
-    public void broadcastPlayerJoin(UPlayer player, UServer currentServer) {
-        broadcastPlayerJoin(player, currentServer, null);
-    }
-
-    @Override
     public void broadcastPlayerJoin(UPlayer player, UServer currentServer, UServer previousServer) {
-        boolean isProxyJoin = (previousServer == null);
         String currentChannelName = channelService.getChannelForServer(currentServer.getName()).getName();
         String previousChannelName = previousServer != null ?
                 channelService.getChannelForServer(previousServer.getName()).getName() : null;
@@ -128,16 +122,7 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
 
         boolean overlay = getConfig().getBoolean(BroadcastConfigKey.ENTRY_HIERARCHICAL_OVERLAY);
 
-        // Level 1 (highest): Player joins proxy
-        if (isProxyJoin) {
-            if (!getConfig().getBoolean(BroadcastConfigKey.PROXY_ENABLED)) return;
-            String message = getConfig().get(BroadcastConfigKey.PROXY_JOIN_MESSAGE);
-            String resolved = resolveMessage(message, player);
-            logToConsole(resolved);
-            broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.PROXY_SCOPE), player, null);
-            if (overlay) return;
-        }
-        // Level 2 (middle): Player switches channel
+        // Level 1 (highest): Player switches channel
         if (isChannelSwitch) {
             if (!getConfig().getBoolean(BroadcastConfigKey.CHANNEL_ENABLED)) return;
             String message = getConfig().get(BroadcastConfigKey.CHANNEL_JOIN_MESSAGE);
@@ -146,7 +131,7 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
             broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.CHANNEL_SCOPE), player, previousChannelName);
             if (overlay) return;
         }
-        // Level 3 (lowest): Player joins backend
+        // Level 2 (lowest): Player joins backend
         if (!getConfig().getBoolean(BroadcastConfigKey.BACKEND_ENABLED)) return;
         String message = getConfig().get(BroadcastConfigKey.BACKEND_JOIN_MESSAGE);
         String resolved = resolveMessage(message, player);
@@ -155,26 +140,24 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
     }
 
     @Override
-    public void broadcastPlayerProxyLeave(UPlayer player) {
-        broadcastProxyLeave(player);
+    public void broadcastProxyJoin(UPlayer player) {
+        if (!getConfig().getBoolean(BroadcastConfigKey.PROXY_ENABLED)) return;
+        String message = getConfig().get(BroadcastConfigKey.PROXY_JOIN_MESSAGE);
+        String resolved = resolveMessage(message, player);
+        logToConsole(resolved);
+        actionService.broadcastToAll(resolved);
     }
 
     @Override
     public void broadcastPlayerLeave(UPlayer player, UServer previousServer) {
         String currentServerName = player.getCurrentServer().map(UServer::getName).orElse(null);
-        boolean isProxyLeave = (currentServerName == null);
         String previousChannelName = channelService.getChannelForServer(previousServer.getName()).getName();
         String currentChannelName = currentServerName != null ?
                 channelService.getChannelForServer(currentServerName).getName() : null;
         boolean isChannelSwitch = currentServerName != null && !previousChannelName.equals(currentChannelName);
 
         boolean overlay = getConfig().getBoolean(BroadcastConfigKey.ENTRY_HIERARCHICAL_OVERLAY);
-        // Level 1 (highest): Player leaves proxy
-        if (isProxyLeave) {
-            broadcastProxyLeave(player);
-            if (overlay) return;
-        }
-        // Level 2 (middle): Player switches channel
+        // Level 1 (highest): Player switches channel
         if (isChannelSwitch) {
             if (!getConfig().getBoolean(BroadcastConfigKey.CHANNEL_ENABLED)) return;
             String message = getConfig().get(BroadcastConfigKey.CHANNEL_LEAVE_MESSAGE);
@@ -183,7 +166,7 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
             broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.CHANNEL_SCOPE), player, previousChannelName);
             if (overlay) return;
         }
-        // Level 3 (lowest): Player leaves backend
+        // Level 2 (lowest): Player leaves backend
         if (!getConfig().getBoolean(BroadcastConfigKey.BACKEND_ENABLED)) return;
         String message = getConfig().get(BroadcastConfigKey.BACKEND_LEAVE_MESSAGE);
         String resolved = resolveMessage(message, player);
@@ -191,12 +174,13 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
         broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.BACKEND_SCOPE), player, previousChannelName);
     }
 
-    private void broadcastProxyLeave(UPlayer player) {
+    @Override
+    public void broadcastProxyLeave(UPlayer player) {
         if (!getConfig().getBoolean(BroadcastConfigKey.PROXY_ENABLED)) return;
         String message = getConfig().get(BroadcastConfigKey.PROXY_LEAVE_MESSAGE);
         String resolved = resolveMessage(message, player);
         logToConsole(resolved);
-        broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.PROXY_SCOPE), player, null);
+        actionService.broadcastToAll(resolved);
     }
 
     private void broadcastByScope(String message, String scope, UPlayer player, String channelName) {

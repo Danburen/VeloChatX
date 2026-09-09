@@ -16,6 +16,7 @@ import org.nitrowater.waterapi.domain.event.player.PlayerChatEvent;
 import org.nitrowater.velochatx.domain.chat.ChatService;
 import org.nitrowater.velochatx.domain.event.VeloChatXGameEventHandler;
 import org.nitrowater.velochatx.domain.event.player.PlayerJoinServerEvent;
+import org.nitrowater.waterapi.domain.event.player.PlayerDisconnectEvent;
 import org.nitrowater.waterapi.domain.event.player.PlayerLoginEvent;
 import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
 import org.nitrowater.waterapi.domain.message.PlayerMessageService;
@@ -132,6 +133,7 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
     @Override
     public void onJoinServer(PlayerJoinServerEvent event) {
         UPlayer player = event.getPlayer();
+        // Load locale
         player.getEffectiveLocale().ifPresent(lang -> {
             try {
                 messageLoggerService.getPluginMessageService().loadLocale(lang.getLanguage());
@@ -139,42 +141,13 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
                 messageLoggerService.warn(VeloChatXMessage.MESSAGE_LOCALE_CANT_LOAD, player.getLoginName(), lang);
             }
         });
+        // Broadcast join/leave messages
         UServer currServer = serverService.getOrCreate(event.getServerName());
-        PlaceholderContext currentPlayerServerPlaceholder = PlaceholderContext.builder()
-                .player(player)
-                .serverName(currServer.getName())
-                .build();
-        // broadcast join leave message to prev server and current server
-        if (broadcastService.getBooleanConfig(BroadcastConfigKey.JOIN_LEAVE_ENABLED)) {
-            Optional.ofNullable(event.getPreviousServerName())
-                    .map(serverService::getOrCreate)
-                    .ifPresent(
-                            prev -> {
-                                String leaveMessage = messageLoggerService
-                                        .getPlaceholderService()
-                                        .resolve(
-                                                broadcastService.getConfig(BroadcastConfigKey.JOIN_LEAVE_LEAVE_MESSAGE),
-                                                PlaceholderContext.builder()
-                                                        .player(player)
-                                                        .serverName(prev.getName())
-                                                        .build()
-                                        );
-                                playerActionService.broadcastToServer(
-                                        prev, leaveMessage
-                                );
-                            }
-                    );
-            String joinMessage = messageLoggerService
-                    .getPlaceholderService()
-                    .resolve(
-                            broadcastService.getConfig(BroadcastConfigKey.JOIN_LEAVE_JOIN_MESSAGE),
-                            currentPlayerServerPlaceholder
-                    );
-            playerActionService.broadcastToServer(
-                    currServer, joinMessage
-            );
-        }
-        // send channel welcome message to trigger player
+        UServer prevServer = Optional.ofNullable(event.getPreviousServerName())
+                .map(serverService::getOrCreate)
+                .orElse(null);
+        broadcastService.broadcastPlayerJoin(player, currServer, prevServer);
+        // Send channel welcome message
         Channel channel = channelService.getChannelForServer(currServer.getName());
         if (channelService.getConfig().get(
                 ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.enable",
@@ -187,11 +160,14 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
                                     ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.message",
                                     "Welcome to the channel!"
                             ),
-                            currentPlayerServerPlaceholder
+                            PlaceholderContext.builder()
+                                    .player(player)
+                                    .serverName(currServer.getName())
+                                    .build()
                     );
             playerActionService.sendMessage(player, welcomeMessage);
         }
-        // tab-list update
+        // Update tab-list
         tabListService.queueUpdate(new TabListUpdateTask(
                 player.getUuid(),
                 TabListUpdateTask.UpdateType.HEADER_FOOTER,
@@ -202,7 +178,6 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
                 TabListUpdateTask.UpdateType.ENTRY,
                 System.currentTimeMillis()
         ));
-
         wProxyServer.getAllOnlinePlayers().forEach(p -> {
             if (!p.getUuid().equals(player.getUuid())) {
                 tabListService.queueUpdate(new TabListUpdateTask(
@@ -217,23 +192,40 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
     @Override
     public void onLogin(PlayerLoginEvent event) {
         UPlayer player = event.getPlayer();
-        boolean isFirstJoin = playerService.storeOrUpdatePlayer(player);
-        if(broadcastService.getBooleanConfig(BroadcastConfigKey.JOIN_LEAVE_PROXY_ENABLED)){
-            String joinMessage = messageLoggerService
-                    .getPlaceholderService()
-                    .resolve(
-                            broadcastService.getConfig(BroadcastConfigKey.JOIN_LEAVE_PROXY_JOIN_MESSAGE),
-                            PlaceholderContext.builder()
-                                    .player(player)
-                                    .build()
-                    );
-            if(broadcastService.getBooleanConfig(BroadcastConfigKey.JOIN_LEAVE_PROXY_SEND_TO_ALL)){
-                playerActionService.broadcastToAll(joinMessage);
-            } else {
-                player.getCurrentServer().ifPresent(server -> {
-                    playerActionService.broadcastToServer(server, joinMessage);
-                });
+        boolean isFirstJoin = playerService.storeOrUpdatePlayerBaseInfo(player);
+        // Broadcast proxy join (broadcast to all)
+        broadcastService.broadcastProxyJoin(player);
+        // Send welcome message
+        if (broadcastService.getBooleanConfig(BroadcastConfigKey.WELCOME_ENABLED)) {
+            if (isFirstJoin || ! broadcastService.getBooleanConfig(BroadcastConfigKey.WELCOME_ONLY_FIRST_JOIN)) {
+                String welcomeMessage = messageLoggerService
+                        .getPlaceholderService()
+                        .resolve(
+                                broadcastService.getConfig(BroadcastConfigKey.WELCOME_MESSAGE),
+                                PlaceholderContext.builder()
+                                        .player(player)
+                                        .build()
+                        );
+                playerActionService.sendMessage(player, welcomeMessage);
             }
         }
+    }
+
+    @Override
+    public void onDisconnect(PlayerDisconnectEvent event) {
+        UPlayer player = event.getPlayer();
+        // Broadcast proxy leave (broadcast to all)
+        broadcastService.broadcastProxyLeave(player);
+        playerService.updateLeaveTime(player.getUuid(), System.currentTimeMillis());
+        // Update tablist - remove player from all online players' tablist
+        UUID uuid = player.getUuid();
+        wProxyServer.getAllOnlinePlayers().forEach(onlinePlayer -> {
+            tabListService.queueUpdate(new TabListUpdateTask(
+                    uuid,
+                    onlinePlayer.getUuid(),
+                    TabListUpdateTask.UpdateType.REMOVE,
+                    System.currentTimeMillis()
+            ));
+        });
     }
 }
