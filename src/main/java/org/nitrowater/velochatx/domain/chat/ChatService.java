@@ -1,6 +1,7 @@
 package org.nitrowater.velochatx.domain.chat;
 
 import org.nitrowater.waterapi.domain.model.UPlayer;
+import org.nitrowater.waterapi.domain.shared.common.ChatFormatModel;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
 
 /**
@@ -37,6 +38,13 @@ public interface ChatService extends ConfigurableService<ChatConfigKey> {
      * @return the formatted message
      */
     String formatMessage(String template, String message, UPlayer player);
+
+    /**
+     * Get the configured chat format model.
+     *
+     * @return the chat format model (never null, defaults to {@link ChatFormatModel#NONE})
+     */
+    ChatFormatModel getChatFormatModel();
 
     /**
      * Check if a message contains any banned words.

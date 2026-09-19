@@ -3,12 +3,12 @@ package org.nitrowater.velochatx.domain.player;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Player attribution data (ignore/reject lists, chat offline status).
+ * Player attribution data (blocked list, chat offline status).
  *
  * @since 2.1.0
  * @author Danburen
@@ -18,29 +18,41 @@ import java.util.UUID;
 public class PlayerAttribution {
 
     @Builder.Default
-    private final Set<UUID> ignorePlayers = new HashSet<>();
-
-    @Builder.Default
-    private final Set<UUID> rejectPlayers = new HashSet<>();
+    private final Set<UUID> blockedPlayers = ConcurrentHashMap.newKeySet();
 
     @Builder.Default
     private boolean chatOffLine = false;
 
-    public void addIgnorePlayer(UUID uuid) {
-        ignorePlayers.add(uuid);
+    /**
+     * Block a player.
+     */
+    public void blockPlayer(UUID uuid) {
+        blockedPlayers.add(uuid);
     }
 
-    public void addRejectPlayer(UUID uuid) {
-        rejectPlayers.add(uuid);
-        ignorePlayers.add(uuid);
+    /**
+     * Unblock a player.
+     */
+    public void unblockPlayer(UUID uuid) {
+        blockedPlayers.remove(uuid);
     }
 
-    public void remove(UUID uuid) {
-        ignorePlayers.remove(uuid);
-        rejectPlayers.remove(uuid);
+    /**
+     * Check if a player is blocked.
+     */
+    public boolean isBlocked(UUID uuid) {
+        return blockedPlayers.contains(uuid);
     }
 
     public boolean isEmpty() {
-        return ignorePlayers.isEmpty() && rejectPlayers.isEmpty();
+        return blockedPlayers.isEmpty();
+    }
+
+    public void setChatOffLine(boolean chatOffLine) {
+        this.chatOffLine = chatOffLine;
+    }
+
+    public boolean isChatOffLine() {
+        return chatOffLine;
     }
 }

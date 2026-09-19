@@ -62,11 +62,17 @@ public class ServerServiceImpl implements ServerService, EventListener<KernelCon
 
     @Override
     public Optional<UServer> getServer(String name) {
+        if (name == null) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(servers.get(name));
     }
 
     @Override
     public String getDisplay(String serverName) {
+        if (serverName == null) {
+            return "";
+        }
         UServer server = servers.get(serverName);
         if (server != null) {
             return server.getDisplay();
@@ -95,19 +101,20 @@ public class ServerServiceImpl implements ServerService, EventListener<KernelCon
 
     private void loadServers() {
         servers.clear();
-        if (!getConfig().getBoolean(ServerConfigKey.DISPLAY_ENABLED)) {
-            return;
+        boolean displayEnabled = getConfig().getBoolean(ServerConfigKey.DISPLAY_ENABLED);
+        Map<String, String> displayMap = displayEnabled
+                ? getConfig().get(ServerConfigKey.DISPLAY_SERVER_DISPLAY)
+                : Map.of();
+        if (displayMap == null) {
+            displayMap = Map.of();
         }
-        Map<String, String> displayMap = getConfig().get(ServerConfigKey.DISPLAY_SERVER_DISPLAY);
-        displayMap.forEach((name, displayName) -> {
-            if (!name.equalsIgnoreCase("proxy") && wProxyServer.isServerRegistered(name)) {
-                servers.put(name, new UServer(
-                        name,
-                        displayName,
-                        wProxyServer
-                ));
-            }
-        });
+        // Always register every backend server; the display name falls back to the server name
+        // when server-display is disabled or the server is not listed.
+        for (UServer registered : wProxyServer.getAllRegisteredServers()) {
+            String name = registered.getName();
+            String display = displayMap.getOrDefault(name, name);
+            servers.put(name, new UServer(name, display, wProxyServer));
+        }
     }
 
     @Override

@@ -8,15 +8,10 @@ import java.util.UUID;
 
 /**
  * Service interface for managing player data and attributes.
- * <p>
- * This service handles player CRUD operations, player attributes (ignore/reject lists),
- * and provides methods for player lookup and management.
- * </p>
  *
  * @since 2.1.0
  * @author Danburen
  * @see PlayerServiceImpl
- * @see PlayerConfigKey
  */
 public interface PlayerService {
 
@@ -29,20 +24,12 @@ public interface PlayerService {
     boolean storeOrUpdatePlayerBaseInfo(UPlayer player);
 
     /**
-     * Get player's attribution (ignore/reject lists, chat offline status).
+     * Get player's attribution (blocked list, chat offline status).
      *
      * @param uuid the player's UUID
      * @return player attribution, or empty if not found
      */
     Optional<PlayerAttribution> getPlayerAttribution(UUID uuid);
-
-    /**
-     * Update player's attribution (ignore/reject lists, chat offline status).
-     *
-     * @param uuid        the player's UUID
-     * @param attribution the new attribution data
-     */
-    void updatePlayerAttribution(UUID uuid, PlayerAttribution attribution);
 
     /**
      * Update player's last leave time.
@@ -53,14 +40,6 @@ public interface PlayerService {
     void updateLeaveTime(UUID uuid, long time);
 
     /**
-     * Get player's display name for chat.
-     *
-     * @param player the player
-     * @return display name (may include prefix/suffix)
-     */
-    String getDisplayName(UPlayer player);
-
-    /**
      * Get all online players' attributions.
      *
      * @return map of UUID to attribution
@@ -68,9 +47,44 @@ public interface PlayerService {
     Map<UUID, PlayerAttribution> getOnlinePlayerAttributions();
 
     /**
-     * Get a player attr
-     * @param uuid  {@link UUID} player uuid
-     * @return {@link PlayerAttribution} player attr
+     * Get or create player attribution.
+     *
+     * @param uuid the player's UUID
+     * @return player attribution
      */
     PlayerAttribution getOrCreateAttrs(UUID uuid);
+
+    /**
+     * Drop the cached attribution for a player (called on disconnect).
+     * <p>The next {@link #getOrCreateAttrs(UUID)} reloads it from the database.</p>
+     *
+     * @param uuid the player's UUID
+     */
+    void removePlayer(UUID uuid);
+
+    // === Block operations ===
+
+    /**
+     * Block a player.
+     *
+     * @param uuid       the player who blocks
+     * @param targetUuid the player to block
+     */
+    void blockPlayer(UUID uuid, UUID targetUuid);
+
+    /**
+     * Unblock a player.
+     *
+     * @param uuid       the player who unblocks
+     * @param targetUuid the player to unblock
+     */
+    void unblockPlayer(UUID uuid, UUID targetUuid);
+
+    /**
+     * Set player's chat offline status.
+     *
+     * @param uuid    the player's UUID
+     * @param offline true to disable chat, false to enable
+     */
+    void setChatOffline(UUID uuid, boolean offline);
 }

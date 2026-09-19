@@ -12,6 +12,8 @@ msg-receive-message: "[§cPriChat§r] {Server}{Group}{Prefix}{Player}{Suffix} §
 msg-reject-message: "message to {Group}{Prefix}{Player}{Suffix} was rejected by him!"
 has-ignore-message: "Player {Group}{Prefix}{Player}{Suffix} 's message has been ignored'"
 has-reject-message: "Player {Group}{Prefix}{Player}{Suffix} 's message has been rejected'"
+has-block-message: "Player {Group}{Prefix}{Player}{Suffix} has been blocked."
+has-unblock-message: "Player {Group}{Prefix}{Player}{Suffix} has been unblocked."
 normal-chat-message: "§aYour chat to §r {Group}{Prefix}{Player}{Suffix} §a getBoolean normal now§r"
 no-in-list-message: "Player {Group}{Prefix}{Player}{Suffix} wasn't in ignore/reject list!"
 enable-vc-chat-message: "You have connect to crossing server chat system"
@@ -24,3 +26,11 @@ ban-words-message: "Your Message contains prohibited/sensitive vocabulary,broadc
 reject-list-show-message: "Messages from the following players had been §6ignored§r  and §6rejected§r"
 ignore-list-show-message: "Messages from the following players have been §cignored§r"
 empty-list-show-message: "§6 there are no players in your reject and ignore list.§r"
+
+# Permission and command messages
+no-permission-message: "You are not allowed to do this!"
+incorrect-command-arguments-message: "Incorrect command arguments."
+config-reload-completed-message: "Configuration has been reloaded."
+config-file-reload-message: "Configuration file has been reloaded."
+incorrect-config-file-message: "Incorrect config file name."
+cant-load-message: "Failed to load message configuration."

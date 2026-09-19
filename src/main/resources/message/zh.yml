@@ -12,6 +12,8 @@ msg-receive-message: "[§c私聊§r] {Server}{Group}{Prefix}{Player}{Suffix} §7
 msg-reject-message: "§6你向§r {Group}{Prefix}{Player}{Suffix} §c发送的消息被他拒收了！§r"
 has-ignore-message: "§6玩家§r {Group}{Prefix}{Player}{Suffix} §c的消息已经被忽视了！§r"
 has-reject-message: "§6玩家§r {Group}{Prefix}{Player}{Suffix} §c的消息已经被拒收了！§r"
+has-block-message: "§6玩家§r {Group}{Prefix}{Player}{Suffix} §c已被屏蔽。§r"
+has-unblock-message: "§6玩家§r {Group}{Prefix}{Player}{Suffix} §c已取消屏蔽。§r"
 normal-chat-message: "§a您现在对玩家§r {Group}{Prefix}{Player}{Suffix} §a的聊天已经恢复正常。§r"
 no-in-list-message: "§6玩家§r {Group}{Prefix}{Player}{Suffix} §c不在被拒收/忽视的列表当中！§r"
 enable-vc-chat-message: "已连接至跨服聊天系统。"
@@ -24,3 +26,11 @@ ban-words-message: "您当前的发言存在违禁/敏感词汇,已屏蔽您对�
 reject-list-show-message: "来自以下玩家的消息被§6忽略§r并且被§6拒收§r"
 ignore-list-show-message: "来自以下玩家的消息被§c忽略§r"
 empty-list-show-message: "§6你的拒收和忽略列表不存在任何玩家。§r"
+
+# 权限和命令消息
+no-permission-message: "您无权使用该命令！"
+incorrect-command-arguments-message: "命令参数不正确。请输入 \vcx help 查看指令帮助"
+config-reload-completed-message: "配置已重新加载。"
+config-file-reload-message: "配置文件已重新加载。"
+incorrect-config-file-message: "不正确的配置文件名称。"
+cant-load-message: "无法加载消息配置。"

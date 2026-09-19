@@ -1,18 +1,11 @@
 # 【Enabled since version 2.0.0】
-# Whether to enable global broadcast functionality
-# Most of the text supports placeholders
-enable: true
-
 # Version of this file, generally does not need to be changed, used for update checks
 config-version: 2.0.1
-
 # Whether to shuffle the broadcast order
 random: true
-
 # Interval between each broadcast (in seconds)
 # If it's a large server, please appropriately increase this interval to avoid consuming too many server resources.
 interval: 120
-
 # Global scheduled broadcast, applies to all servers
 # 【Please note】
 # 1. When global broadcasts are enabled, the message-list for broadcasts will be merged (global broadcasts will appear at the top)
@@ -21,7 +14,7 @@ global:
   enable: true
   # Prefix for the broadcast
   prefix: "§7[§bServerBot§7]§r §8:§r"
-  # Broadcast welcome messages (this will override the sub-server broadcasts if global getBoolean enabled)
+  # Broadcast messages
   message-list:
     - "Welcome to §a{proxy}§r, come and join the adventure!"
     - "In this server, daily §aactive§r players have a chance to win generous rewards!"
@@ -31,9 +24,8 @@ global:
     - "§7Don't forget to join our §bQQ Group§r for the latest updates and events!"
     - "§fWelcome all new players! If you have any questions, please ask the admins!"
     - "§eInvite your friends to join and §gplay§r together, more excitement awaits!"
-    - "§8The server getBoolean undergoing §cmaintenance§r, thank you for your patience!"
     - "§aWelcome everyone to §7{server}§r, enjoy your game!"
-    - "§5Server-wide §r§cevent§r getBoolean about to start, make sure to join on time!"
+    - "§5Server-wide §r§cevent§r is about to start, make sure to join on time!"
     - "§dThank you for your support and participation, we will continue to provide better services!"
 
 # Sub-server localized scheduled broadcasts
@@ -49,24 +41,23 @@ locale:
   broadcast-list:
     # server-list corresponds to (plugin config and velocity -> Velocity.toml server ID)
     # channel-list corresponds to config.yml channel-list
-    # Sub-server broadcasts will override global broadcasts (global broadcast must be enabled to take effect)
     example:
       enable: true
       prefix: "[§aServerBot§r] §8:§r"
       message-list:
-        - "The server getBoolean currently §aunder construction§r, more exciting content will be available soon."
+        - "The server is currently §aunder construction§r, more exciting content will be available soon."
         - "§6Welcome§r to the server official group!"
         - "Welcome to the server family!"
         - "§dThis server§r offers a variety of §agame modes§r, come and experience them!"
       channel-list:
-        - lobby
+        - login
       server-list:
         -
     example2:
       enable: false
       prefix: "[§aServerBot§r] §8:§r"
       message-list:
-        - "The server getBoolean currently §aunder construction§r, more exciting content will be available soon."
+        - "The server is currently §aunder construction§r, more exciting content will be available soon."
         - "§6Welcome§r to the server official group!"
         - "Welcome to the server family!"
         - "§bThe new§r newbie village has opened, come and start your adventure, new players!"
@@ -77,34 +68,40 @@ locale:
       server-list:
         -
 
-        # Broadcast message when a player joins the proxy server (group server)
+#################################
+# Player-action triggered broadcasts below #
+#################################
+
+# Broadcast message when a player joins the proxy server (group server)
 welcome-broadcast:
   enable: true
   # Whether to broadcast only when the player joins the proxy server for the first time
   only-first-join: false
   message: "Welcome to §5the group§r!"
 
-# Since v1.3.3, moved from config.yml
-# Whether to broadcast a message in the original server when a player leaves/joins a sub-server, and in the joined server when a player joins
-# log-to-console: whether to output player messages to the console
-# send-to-all-subServer: whether to broadcast messages to all sub-servers (will override broadcast-in-channel)
-# broadcast-in-channel: whether to broadcast messages within the server's channel
-join-leave-broadcast:
-  enable: true
+# Enabled since 2.1, manages join/leave broadcasts for servers and channels.
+# Join/leave messages are broadcast hierarchically:
+#   Level 2 (highest): player switches channel inside the proxy -> channel leave + channel join
+#   Level 1 (lowest):  player joins/leaves a backend server      -> backend join/leave
+#
+# log-to-console: whether to output player broadcast messages to the console
+# hierarchical-overlay: true = only the highest level message is shown, false = all levels
+# scope: broadcast range -> server (related server only) / channel (same channel) / proxy (all servers)
+entry-broadcast:
   log-to-console: true
-  send-to-all-subServer: false
-  broadcast-in-channel: true
-  join-prefix: "§a(+)§r"
-  leave-prefix: "§c(-)§r"
-  player-join-message: "{Group}{Prefix}{Player}{Suffix} has joined {Server}"
-  player-leave-message: "{Group}{Prefix}{Player}{Suffix} has left {Server}"
-
-# Whether to broadcast messages when a player leaves/joins the proxy server (group server) from/to a sub-server
-join-leave-proxy-broadcast:
-  enable: true
-  log-to-console: true
-  send-to-all-subServer: true
-  join-prefix: "§a[+]§r"
-  leave-prefix: "§c[-]§r"
-  player-join-message: "{Group}{Prefix}{Player}{Suffix} has joined {Proxy}"
-  player-leave-message: "{Group}{Prefix}{Player}{Suffix} has left {Proxy}"
+  hierarchical-overlay: true
+  backend:
+    enable: true
+    scope: server
+    join-message: "§a(+)§r{Group}{Prefix}{Player}{Suffix} joined {channel}{Server}"
+    leave-message: "§c(-)§r{Group}{Prefix}{Player}{Suffix} left {channel}{Server}"
+  channel:
+    enable: true
+    scope: channel
+    join-message: "§7(+)§r{Group}{Prefix}{Player}{Suffix} joined {channel}"
+    leave-message: "§7(-)§r{Group}{Prefix}{Player}{Suffix} left {channel}"
+  proxy:
+    enable: true
+    scope: proxy
+    join-message: "§7[+]§r{Group}{Prefix}{Player}{Suffix} joined {Proxy}"
+    leave-message: "§7[-]§r{Group}{Prefix}{Player}{Suffix} left {Proxy}"

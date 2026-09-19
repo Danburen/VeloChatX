@@ -104,5 +104,6 @@ entry-broadcast:
     leave-message: "§7(-)§r{Group}{Prefix}{Player}{Suffix} 离开了 {channel}"
   proxy:
     enable: true
+    scope: proxy
     join-message: "§7[+]§r{Group}{Prefix}{Player}{Suffix} 加入了 {Proxy}"
     leave-message: "§7[-]§r{Group}{Prefix}{Player}{Suffix} 离开了 {Proxy}"

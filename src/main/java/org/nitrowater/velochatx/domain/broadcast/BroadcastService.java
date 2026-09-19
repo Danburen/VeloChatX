@@ -2,6 +2,7 @@ package org.nitrowater.velochatx.domain.broadcast;
 
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UServer;
+import org.nitrowater.waterapi.domain.shared.config.Config;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
 
 import java.util.List;
@@ -143,4 +144,22 @@ public interface BroadcastService extends ConfigurableService<BroadcastConfigKey
      * @param player the player who left
      */
     void broadcastProxyLeave(UPlayer player);
+
+    /**
+     * Start the timed broadcast scheduler.
+     */
+    void startScheduler();
+
+    /**
+     * Stop the timed broadcast scheduler.
+     */
+    void stopScheduler();
+
+    /**
+     * Replace the broadcast configuration and reload all broadcast models.
+     * <p>Used by {@code /velochatx reload broadcast}.</p>
+     *
+     * @param config the freshly loaded broadcast config
+     */
+    void updateConfig(Config config);
 }

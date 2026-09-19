@@ -53,9 +53,9 @@ public interface ChannelService extends ConfigurableService<ChannelConfigKey> {
      * </p>
      *
      * @param serverName the server name
-     * @return the channel, or {@code null} if the server has no channel
+     * @return an Optional containing the channel, empty if the server has no channel
      */
-    Channel getChannelForServer(String serverName);
+    Optional<Channel> getChannelForServer(String serverName);
 
     /**
      * Check if two servers can communicate with each other.

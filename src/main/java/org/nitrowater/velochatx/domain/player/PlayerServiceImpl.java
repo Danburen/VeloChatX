@@ -1,56 +1,59 @@
 package org.nitrowater.velochatx.domain.player;
 
-import org.nitrowater.velochatx.mapper.PlayerMapper;
+import org.nitrowater.velochatx.domain.player.infra.PlayerBlockedMapper;
+import org.nitrowater.velochatx.domain.player.infra.PlayerMapper;
+import org.nitrowater.velochatx.domain.player.infra.PlayerStatusMapper;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
 import org.nitrowater.waterapi.domain.spi.PermissionService;
 
-import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation of {@link PlayerService} and {@link PlaceholdersContributor}.
- * <p>
- * Provides player-related operations and registers player placeholders.
- * </p>
- *
- * @since 2.1.0
- * @author Danburen
  */
 public class PlayerServiceImpl implements PlayerService, PlaceholdersContributor {
 
     private final PermissionService permissionService;
-    private final Map<UUID, PlayerAttribution> attributions = new ConcurrentHashMap<>();
     private final PlayerMapper playerMapper;
+    private final PlayerStatusMapper statusMapper;
+    private final PlayerBlockedMapper blockedMapper;
 
-    public PlayerServiceImpl(PermissionService permissionService, PlayerMapper playerMapper) {
+    private final Map<UUID, PlayerAttribution> attributions = new ConcurrentHashMap<>();
+
+    public PlayerServiceImpl(PermissionService permissionService,
+                            PlayerMapper playerMapper,
+                            PlayerStatusMapper statusMapper,
+                            PlayerBlockedMapper blockedMapper) {
         this.permissionService = permissionService;
         this.playerMapper = playerMapper;
+        this.statusMapper = statusMapper;
+        this.blockedMapper = blockedMapper;
     }
 
     @Override
     public boolean storeOrUpdatePlayerBaseInfo(UPlayer player) {
         UUID uuid = player.getUuid();
-        boolean exists = attributions.containsKey(uuid);
-        if (!exists) {
-            attributions.put(uuid, PlayerAttribution.builder().build());
-        }
-        // query the database for the player's name and update if necessary, use database as the reliable exists source
+
+        // Ensure the attribution is cached (loads from DB on first sight).
+        getOrCreateAttrs(uuid);
+
         String playerName = playerMapper.getPlayerName(uuid);
-        if(playerName == null) {
+        if (playerName == null) {
             playerMapper.insertPlayerRecord(uuid, player.getLoginName());
-            exists = false;
+            return false;
         } else {
-            if(! playerName.equals(player.getLoginName())) {
+            if (!playerName.equals(player.getLoginName())) {
                 playerMapper.updatePlayerName(uuid, player.getLoginName());
             }
-            exists = true;
+            return true;
         }
-        return exists;
     }
 
     @Override
@@ -59,21 +62,8 @@ public class PlayerServiceImpl implements PlayerService, PlaceholdersContributor
     }
 
     @Override
-    public void updatePlayerAttribution(UUID uuid, PlayerAttribution attribution) {
-        attributions.put(uuid, attribution);
-    }
-
-    @Override
     public void updateLeaveTime(UUID uuid, long time) {
-       playerMapper.updatePlayerLeftTime(uuid, new Timestamp(time));
-    }
-
-    @Override
-    public String getDisplayName(UPlayer player) {
-        String prefix = permissionService.getPrefix(player).orElse("");
-        String name = player.getLoginName();
-        String suffix = permissionService.getSuffix(player).orElse("");
-        return prefix + name + suffix;
+        statusMapper.updateLeftTime(uuid, new java.sql.Timestamp(time));
     }
 
     @Override
@@ -83,29 +73,60 @@ public class PlayerServiceImpl implements PlayerService, PlaceholdersContributor
 
     @Override
     public PlayerAttribution getOrCreateAttrs(UUID uuid) {
-        return this.attributions.computeIfAbsent(uuid, k -> PlayerAttribution.builder().build());
+        return this.attributions.computeIfAbsent(uuid, this::loadAttributionFromDb);
+    }
+
+    @Override
+    public void removePlayer(UUID uuid) {
+        this.attributions.remove(uuid);
+    }
+
+    @Override
+    public void blockPlayer(UUID uuid, UUID targetUuid) {
+        PlayerAttribution attrs = getOrCreateAttrs(uuid);
+        attrs.blockPlayer(targetUuid);
+        blockedMapper.addBlock(uuid, targetUuid);
+    }
+
+    @Override
+    public void unblockPlayer(UUID uuid, UUID targetUuid) {
+        PlayerAttribution attrs = getOrCreateAttrs(uuid);
+        attrs.unblockPlayer(targetUuid);
+        blockedMapper.removeBlock(uuid, targetUuid);
+    }
+
+    @Override
+    public void setChatOffline(UUID uuid, boolean offline) {
+        PlayerAttribution attrs = getOrCreateAttrs(uuid);
+        attrs.setChatOffLine(offline);
+        statusMapper.updateChatOffline(uuid, offline);
     }
 
     @Override
     public void contributePlaceholders(PlaceholderService service) {
         service.register("player", ctx -> ctx.getPlayer()
-                .map(UPlayer::getLoginName)
-                .orElse(""));
-
+                .map(UPlayer::getLoginName).orElse(""));
         service.register("ping", ctx -> ctx.getPlayer()
-                .map(p -> String.valueOf(p.getPing()))
-                .orElse("0"));
-
+                .map(p -> String.valueOf(p.getPing())).orElse("0"));
         service.register("prefix", ctx -> ctx.getPlayer()
-                .flatMap(permissionService::getPrefix)
-                .orElse(""));
-
+                .flatMap(permissionService::getPrefix).orElse(""));
         service.register("suffix", ctx -> ctx.getPlayer()
-                .flatMap(permissionService::getSuffix)
-                .orElse(""));
-
+                .flatMap(permissionService::getSuffix).orElse(""));
         service.register("group", ctx -> ctx.getPlayer()
-                .flatMap(permissionService::getGroup)
-                .orElse(""));
+                .flatMap(permissionService::getGroup).orElse(""));
+    }
+
+    // ======================== Private methods ========================
+
+    private PlayerAttribution loadAttributionFromDb(UUID uuid) {
+        Set<UUID> blockedList = blockedMapper.getBlockedList(uuid);
+        boolean chatOffLine = statusMapper.isChatOffline(uuid);
+
+        // NOTE: must NOT mutate the cache here - this runs inside computeIfAbsent.
+        PlayerAttribution attribution = PlayerAttribution.builder()
+                .chatOffLine(chatOffLine)
+                .build();
+        attribution.getBlockedPlayers().addAll(blockedList);
+        return attribution;
     }
 }

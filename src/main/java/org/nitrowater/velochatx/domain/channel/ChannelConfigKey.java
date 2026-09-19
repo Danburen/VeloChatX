@@ -2,7 +2,7 @@ package org.nitrowater.velochatx.domain.channel;
 
 import org.nitrowater.waterapi.domain.shared.config.ConfigKey;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Configuration keys for channel settings.
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public enum ChannelConfigKey implements ConfigKey {
     BROADCAST_ENABLED("broadcast-enable", false),
     GLOBAL("channels.global", true),
-    CHANNEL_LIST("channels.channel-list", new ArrayList<Channel>() ),;
+    CHANNEL_LIST("channels.channel-list", new HashMap<String, Object>()),;
 
     private final String key;
     private final Object defaultValue;

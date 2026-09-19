@@ -12,21 +12,24 @@ import org.nitrowater.velochatx.domain.event.player.PlayerJoinServerEvent;
 import org.nitrowater.velochatx.domain.player.PlayerAttribution;
 import org.nitrowater.velochatx.domain.player.PlayerService;
 import org.nitrowater.velochatx.domain.server.ServerService;
-import org.nitrowater.velochatx.domain.shared.VeloChatXMessage;
+import org.nitrowater.velochatx.domain.shared.VeloChatXSystemMessage;
+import org.nitrowater.velochatx.domain.shared.VeloChatXCustomMessage;
 import org.nitrowater.velochatx.domain.tablist.TabListService;
 import org.nitrowater.velochatx.domain.tablist.TabListUpdateTask;
 import org.nitrowater.waterapi.domain.event.player.PlayerChatEvent;
 import org.nitrowater.waterapi.domain.event.player.PlayerDisconnectEvent;
 import org.nitrowater.waterapi.domain.event.player.PlayerLoginEvent;
 import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
-import org.nitrowater.waterapi.domain.message.PlayerMessageService;
+import org.nitrowater.waterapi.domain.message.MessageService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
+import org.nitrowater.waterapi.domain.shared.common.ChatFormatModel;
 import org.nitrowater.waterapi.domain.shared.common.WColor;
 import org.nitrowater.waterapi.domain.spi.PlayerActionService;
 import org.nitrowater.waterapi.utils.Colors;
+import org.nitrowater.waterapi.utils.MessageConverter;
 
 import java.io.IOException;
 import java.util.Map;
@@ -42,7 +45,7 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
     private final ChatService chatService;
     private final PlayerActionService actionService;
     private final PlayerActionService playerActionService;
-    private final PlayerMessageService playerMessageService;
+    private final MessageService messageService;
     private final ChannelService channelService;
     private final PlayerService playerService;
     private final MessageLoggerService messageLoggerService;
@@ -51,11 +54,11 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
     private final BroadcastService broadcastService;
     private final TabListService tabListService;
 
-    public VCXEventHandler(ChatService chatService, PlayerActionService actionService, PlayerActionService playerActionService, PlayerMessageService playerMessageService, ChannelService channelService, PlayerService playerService, MessageLoggerService messageLoggerService, WProxyServer wProxyServer, ServerService serverService, BroadcastService broadcastService, TabListService tabListService) {
+    public VCXEventHandler(ChatService chatService, PlayerActionService actionService, PlayerActionService playerActionService, MessageService messageService, ChannelService channelService, PlayerService playerService, MessageLoggerService messageLoggerService, WProxyServer wProxyServer, ServerService serverService, BroadcastService broadcastService, TabListService tabListService) {
         this.chatService = chatService;
         this.actionService = actionService;
         this.playerActionService = playerActionService;
-        this.playerMessageService = playerMessageService;
+        this.messageService = messageService;
         this.channelService = channelService;
         this.playerService = playerService;
         this.messageLoggerService = messageLoggerService;
@@ -78,15 +81,16 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
         String finalMessage = chatService.formatMessage(message, player);
         if(chatService.getBooleanConfig(ChatConfigKey.BAN_WORDS_ENABLED)) {
             if (chatService.hasBannedWords(message)) {
+                String lang = player.getEffectiveLocale().map(java.util.Locale::getLanguage).orElse("en");
                 playerActionService.sendMessage(
                         player,
-                        playerMessageService.getMessage("ban-words-message"),
+                        messageService.getMessage(VeloChatXCustomMessage.BAN_WORDS.getKey(), lang),
                         WColor.RED
                 );
                 if (chatService.getBooleanConfig(ChatConfigKey.BAN_WORDS_LOG)) {
                     PlaceholderContext ctx = PlaceholderContext.builder()
                             .dynamicParams(Map.of("message", finalMessage)).build();
-                    messageLoggerService.auto(VeloChatXMessage.BAN_WORDS_LOG, ctx);
+                    messageLoggerService.auto(VeloChatXSystemMessage.BAN_WORDS_LOG, ctx);
                 }
                 return;
             }
@@ -115,18 +119,28 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
                         .map(UServer::getName)
                         .orElse("unknown");
                 if(attrs.isChatOffLine()) return;
-                // black list
-                if(attrs.getIgnorePlayers().contains(uuid)) return;
+                // blocked list - silent block
+                if(attrs.isBlocked(uuid)) return;
                 // filter same server
                 if(playerServerName.equals(sourceServerName)) return;
                 // same channel communicate
                 if(channelService.canCommunicate(playerServerName,sourceServerName)) {
-                    playerActionService.sendMessage(
-                            innerPlayer,
-                            finalMessage
-                    );
+                    sendFormatted(innerPlayer, finalMessage);
                 };
             });
+        }
+    }
+
+    /**
+     * Send a chat message using the configured chat format model
+     * (none / legacy / mini-message).
+     */
+    private void sendFormatted(UPlayer target, String message) {
+        ChatFormatModel model = chatService.getChatFormatModel();
+        if (model == ChatFormatModel.NONE) {
+            playerActionService.sendMessage(target, message);
+        } else {
+            playerActionService.sendComponent(target, MessageConverter.convert(model, message));
         }
     }
 
@@ -138,7 +152,7 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
             try {
                 messageLoggerService.getPluginMessageService().loadLocale(lang.getLanguage());
             } catch (IOException e) {
-                messageLoggerService.warn(VeloChatXMessage.MESSAGE_LOCALE_CANT_LOAD, player.getLoginName(), lang);
+                messageLoggerService.warn(VeloChatXCustomMessage.MESSAGE_LOCALE_CANT_LOAD, player.getLoginName(), lang);
             }
         });
         // Broadcast join/leave messages
@@ -146,27 +160,32 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
         UServer prevServer = Optional.ofNullable(event.getPreviousServerName())
                 .map(serverService::getOrCreate)
                 .orElse(null);
-        broadcastService.broadcastPlayerJoin(player, currServer, prevServer);
-        // Send channel welcome message
-        Channel channel = channelService.getChannelForServer(currServer.getName());
-        if (channelService.getConfig().get(
-                ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.enable",
-                true)
-        ) {
-            String welcomeMessage = messageLoggerService
-                    .getPlaceholderService()
-                    .resolve(
-                            channelService.getConfig().get(
-                                    ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.message",
-                                    "Welcome to the channel!"
-                            ),
-                            PlaceholderContext.builder()
-                                    .player(player)
-                                    .serverName(currServer.getName())
-                                    .build()
-                    );
-            playerActionService.sendMessage(player, welcomeMessage);
+        // Leave the previous server/channel first (hierarchical), then join the new one.
+        if (prevServer != null) {
+            broadcastService.broadcastPlayerLeave(player, prevServer);
         }
+        broadcastService.broadcastPlayerJoin(player, currServer, prevServer);
+        // Send channel welcome message (servers without a channel are skipped)
+        channelService.getChannelForServer(currServer.getName()).ifPresent(channel -> {
+            if (channelService.getConfig().get(
+                    ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.enable",
+                    true)
+            ) {
+                String welcomeMessage = messageLoggerService
+                        .getPlaceholderService()
+                        .resolve(
+                                channelService.getConfig().get(
+                                        ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.message",
+                                        "Welcome to the channel!"
+                                ),
+                                PlaceholderContext.builder()
+                                        .player(player)
+                                        .serverName(currServer.getName())
+                                        .build()
+                        );
+                playerActionService.sendMessage(player, welcomeMessage);
+            }
+        });
         // Update tab-list
         tabListService.queueUpdate(new TabListUpdateTask(
                 player.getUuid(),
@@ -192,7 +211,8 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
     @Override
     public void onLogin(PlayerLoginEvent event) {
         UPlayer player = event.getPlayer();
-        boolean isFirstJoin = playerService.storeOrUpdatePlayerBaseInfo(player);
+        // storeOrUpdatePlayerBaseInfo returns true when the player ALREADY existed.
+        boolean isFirstJoin = !playerService.storeOrUpdatePlayerBaseInfo(player);
         // Broadcast proxy join (broadcast to all)
         broadcastService.broadcastProxyJoin(player);
         // Send welcome message
@@ -227,5 +247,7 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
                     System.currentTimeMillis()
             ));
         });
+        // Drop the in-memory attribution (reloaded from DB on next join)
+        playerService.removePlayer(uuid);
     }
 }

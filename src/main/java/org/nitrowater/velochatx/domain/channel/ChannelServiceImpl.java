@@ -61,19 +61,22 @@ public class ChannelServiceImpl implements ChannelService, EventListener<KernelC
 
     @Override
     public Optional<Channel> getChannel(String name) {
+        if (name == null) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(channels.get(name));
     }
 
     @Override
-    public Channel getChannelForServer(String serverName) {
+    public Optional<Channel> getChannelForServer(String serverName) {
         for (Channel channel : channels.values()) {
             for (UServer server : channel.getServers()) {
                 if (server.getName().equals(serverName)) {
-                    return channel;
+                    return Optional.of(channel);
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -142,7 +145,7 @@ public class ChannelServiceImpl implements ChannelService, EventListener<KernelC
     @Override
     public void contributePlaceholders(PlaceholderService service) {
         service.register("channel", ctx -> ctx.getServerName()
-                .map(this::getChannelForServer)
+                .flatMap(this::getChannelForServer)
                 .map(Channel::getDisplayName)
                 .orElse(""));
         service.registerDynamic("channel_online", (fullKey, ctx) -> {

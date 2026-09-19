@@ -13,7 +13,7 @@ check-update:
 # whether enable the plugin
 enable: true
 # whether enable the debug mode, unrecommended setting this ture;
-debug : false
+debug: false
 # whether enable crossing chat
 crossing-chat-enable: true
 # whether enable broadcast
@@ -111,6 +111,7 @@ mention-show-title:
 tab-list:
   enable: true
   interval: 1000 # Refresh interval in milliseconds, enter 0 if no refresh getBoolean needed
+  refresh-ratio: 0.5 # Dynamic refresh ratio: 0 = fixed interval, (0,1] = interval scales with player count
   format: "{server}{prefix}{player}{Suffix}" # Format for each player's tab row. You can refer to the chat format placeholders and server placeholders
   header: "Welcome to {proxy} Current Server: {server}"
   footer: "Online Players §8{online}§r / §8{total_online}§r | Ping: §8{ping}"

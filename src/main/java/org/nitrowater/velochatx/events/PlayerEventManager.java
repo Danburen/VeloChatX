@@ -64,5 +64,7 @@ public class PlayerEventManager {
                         player.getCurrentServer().map(UServer::getName).orElse(null)
                 );
         vcxEventHandler.onDisconnect(disconnectEvent);
+        // Release the cached UPlayer so the registry does not grow unbounded.
+        playerCachePool.remove(player.getUuid());
     }
 }

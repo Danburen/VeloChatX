@@ -4,6 +4,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UPlayer;
+import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
@@ -11,6 +12,7 @@ import org.nitrowater.waterapi.domain.shared.config.Config;
 import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.domain.shared.service.SchedulerService;
 import org.nitrowater.waterapi.domain.spi.TabListProvider;
+import org.nitrowater.waterapi.utils.MessageParser;
 import org.nitrowater.waterapi.utils.StringUtil;
 
 import java.util.*;
@@ -97,11 +99,10 @@ public class TabListServiceImpl implements TabListService, EventListener<KernelC
         String footerFormat = getConfig().get(TabListConfigKey.FOOTER);
         if (StringUtil.anyIsBlank(headerFormat, footerFormat)) return;
 
-        PlaceholderContext context = PlaceholderContext.builder()
-                .player(player)
-                .build();
-        Component header = Component.text(placeholderService.resolve(headerFormat, context));
-        Component footer = Component.text(placeholderService.resolve(footerFormat, context));
+        PlaceholderContext context = buildContext(player);
+        // MessageParser (not Component.text) so that § color codes in the format are applied.
+        Component header = MessageParser.parse(placeholderService.resolve(headerFormat, context));
+        Component footer = MessageParser.parse(placeholderService.resolve(footerFormat, context));
         tabListProvider.sendHeaderAndFooter(player, header, footer);
     }
 
@@ -110,11 +111,9 @@ public class TabListServiceImpl implements TabListService, EventListener<KernelC
         if (!isEnabled()) return;
 
         String format = getConfig().get(TabListConfigKey.FORMAT);
-        PlaceholderContext context = PlaceholderContext.builder()
-                .player(player)
-                .build();
+        PlaceholderContext context = buildContext(player);
 
-        Component displayName = Component.text(placeholderService.resolve(format, context));
+        Component displayName = MessageParser.parse(placeholderService.resolve(format, context));
 
         tabListProvider.updateDisplayName(player, displayName);
     }
@@ -124,13 +123,22 @@ public class TabListServiceImpl implements TabListService, EventListener<KernelC
         if (!isEnabled()) return;
 
         String format = getConfig().get(TabListConfigKey.FORMAT);
-        PlaceholderContext context = PlaceholderContext.builder()
-                .player(sourcePlayer)
-                .build();
+        PlaceholderContext context = buildContext(sourcePlayer);
 
-        Component displayName = Component.text(placeholderService.resolve(format, context));
+        Component displayName = MessageParser.parse(placeholderService.resolve(format, context));
 
         tabListProvider.addEntry(sourcePlayer, targetPlayer, displayName);
+    }
+
+    /**
+     * Build a placeholder context that also carries the player's current server name
+     * so that {@code {server}} resolves in tab list formats.
+     */
+    private PlaceholderContext buildContext(UPlayer player) {
+        return PlaceholderContext.builder()
+                .player(player)
+                .serverName(player.getCurrentServer().map(UServer::getName).orElse(null))
+                .build();
     }
 
     @Override
@@ -154,18 +162,18 @@ public class TabListServiceImpl implements TabListService, EventListener<KernelC
         // offsetting the opposite operation and retaining only the final state
         UUID playerUuid = task.getPlayerUuid();
         if (task.getType() == TabListUpdateTask.UpdateType.REMOVE) {
-            updateQueue.removeIf(t -> 
-                t.getPlayerUuid().equals(playerUuid) && 
+            updateQueue.removeIf(t ->
+                samePair(t, task) &&
                 t.getType() == TabListUpdateTask.UpdateType.ADD
             );
         } else if (task.getType() == TabListUpdateTask.UpdateType.ADD) {
-            updateQueue.removeIf(t -> 
-                t.getPlayerUuid().equals(playerUuid) && 
+            updateQueue.removeIf(t ->
+                samePair(t, task) &&
                 t.getType() == TabListUpdateTask.UpdateType.REMOVE
             );
         } else {
-            updateQueue.removeIf(t -> 
-                t.getPlayerUuid().equals(playerUuid) && 
+            updateQueue.removeIf(t ->
+                t.getPlayerUuid().equals(playerUuid) &&
                 t.getType() == task.getType()
             );
         }
@@ -177,11 +185,20 @@ public class TabListServiceImpl implements TabListService, EventListener<KernelC
         }
     }
 
+    /**
+     * Whether two ADD/REMOVE tasks target the same (player, target) pair.
+     */
+    private static boolean samePair(TabListUpdateTask a, TabListUpdateTask b) {
+        return a.getPlayerUuid().equals(b.getPlayerUuid())
+                && Objects.equals(a.getTargetPlayerUuid(), b.getTargetPlayerUuid());
+    }
+
     @Override
     public void startConsumer() {
         if (consumerRunning) return;
         long interval = getConfig().get(TabListConfigKey.INTERVAL);
-        double ratio = Math.max(0, Math.min(1, getConfig().get(TabListConfigKey.REFRESH_RATIO)));
+        double configuredRatio = getConfig().get(TabListConfigKey.REFRESH_RATIO);
+        double ratio = Math.max(0.0, Math.min(1.0, configuredRatio));
         if (interval == 0) {
             // event-driven mode: only start periodic full refresh as fallback
             startFullRefreshTask();
@@ -235,8 +252,8 @@ public class TabListServiceImpl implements TabListService, EventListener<KernelC
                     this::processUpdates,
                     0,
                     currentRefreshInterval,
-                    TimeUnit.MILLISECONDS)
-            ;
+                    TimeUnit.MILLISECONDS
+            );
         }
         return consumerHandle;
     }
@@ -264,10 +281,12 @@ public class TabListServiceImpl implements TabListService, EventListener<KernelC
         while (!updateQueue.isEmpty()) {
             tasks.add(updateQueue.poll());
         }
-        // Deduplicate: keep only the latest update for each player
-        Map<UUID, TabListUpdateTask> latestTasks = new LinkedHashMap<>();
+        // Deduplicate: keep the latest update per (type, player, target) so that a single
+        // player's ADD/REMOVE operations against different targets are all applied.
+        Map<String, TabListUpdateTask> latestTasks = new LinkedHashMap<>();
         for (TabListUpdateTask task : tasks) {
-            latestTasks.put(task.getPlayerUuid(), task);
+            String key = task.getType() + ":" + task.getPlayerUuid() + ":" + task.getTargetPlayerUuid();
+            latestTasks.put(key, task);
         }
         // Apply updates
         latestTasks.values().forEach(this::applyUpdate);

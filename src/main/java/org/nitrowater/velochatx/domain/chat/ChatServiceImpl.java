@@ -1,12 +1,13 @@
 package org.nitrowater.velochatx.domain.chat;
 
-import org.nitrowater.velochatx.domain.shared.VeloChatXMessage;
+import org.nitrowater.velochatx.domain.shared.VeloChatXSystemMessage;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
+import org.nitrowater.waterapi.domain.shared.common.ChatFormatModel;
 import org.nitrowater.waterapi.domain.shared.config.Config;
 import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.utils.StringUtil;
@@ -41,9 +42,11 @@ public class ChatServiceImpl implements ChatService, EventListener<KernelConfigU
         this.placeholderService = placeholderService;
         this.messageLoggerService = messageLoggerService;
         this.chatFormat = getConfig().get(ChatConfigKey.CHAT_FORMAT, "{server} {player}: {message}");
-        if(!(chatFormat.contains("{server}") && chatFormat.contains("{player}") && chatFormat.contains("{message}"))) {
+        // Placeholder keys are case-insensitive ({Server}/{server}), so compare in lower case.
+        String lowerFormat = chatFormat.toLowerCase(Locale.ROOT);
+        if(!(lowerFormat.contains("{server}") && lowerFormat.contains("{player}") && lowerFormat.contains("{message}"))) {
             chatFormat = "{server} {player}: {message}";
-            messageLoggerService.warn(VeloChatXMessage.FAIL_PARSING_CHAT_FORMAT);
+            messageLoggerService.warn(VeloChatXSystemMessage.FAIL_PARSING_CHAT_FORMAT);
         }
     }
 
@@ -60,6 +63,19 @@ public class ChatServiceImpl implements ChatService, EventListener<KernelConfigU
     @Override
     public String formatMessage(String message, UPlayer player) {
         return formatMessage(chatFormat, message, player);
+    }
+
+    @Override
+    public ChatFormatModel getChatFormatModel() {
+        String raw = getConfig().get(ChatConfigKey.CHAT_FORMAT_MODEL, "none");
+        if (raw == null) {
+            return ChatFormatModel.NONE;
+        }
+        return switch (raw.toLowerCase(Locale.ROOT)) {
+            case "legacy" -> ChatFormatModel.LEGACY;
+            case "mini-message", "minimessage", "mini_message" -> ChatFormatModel.MINI_MESSAGE;
+            default -> ChatFormatModel.NONE;
+        };
     }
 
     @Override
