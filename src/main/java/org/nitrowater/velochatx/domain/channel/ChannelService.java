@@ -1,7 +1,10 @@
 package org.nitrowater.velochatx.domain.channel;
 
+import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UServer;
+import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
+import org.nitrowater.waterapi.domain.shared.service.EventListener;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +32,8 @@ import java.util.Optional;
  * @see UServer
  * @see ChannelConfigKey
  */
-public interface ChannelService extends ConfigurableService<ChannelConfigKey> {
+public interface ChannelService extends ConfigurableService<ChannelConfigKey>,
+        EventListener<KernelConfigUpdateEvent>, PlaceholdersContributor {
 
     /**
      * Get all registered channels.

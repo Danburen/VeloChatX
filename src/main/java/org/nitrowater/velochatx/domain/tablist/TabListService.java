@@ -1,7 +1,9 @@
 package org.nitrowater.velochatx.domain.tablist;
 
+import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
+import org.nitrowater.waterapi.domain.shared.service.EventListener;
 
 /**
  * Service interface for tab list customization.
@@ -15,7 +17,8 @@ import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
  * @see TabListConfigKey
  * @see TabListUpdateTask
  */
-public interface TabListService extends ConfigurableService<TabListConfigKey> {
+public interface TabListService extends ConfigurableService<TabListConfigKey>,
+        EventListener<KernelConfigUpdateEvent> {
 
     /**
      * Update the tab list header and footer for a player.

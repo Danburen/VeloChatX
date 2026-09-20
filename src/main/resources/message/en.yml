@@ -1,6 +1,8 @@
 #The following getBoolean the message configuration displayed to players in the game
 #All keys cannot be deleted or changed, and all values can be customized
 #Some text supports velochatx placeholders
+# Version of this file, generally does not need to be changed, used for update checks
+config-version: 2.0.1
 mention-to-message: "§2you mentioned§r {Server}{Group}{Prefix}{Player}{Suffix}"
 mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix}s §6 getBoolean mention you!"
 no-self-action-message: "§cYou can't do this yourself!§r"
@@ -9,13 +11,8 @@ mention-title-show-main: "§cAttention §6you have been mentioned!"
 mention-title-show-sub: "{Group}{Prefix}{Player}{Suffix} §e mentioned you!"
 msg-to-message: "[§cPriChat§r] §2You§r §7->§r {Server}{Group}{Prefix}{Player}{Suffix} §8:§r {Message}"
 msg-receive-message: "[§cPriChat§r] {Server}{Group}{Prefix}{Player}{Suffix} §7->§r §2You §8:§r {Message}"
-msg-reject-message: "message to {Group}{Prefix}{Player}{Suffix} was rejected by him!"
-has-ignore-message: "Player {Group}{Prefix}{Player}{Suffix} 's message has been ignored'"
-has-reject-message: "Player {Group}{Prefix}{Player}{Suffix} 's message has been rejected'"
 has-block-message: "Player {Group}{Prefix}{Player}{Suffix} has been blocked."
 has-unblock-message: "Player {Group}{Prefix}{Player}{Suffix} has been unblocked."
-normal-chat-message: "§aYour chat to §r {Group}{Prefix}{Player}{Suffix} §a getBoolean normal now§r"
-no-in-list-message: "Player {Group}{Prefix}{Player}{Suffix} wasn't in ignore/reject list!"
 enable-vc-chat-message: "You have connect to crossing server chat system"
 disable-vc-chat-message: "You have disconnect the crossing server chat system."
 unknown-command-message: "Unknown command."
@@ -23,14 +20,10 @@ only-in-game-message: "This command can only be used in game."
 only-in-console-message: "This command can only be used in console."
 no-permission: "You are not allow to do this!"
 ban-words-message: "Your Message contains prohibited/sensitive vocabulary,broadcasts have been blocked."
-reject-list-show-message: "Messages from the following players had been §6ignored§r  and §6rejected§r"
-ignore-list-show-message: "Messages from the following players have been §cignored§r"
-empty-list-show-message: "§6 there are no players in your reject and ignore list.§r"
+reject-list-show-message: "The following players have been §6blocked§r"
+empty-list-show-message: "§6You haven't blocked any player yet.§r"
 
 # Permission and command messages
 no-permission-message: "You are not allowed to do this!"
 incorrect-command-arguments-message: "Incorrect command arguments."
-config-reload-completed-message: "Configuration has been reloaded."
-config-file-reload-message: "Configuration file has been reloaded."
-incorrect-config-file-message: "Incorrect config file name."
 cant-load-message: "Failed to load message configuration."

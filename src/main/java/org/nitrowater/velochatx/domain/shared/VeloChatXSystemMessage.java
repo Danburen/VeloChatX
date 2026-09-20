@@ -21,21 +21,25 @@ public enum VeloChatXSystemMessage implements MessageTemplate {
     FAIL_PARSING_CHAT_FORMAT("fail-parsing-chat-format-message"),
     CROSSING_CHAT_DISABLE("crossing-chat-disable-message"),
     BROADCAST_DISABLE("broadcast-disable-message"),
+    // Startup load summary (servers / channels / broadcasts)
+    SERVER_LOAD_ALL_ONLINE("server-load-all-online-message"),
+    SERVER_LOAD_PARTIAL("server-load-partial-message"),
+    SERVER_LOAD_NONE_ONLINE("server-load-none-online-message"),
+    CHANNEL_LOAD("channel-load-message"),
+    CHANNEL_LOAD_COUNT("channel-load-count-message"),
+    BROADCAST_LOAD("broadcast-load-message"),
     // Command help text
     MENTION_COMMAND_FORMAT("mention-command-format-message"),
     MSG_COMMAND_FORMAT("msg-command-format-message"),
-    RELOAD_COMMAND_FORMAT("reload-command-format-message"),
+    CONFIG_COMMAND_FORMAT("config-command-format-message"),
     HELP_COMMAND_FORMAT("help-command-format-message"),
     ON_COMMAND_FORMAT("on-command-format-message"),
     OFF_COMMAND_FORMAT("off-command-format-message"),
-    IGNORE_COMMAND_FORMAT("ignore-command-format-message"),
-    REJECT_COMMAND_FORMAT("reject-command-format-message"),
-    REMOVE_COMMAND_FORMAT("remove-command-format-message"),
     CONTROL_COMMAND_FORMAT("control-command-format-message"),
     SHOW_CHANNEL_INFO_COMMAND_FORMAT("show-channel-info-command-format-message"),
     LIST_COMMAND_FORMAT("list-command-format-message"),
     PLACEHOLDER_COMMAND_FORMAT("placeholder-command-format-message"),
-    CONFIG_FILE_RELOAD_ERROR("config-file-reload-error");
+    RELOAD_COMMAND_FORMAT("reload-command-format-message");
 
     private final String key;
 

@@ -9,7 +9,6 @@ import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
 import org.nitrowater.waterapi.domain.shared.common.ChatFormatModel;
 import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.utils.StringUtil;
 
 import java.util.*;
@@ -23,7 +22,7 @@ import java.util.*;
  * @since 2.1.0
  * @author Danburen
  */
-public class ChatServiceImpl implements ChatService, EventListener<KernelConfigUpdateEvent> {
+public class ChatServiceImpl implements ChatService {
 
     private volatile Config config;
     private final PlaceholderService placeholderService;

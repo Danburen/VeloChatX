@@ -1,8 +1,10 @@
 package org.nitrowater.velochatx.domain.chat;
 
+import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.shared.common.ChatFormatModel;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
+import org.nitrowater.waterapi.domain.shared.service.EventListener;
 
 /**
  * Service interface for chat functionality.
@@ -14,7 +16,8 @@ import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
  * @author Danburen
  * @see ChatConfigKey
  */
-public interface ChatService extends ConfigurableService<ChatConfigKey> {
+public interface ChatService extends ConfigurableService<ChatConfigKey>,
+        EventListener<KernelConfigUpdateEvent> {
 
     /**
      * Format a chat message with player and server placeholders.

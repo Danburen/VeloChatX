@@ -19,15 +19,9 @@ public enum VeloChatXCustomMessage implements MessageTemplate {
     MENTION_TITLE_SUB("mention-title-show-sub"),
     MSG_TO("msg-to-message"),
     MSG_RECEIVE("msg-receive-message"),
-    MSG_REJECT("msg-reject-message"),
-    HAS_IGNORE("has-ignore-message"),
-    HAS_REJECT("has-reject-message"),
     HAS_BLOCK("has-block-message"),
     HAS_UNBLOCK("has-unblock-message"),
     BAN_WORDS("ban-words-message"),
-    NORMAL_CHAT("normal-chat-message"),
-    NO_IN_LIST("no-in-list-message"),
-    IGNORE_LIST_SHOW("ignore-list-show-message"),
     REJECT_LIST_SHOW("reject-list-show-message"),
     EMPTY_LIST_SHOW("empty-list-show-message"),
     ENABLE_VC_CHAT("enable-vc-chat-message"),
@@ -41,11 +35,6 @@ public enum VeloChatXCustomMessage implements MessageTemplate {
     ONLY_IN_CONSOLE("only-in-console-message"),
     NO_PERMISSION("no-permission-message"),
     INCORRECT_COMMAND_ARGUMENTS("incorrect-command-arguments-message"),
-
-    // Config messages
-    CONFIG_RELOAD_COMPLETED("config-reload-completed-message"),
-    CONFIG_FILE_RELOAD("config-file-reload-message"),
-    INCORRECT_CONFIG_FILE("incorrect-config-file-message"),
     MESSAGE_LOCALE_CANT_LOAD("cant-load-message"),;
 
     private final String key;

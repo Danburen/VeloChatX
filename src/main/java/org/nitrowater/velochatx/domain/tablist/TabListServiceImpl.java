@@ -9,7 +9,6 @@ import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
 import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.domain.shared.service.SchedulerService;
 import org.nitrowater.waterapi.domain.spi.TabListProvider;
 import org.nitrowater.waterapi.utils.MessageParser;
@@ -44,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2.1.0
  * @author Danburen
  */
-public class TabListServiceImpl implements TabListService, EventListener<KernelConfigUpdateEvent> {
+public class TabListServiceImpl implements TabListService {
 
     private volatile Config config;
     private final WProxyServer wProxyServer;

@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -42,6 +43,20 @@ class ConfigKeysTest {
             for (ConfigKey key : BroadcastConfigKey.values()) {
                 assertKey(broadcast, key, "broadcast/" + lang + ".yml");
             }
+        }
+    }
+
+    @Test
+    void messageFilesDeclareMatchingConfigVersion() throws Exception {
+        String expected = null;
+        for (String file : List.of("message/zh.yml", "message/en.yml",
+                "system-message/zh.yml", "system-message/en.yml")) {
+            Object version = loadYaml(file).get("config-version");
+            assertNotNull(version, file + " must declare config-version");
+            if (expected == null) {
+                expected = version.toString();
+            }
+            assertEquals(expected, version.toString(), "config-version must match across message files");
         }
     }
 

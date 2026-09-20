@@ -1,11 +1,13 @@
 package org.nitrowater.velochatx.commands;
 
 import org.nitrowater.velochatx.domain.shared.VeloChatXSystemMessage;
+import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.spi.CommandHandler;
 import org.nitrowater.waterapi.domain.spi.CommandSource;
 import org.nitrowater.velochatx.domain.player.PlayerService;
+import org.nitrowater.velochatx.domain.server.ServerConfigKey;
 import org.nitrowater.velochatx.domain.shared.CommandHelper;
 import org.nitrowater.velochatx.domain.shared.ServiceFactory;
 import org.nitrowater.velochatx.domain.shared.VeloChatXCustomMessage;
@@ -39,25 +41,13 @@ public class MsgCommandHandler implements CommandHandler {
             return false;
         }
 
-        if (!source.isPlayer()) {
-            helper.sendError(source, VeloChatXCustomMessage.INCORRECT_COMMAND_ARGUMENTS);
-            return false;
-        }
-
         if (args.length < 2) {
             helper.sendError(source, VeloChatXCustomMessage.INCORRECT_COMMAND_ARGUMENTS);
             helper.sendInfo(source, VeloChatXSystemMessage.MSG_COMMAND_FORMAT);
             return false;
         }
 
-        Optional<UPlayer> optPlayer = helper.toUPlayer(source);
-        if (optPlayer.isEmpty()) {
-            return false;
-        }
-
-        UPlayer player = optPlayer.get();
         String targetName = args[0];
-
         if (!helper.checkNotSelf(source, targetName)) {
             return false;
         }
@@ -67,58 +57,69 @@ public class MsgCommandHandler implements CommandHandler {
             helper.sendError(source, VeloChatXCustomMessage.FAIL_FIND_PLAYER);
             return false;
         }
-
         UPlayer target = optTarget.get();
-        PlayerService playerService = serviceFactory.getPlayerService();
-        // Check if target has blocked the sender (silent block)
-        if (playerService.getOrCreateAttrs(target.getUuid()).isBlocked(player.getUuid())) {
-            // Silent block - sender sees "message sent", but target doesn't receive
-            sendMsgToSource(source, player, target, args);
+        String message = buildMessage(args);
+
+        Optional<UPlayer> optSender = helper.toUPlayer(source);
+        if (optSender.isEmpty()) {
+            // Console / non-player source: the proxy acts as the sender (no profile, no block list).
+            sendFromProxy(source, target, message);
             return true;
         }
-        // Check if sender has blocked the target (prevent sending to blocked player)
+
+        UPlayer player = optSender.get();
+        PlayerService playerService = serviceFactory.getPlayerService();
+        // Target blocked the sender -> silent block: sender sees "sent", target receives nothing.
+        if (playerService.getOrCreateAttrs(target.getUuid()).isBlocked(player.getUuid())) {
+            sendToSender(source, player, target, message);
+            return true;
+        }
+        // Sender blocked the target -> refuse to send.
         if (playerService.getOrCreateAttrs(player.getUuid()).isBlocked(target.getUuid())) {
             helper.sendInfo(source, helper.getMessage(VeloChatXCustomMessage.HAS_BLOCK, source));
             return true;
         }
-        // Build message from remaining args
-        String message = buildMessage(args);
-        // Send messages
-        PlaceholderContext ctx = PlaceholderContext.builder()
-                .player(player)
-                .serverName(player.getCurrentServer().map(s -> s.getName()).orElse("unknown"))
-                .build();
-        // Sender sees "message sent"
-        serviceFactory.getPlayerActionService().sendMessage(player,
-                helper.getMessage(VeloChatXCustomMessage.MSG_TO, source)
-                        .replace("{Message}", message)
-                        .replace("{Player}", targetName),
-                ctx);
-        // Receiver sees "message received" (only if not blocked)
-        serviceFactory.getPlayerActionService().sendMessage(target,
-                helper.getMessage(VeloChatXCustomMessage.MSG_RECEIVE, source)
-                        .replace("{Message}", message)
-                        .replace("{Player}", player.getLoginName()),
-                PlaceholderContext.builder()
-                        .player(target)
-                        .serverName(target.getCurrentServer().map(s -> s.getName()).orElse("unknown"))
-                        .build());
-
+        sendToSender(source, player, target, message);
+        sendToReceiver(source, target, player, message);
         return true;
     }
 
-    private void sendMsgToSource(CommandSource source, UPlayer player, UPlayer target, String[] args) {
-        String message = buildMessage(args);
-        PlaceholderContext ctx = PlaceholderContext.builder()
-                .player(player)
-                .serverName(player.getCurrentServer().map(s -> s.getName()).orElse("unknown"))
-                .build();
+    /** Sender sees "you -> target"; placeholders describe the TARGET. */
+    private void sendToSender(CommandSource source, UPlayer sender, UPlayer target, String message) {
+        String text = helper.getMessage(VeloChatXCustomMessage.MSG_TO, source)
+                .replace("{Message}", message);
+        serviceFactory.getPlayerActionService().sendMessage(sender, text, contextOf(target));
+    }
 
-        serviceFactory.getPlayerActionService().sendMessage(player,
-                helper.getMessage(VeloChatXCustomMessage.MSG_TO, source)
-                        .replace("{Message}", message)
-                        .replace("{Player}", target.getLoginName()),
-                ctx);
+    /** Receiver sees "sender -> you"; placeholders describe the SENDER. */
+    private void sendToReceiver(CommandSource localeSource, UPlayer receiver, UPlayer sender, String message) {
+        String text = helper.getMessage(VeloChatXCustomMessage.MSG_RECEIVE, localeSource)
+                .replace("{Message}", message);
+        serviceFactory.getPlayerActionService().sendMessage(receiver, text, contextOf(sender));
+    }
+
+    /** Console sender: the proxy identity (server-display.proxy) replaces {Player}. */
+    private void sendFromProxy(CommandSource source, UPlayer target, String message) {
+        String proxyDisplay = serviceFactory.getServerService().getConfig()
+                .get(ServerConfigKey.PROXY_DISPLAY);
+        // Console sees "you -> target", resolved from the target's context.
+        String toSender = helper.getMessage(VeloChatXCustomMessage.MSG_TO, source)
+                .replace("{Message}", message);
+        source.sendMessage(serviceFactory.getKernel().getPlaceholderService()
+                .resolve(toSender, contextOf(target)));
+        // Target sees "proxy -> you"; the console has no player profile, so only {Player} is filled.
+        String toReceiver = helper.getMessage(VeloChatXCustomMessage.MSG_RECEIVE, source)
+                .replace("{Message}", message)
+                .replace("{Player}", proxyDisplay);
+        serviceFactory.getPlayerActionService().sendMessage(target, toReceiver,
+                PlaceholderContext.builder().build());
+    }
+
+    private static PlaceholderContext contextOf(UPlayer player) {
+        return PlaceholderContext.builder()
+                .player(player)
+                .serverName(player.getCurrentServer().map(UServer::getName).orElse("unknown"))
+                .build();
     }
 
     private String buildMessage(String[] args) {

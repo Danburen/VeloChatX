@@ -40,7 +40,7 @@ public class MentionCommandHandler implements CommandHandler {
         }
 
         if (!source.isPlayer()) {
-            helper.sendError(source, VeloChatXCustomMessage.NO_SELF_ACTION);
+            helper.sendError(source, VeloChatXCustomMessage.ONLY_IN_GAME);
             return false;
         }
 

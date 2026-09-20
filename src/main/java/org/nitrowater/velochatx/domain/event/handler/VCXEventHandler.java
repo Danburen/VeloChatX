@@ -2,7 +2,6 @@ package org.nitrowater.velochatx.domain.event.handler;
 
 import org.nitrowater.velochatx.domain.broadcast.BroadcastConfigKey;
 import org.nitrowater.velochatx.domain.broadcast.BroadcastService;
-import org.nitrowater.velochatx.domain.channel.Channel;
 import org.nitrowater.velochatx.domain.channel.ChannelConfigKey;
 import org.nitrowater.velochatx.domain.channel.ChannelService;
 import org.nitrowater.velochatx.domain.chat.ChatConfigKey;
@@ -43,7 +42,6 @@ import java.util.UUID;
 public class VCXEventHandler implements VeloChatXGameEventHandler {
 
     private final ChatService chatService;
-    private final PlayerActionService actionService;
     private final PlayerActionService playerActionService;
     private final MessageService messageService;
     private final ChannelService channelService;
@@ -54,9 +52,8 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
     private final BroadcastService broadcastService;
     private final TabListService tabListService;
 
-    public VCXEventHandler(ChatService chatService, PlayerActionService actionService, PlayerActionService playerActionService, MessageService messageService, ChannelService channelService, PlayerService playerService, MessageLoggerService messageLoggerService, WProxyServer wProxyServer, ServerService serverService, BroadcastService broadcastService, TabListService tabListService) {
+    public VCXEventHandler(ChatService chatService, PlayerActionService playerActionService, MessageService messageService, ChannelService channelService, PlayerService playerService, MessageLoggerService messageLoggerService, WProxyServer wProxyServer, ServerService serverService, BroadcastService broadcastService, TabListService tabListService) {
         this.chatService = chatService;
-        this.actionService = actionService;
         this.playerActionService = playerActionService;
         this.messageService = messageService;
         this.channelService = channelService;

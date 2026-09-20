@@ -1,5 +1,7 @@
 # 管理员消息（不建议修改）
 # 以下消息仅供管理员/控制台查看，普通玩家不可见
+# 此文件的版本，通常不需要改变，检测更新需要用到
+config-version: 2.0.1
 
 # 频道信息
 show-channel-info-command-title: "当前所有频道如下： 频道ID | 频道名称(总在线人数) | 所含子服(在线人数)"
@@ -13,18 +15,23 @@ fail-parsing-chat-format-message: "尝试解析聊天格式时出错，请检查
 crossing-chat-disable-message: "§8跨服聊天功能已被禁用。§r"
 broadcast-disable-message: "§8广播功能已经被禁用。§r"
 
+# 启动自检（加载时输出到控制台）
+server-load-all-online-message: "已识别 %d 个服务器，全部服务器在线。"
+server-load-partial-message: "已识别 %d 个服务器，§a%s§r 在线，§c%s§r 暂未上线。"
+server-load-none-online-message: "已识别 %d 个服务器，全部暂未上线：§c%s§r。"
+channel-load-message: "已装载 %d 个channel(%s)"
+channel-load-count-message: "已装载 %d 个channel"
+broadcast-load-message: "已装载 %d 个子broadcast，共 %d 条广播消息。"
+
 # 命令帮助文本
 mention-command-format-message: "§6/mention <玩家名字>§r - §4对某人显示提及消息。§r"
 msg-command-format-message: "§6/vcmsg <玩家名字> [消息文本]§r - §4对某人发送私聊消息。§r"
-reload-command-format-message: "§6/velochatx reload [config/message]§r - §4重载插件[config/message/broadcast]的配置，默认重载所有。§r"
+config-command-format-message: "§6/velochatx config <reload|update|diff> [配置名/all]§r - §4重载 / 补充缺失项 / 查看差异§r"
+reload-command-format-message: "§6/velochatx reload§r - §4重载全部配置文件并重排定时任务§r"
 help-command-format-message: "§6/velochatx help§r - §4所有有关VeloChatX帮助(vcx/chatx)§r"
 on-command-format-message: "§6/velochatx on§r - §4开启当前你对跨服聊天的支持§r"
 off-command-format-message: "§6/velochatx off§r - §4关闭当前你对跨服聊天的支持§r"
-ignore-command-format-message: "§6/velochatx ignore <玩家名字>§r - §4忽略来自某位玩家的所有信息§r"
-reject-command-format-message: "§6/velochatx reject <玩家名字>§r - §4拒收来自某位玩家的所有信息§r"
-remove-command-format-message: "§6/velochatx remove <玩家名字>§r - §4移除忽视/拒收某人消息§r"
-control-command-format-message: "§6/velochatx <on/off/ignore/reject/help>§r"
+control-command-format-message: "§6/velochatx block|unblock <玩家名字>§r - §4屏蔽/取消屏蔽某位玩家§r"
 show-channel-info-command-format-message: "§6/velochatx show-channel-info§r - §4显示所有频道的信息§r"
 list-command-format-message: "§6/velochatx list §r - §4显示你所屏蔽的其他玩家§r"
 placeholder-command-format-message: "§6/velochatx placeholder {placeholder} §r - §4显示服务器某个指定的占位符"
-config-file-reload-error: "§c配置文件重载失败，请检查配置文件是否存在或是否有语法错误。§r"

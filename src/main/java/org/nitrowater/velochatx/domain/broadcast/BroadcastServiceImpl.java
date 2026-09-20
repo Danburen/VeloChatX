@@ -3,6 +3,8 @@ package org.nitrowater.velochatx.domain.broadcast;
 import org.nitrowater.velochatx.domain.channel.Channel;
 import org.nitrowater.velochatx.domain.channel.ChannelService;
 import org.nitrowater.velochatx.domain.server.ServerService;
+import org.nitrowater.waterapi.domain.kernel.ConfigLoader;
+import org.nitrowater.waterapi.domain.kernel.LocaleConfig;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.logger.LoggerService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
@@ -11,11 +13,14 @@ import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
 import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
+import org.nitrowater.waterapi.domain.shared.config.ConfigData;
+import org.nitrowater.waterapi.domain.shared.config.FileConfigData;
 import org.nitrowater.waterapi.domain.shared.service.SchedulerService;
 import org.nitrowater.waterapi.domain.spi.PlayerActionService;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +38,7 @@ import java.util.stream.Collectors;
  * @since 2.1.0
  * @author Danburen
  */
-public class BroadcastServiceImpl implements BroadcastService, EventListener<KernelConfigUpdateEvent> {
+public class BroadcastServiceImpl implements BroadcastService {
 
     private volatile Config broadcastConfig;
     private final ServerService serverService;
@@ -43,17 +48,22 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
     private final PlayerActionService actionService;
     private final SchedulerService scheduler;
     private final LoggerService loggerService;
+    /** Loads/reloads {@code broadcast.yml} (extract-on-first-run + read). */
+    private final ConfigLoader configLoader;
+    /** Language chain used to locate the shipped default broadcast.yml. */
+    private final LocaleConfig localeConfig;
 
     private volatile BroadcastModel globalBroadcast;
     private final List<BroadcastModel> localeBroadcasts = new ArrayList<>();
     private final Map<String, List<BroadcastModel>> serverBroadcasts = new ConcurrentHashMap<>();
     private volatile SchedulerService.TaskHandle broadcastTaskHandle;
 
-    public BroadcastServiceImpl(Config broadcastConfig, ServerService serverService,
+    public BroadcastServiceImpl(ConfigLoader configLoader, LocaleConfig localeConfig, ServerService serverService,
                                 ChannelService channelService, WProxyServer wProxyServer,
                                 PlaceholderService placeholderService, PlayerActionService actionService,
                                 SchedulerService scheduler, LoggerService loggerService) {
-        this.broadcastConfig = broadcastConfig;
+        this.configLoader = configLoader;
+        this.localeConfig = localeConfig;
         this.serverService = serverService;
         this.channelService = channelService;
         this.wProxyServer = wProxyServer;
@@ -61,12 +71,49 @@ public class BroadcastServiceImpl implements BroadcastService, EventListener<Ker
         this.actionService = actionService;
         this.scheduler = scheduler;
         this.loggerService = loggerService;
+        this.broadcastConfig = loadBroadcastConfig();
         loadBroadcasts();
     }
 
     @Override
     public Config getConfig() {
         return broadcastConfig;
+    }
+
+    @Override
+    public ConfigData getConfigData() {
+        return broadcastConfig.getConfigData();
+    }
+
+    @Override
+    public String getConfigBaseName() {
+        return "broadcast";
+    }
+
+    /**
+     * Re-read {@code broadcast.yml} from disk and refresh all broadcast models.
+     */
+    @Override
+    public void reload() {
+        updateConfig(loadBroadcastConfig());
+    }
+
+    /**
+     * Read {@code broadcast.yml}, creating it from the shipped default on first run.
+     * <p>Falls back to an empty config so a missing/broken file degrades to defaults
+     * instead of throwing.</p>
+     */
+    private Config loadBroadcastConfig() {
+        if (configLoader == null || localeConfig == null) {
+            loggerService.warning("Broadcast config loader unavailable, using defaults.");
+            return new Config(new FileConfigData(new HashMap<>()));
+        }
+        try {
+            return new Config(configLoader.loadOrCreate("broadcast", localeConfig.getLanguageChain()));
+        } catch (IOException e) {
+            loggerService.warning("Broadcast config is unavailable, using defaults: " + e.getMessage());
+            return new Config(new FileConfigData(new HashMap<>()));
+        }
     }
 
     @Override

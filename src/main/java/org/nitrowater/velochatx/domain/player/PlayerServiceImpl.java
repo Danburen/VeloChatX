@@ -5,7 +5,6 @@ import org.nitrowater.velochatx.domain.player.infra.PlayerMapper;
 import org.nitrowater.velochatx.domain.player.infra.PlayerStatusMapper;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
-import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
 import org.nitrowater.waterapi.domain.spi.PermissionService;
 
 import java.util.HashSet;
@@ -18,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Implementation of {@link PlayerService} and {@link PlaceholdersContributor}.
  */
-public class PlayerServiceImpl implements PlayerService, PlaceholdersContributor {
+public class PlayerServiceImpl implements PlayerService {
 
     private final PermissionService permissionService;
     private final PlayerMapper playerMapper;

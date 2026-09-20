@@ -5,9 +5,8 @@ import org.nitrowater.velochatx.domain.shared.VeloChatXMetaInfoType;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
-import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
 import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
+import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2.1.0
  * @author Danburen
  */
-public class ChannelServiceImpl implements ChannelService, EventListener<KernelConfigUpdateEvent>, PlaceholdersContributor {
+public class ChannelServiceImpl implements ChannelService {
 
     private final ServerService serverService;
     private volatile Config config;

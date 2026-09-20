@@ -1,9 +1,8 @@
 package org.nitrowater.velochatx.commands;
 
-import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
+import org.nitrowater.waterapi.domain.command.CommandManager;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
-import org.nitrowater.waterapi.domain.shared.common.KernelMessage;
 import org.nitrowater.waterapi.domain.spi.CommandHandler;
 import org.nitrowater.waterapi.domain.spi.CommandSource;
 import org.nitrowater.velochatx.domain.player.PlayerService;
@@ -12,7 +11,6 @@ import org.nitrowater.velochatx.domain.shared.ServiceFactory;
 import org.nitrowater.velochatx.domain.shared.VeloChatXSystemMessage;
 import org.nitrowater.velochatx.domain.shared.VeloChatXCustomMessage;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -28,53 +26,95 @@ public class ControlCommandHandler implements CommandHandler {
 
     private final ServiceFactory serviceFactory;
     private final CommandHelper helper;
-    private final MessageLoggerService messageLoggerService;
+
+    private static final String ADMIN_PERMISSION = "velochatx.admin";
+    private static final String PLAYER_PERMISSION = "velochatx.player";
 
     private static final List<String> BLOCK_ACTIONS = List.of("block", "unblock");
-    private static final List<String> DEFAULT_PLAYER_COMMANDS = List.of("help", "on", "off", "block", "unblock", "list");
-    private static final List<String> ADMIN_COMMANDS = List.of("help", "show-channel-info", "placeholder", "on", "off", "block", "unblock", "list");
     private static final List<String> CONFIG_FILES = List.of("config", "message", "broadcast");
+    private static final List<String> CONFIG_ACTIONS = List.of("reload", "update", "diff");
 
-    public ControlCommandHandler(ServiceFactory serviceFactory, MessageLoggerService messageLoggerService) {
+    /** A subcommand together with the requirements to see/use it. */
+    private record SubCommand(String name, String permission, boolean playerOnly) {
+    }
+
+    /** Commands listed to a source holding {@link #ADMIN_PERMISSION}. */
+    private static final List<SubCommand> ADMIN_COMMANDS = List.of(
+            new SubCommand("help", null, false),
+            new SubCommand("config", ADMIN_PERMISSION, false),
+            new SubCommand("reload", ADMIN_PERMISSION, false),
+            new SubCommand("show-channel-info", ADMIN_PERMISSION, false),
+            new SubCommand("placeholder", ADMIN_PERMISSION, true),
+            new SubCommand("on", PLAYER_PERMISSION, true),
+            new SubCommand("off", PLAYER_PERMISSION, true),
+            new SubCommand("block", PLAYER_PERMISSION, true),
+            new SubCommand("unblock", PLAYER_PERMISSION, true),
+            new SubCommand("list", PLAYER_PERMISSION, true)
+    );
+
+    /** Commands listed otherwise. {@code help} is always available to everyone. */
+    private static final List<SubCommand> DEFAULT_COMMANDS = List.of(
+            new SubCommand("help", null, false),
+            new SubCommand("on", PLAYER_PERMISSION, true),
+            new SubCommand("off", PLAYER_PERMISSION, true),
+            new SubCommand("block", PLAYER_PERMISSION, true),
+            new SubCommand("unblock", PLAYER_PERMISSION, true),
+            new SubCommand("list", PLAYER_PERMISSION, true)
+    );
+
+    /** Player-only action subcommands. */
+    private static final Set<String> PLAYER_SUBCOMMANDS =
+            Set.of("on", "off", "block", "unblock", "list");
+
+    public ControlCommandHandler(ServiceFactory serviceFactory) {
         this.serviceFactory = serviceFactory;
         this.helper = serviceFactory.getCommandHelper();
-        this.messageLoggerService = messageLoggerService;
     }
 
     @Override
     public boolean execute(CommandSource source, String[] args) {
-        if (args.length > 2) {
+        if (args.length > 3) {
             helper.sendError(source, VeloChatXCustomMessage.INCORRECT_COMMAND_ARGUMENTS);
             return false;
         }
         if (args.length == 0) {
-            helper.sendInfo(source, serviceFactory.getKernel().getPluginContext().getPluginName() + " v" +
-                    serviceFactory.getKernel().getPluginContext().getMeta().getVersion());
+            helper.sendInfo(source, pluginIdentity());
             return true;
         }
 
         String subCommand = args[0].toLowerCase();
-        // Help command
+        // Help is always reachable, for every player and the console.
         if (subCommand.equals("help")) {
             return handleHelp(source);
         }
+        // Generic config subcommands (reload / update / diff) are provided by the kernel
+        CommandManager commands = serviceFactory.getKernel().getCommandManager();
+        if (commands != null && commands.executeGeneric(source, subCommand, args)) {
+            return true;
+        }
         // Admin commands
-        if (source.hasPermission("velochatx.admin")) {
+        if (source.hasPermission(ADMIN_PERMISSION)) {
             switch (subCommand) {
-                case "reload" -> {
-                    return handleReload(source, args);
-                }
                 case "show-channel-info" -> {
                     return handleShowChannelInfo(source);
                 }
                 case "placeholder" -> {
+                    if (!source.isPlayer()) {
+                        helper.sendError(source, VeloChatXCustomMessage.ONLY_IN_GAME);
+                        return false;
+                    }
                     return handlePlaceholder(source, args);
+                }
+                default -> {
                 }
             }
         }
-
-        // Player commands
-        if (source.isPlayer()) {
+        // Player commands (game only). The registrar already requires `velochatx.player`.
+        if (PLAYER_SUBCOMMANDS.contains(subCommand)) {
+            if (!source.isPlayer()) {
+                helper.sendError(source, VeloChatXCustomMessage.ONLY_IN_GAME);
+                return false;
+            }
             return handlePlayerCommand(source, subCommand, args);
         }
 
@@ -82,62 +122,50 @@ public class ControlCommandHandler implements CommandHandler {
         return false;
     }
 
-    private boolean handleHelp(CommandSource source) {
-        helper.sendInfo(source, serviceFactory.getKernel().getPluginContext().getPluginName() + " v" +
-                serviceFactory.getKernel().getPluginContext().getMeta().getVersion());
+    private String pluginIdentity() {
+        return serviceFactory.getKernel().getPluginContext().getPluginName() + " v" +
+                serviceFactory.getKernel().getPluginContext().getMeta().getVersion();
+    }
 
-        List<String> commands = source.hasPermission("velochatx.admin") ? ADMIN_COMMANDS : DEFAULT_PLAYER_COMMANDS;
-        for (String cmd : commands) {
-            VeloChatXSystemMessage template = switch (cmd) {
-                case "help" -> VeloChatXSystemMessage.HELP_COMMAND_FORMAT;
-                case "show-channel-info" -> VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_FORMAT;
-                case "placeholder" -> VeloChatXSystemMessage.PLACEHOLDER_COMMAND_FORMAT;
-                case "on" -> VeloChatXSystemMessage.ON_COMMAND_FORMAT;
-                case "off" -> VeloChatXSystemMessage.OFF_COMMAND_FORMAT;
-                case "block", "unblock" -> VeloChatXSystemMessage.CONTROL_COMMAND_FORMAT;
-                case "list" -> VeloChatXSystemMessage.LIST_COMMAND_FORMAT;
-                default -> VeloChatXSystemMessage.HELP_COMMAND_FORMAT;
-            };
-            helper.sendInfo(source, helper.getMessage(template, source));
+    private boolean handleHelp(CommandSource source) {
+        helper.sendInfo(source, pluginIdentity());
+
+        List<SubCommand> commands = source.hasPermission(ADMIN_PERMISSION) ? ADMIN_COMMANDS : DEFAULT_COMMANDS;
+        Set<VeloChatXSystemMessage> printed = new LinkedHashSet<>();
+        for (SubCommand command : commands) {
+            if (!isAvailable(source, command)) {
+                continue;
+            }
+            VeloChatXSystemMessage template = templateFor(command.name());
+            // block/unblock share one format: print each format only once
+            if (template != null && printed.add(template)) {
+                helper.sendInfo(source, helper.getMessage(template, source));
+            }
         }
         return true;
     }
 
-    private boolean handleReload(CommandSource source, String[] args) {
-        String configFile = args.length == 1 ? "all" : args[1].toLowerCase();
-        try {
-            switch (configFile) {
-                case "all" -> serviceFactory.reloadAll();
-                case "config" -> serviceFactory.getKernel().getPluginConfigService().reload();
-                case "broadcast" -> serviceFactory.reloadBroadcast();
-                case "message" -> {
-                    var messageService = serviceFactory.getKernel().getMessageService();
-                    if (messageService == null) {
-                        throw new IOException("Message service is not available");
-                    }
-                    messageService.reload();
-                }
-                default -> {
-                    helper.sendError(source, VeloChatXCustomMessage.INCORRECT_CONFIG_FILE);
-                    return false;
-                }
-            }
-            if ("all".equals(configFile)) {
-                helper.sendSuccess(source, VeloChatXCustomMessage.CONFIG_RELOAD_COMPLETED);
-            } else {
-                helper.sendSuccess(source, VeloChatXCustomMessage.CONFIG_FILE_RELOAD);
-            }
-            return true;
-        } catch (IOException e) {
-            // record log
-            messageLoggerService.warn(KernelMessage.CONFIG_FILE_RELOAD_ERROR_MESSAGE, configFile);
-            // send error info to command sender
-            String errorMsg = serviceFactory.getKernel()
-                    .getPluginMessageService()
-                    .getPluginMessage(VeloChatXSystemMessage.CONFIG_FILE_RELOAD_ERROR);
-            helper.sendInfo(source, errorMsg);
+    /** A subcommand is listed/available only when its permission is held and, when player-only, the source is a player. */
+    private static boolean isAvailable(CommandSource source, SubCommand command) {
+        if (command.playerOnly() && !source.isPlayer()) {
             return false;
         }
+        return command.permission() == null || source.hasPermission(command.permission());
+    }
+
+    private static VeloChatXSystemMessage templateFor(String name) {
+        return switch (name) {
+            case "help" -> VeloChatXSystemMessage.HELP_COMMAND_FORMAT;
+            case "show-channel-info" -> VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_FORMAT;
+            case "placeholder" -> VeloChatXSystemMessage.PLACEHOLDER_COMMAND_FORMAT;
+            case "config" -> VeloChatXSystemMessage.CONFIG_COMMAND_FORMAT;
+            case "reload" -> VeloChatXSystemMessage.RELOAD_COMMAND_FORMAT;
+            case "on" -> VeloChatXSystemMessage.ON_COMMAND_FORMAT;
+            case "off" -> VeloChatXSystemMessage.OFF_COMMAND_FORMAT;
+            case "block", "unblock" -> VeloChatXSystemMessage.CONTROL_COMMAND_FORMAT;
+            case "list" -> VeloChatXSystemMessage.LIST_COMMAND_FORMAT;
+            default -> null;
+        };
     }
 
     private boolean handleShowChannelInfo(CommandSource source) {
@@ -256,23 +284,46 @@ public class ControlCommandHandler implements CommandHandler {
     @Override
     public List<String> tabComplete(CommandSource source, String[] args) {
         if (args.length == 0 || args.length == 1) {
-            if (source.hasPermission("velochatx.admin")) {
-                return ADMIN_COMMANDS;
-            }
-            return DEFAULT_PLAYER_COMMANDS;
+            return availableCommandNames(source);
         }
 
-        if (args.length == 2) {
-            String subCommand = args[0].toLowerCase();
-            if (subCommand.equals("reload") && source.hasPermission("velochatx.admin")) {
+        String subCommand = args[0].toLowerCase();
+        // /<cmd> config <reload|update|diff> [name|all]
+        if (subCommand.equals("config") && source.hasPermission(ADMIN_PERMISSION)) {
+            if (args.length == 2) {
+                return CONFIG_ACTIONS;
+            }
+            if (args.length == 3) {
                 return CONFIG_FILES;
             }
-            if (BLOCK_ACTIONS.contains(subCommand)) {
-                return helper.getPlayerNamesExcluding(source);
-            }
+            return List.of();
+        }
+        if (args.length == 2 && BLOCK_ACTIONS.contains(subCommand)
+                && source.isPlayer() && source.hasPermission(PLAYER_PERMISSION)) {
+            return helper.getPlayerNamesExcluding(source);
         }
 
         return List.of();
+    }
+
+    /** Subcommand names visible to the source (permission + source type filtered). */
+    private List<String> availableCommandNames(CommandSource source) {
+        List<String> names = new ArrayList<>();
+        List<SubCommand> commands = source.hasPermission(ADMIN_PERMISSION) ? ADMIN_COMMANDS : DEFAULT_COMMANDS;
+        commands.stream()
+                .filter(command -> isAvailable(source, command))
+                .map(SubCommand::name)
+                .forEach(names::add);
+        // Kernel-provided generic subcommands (config / reload) require admin.
+        CommandManager manager = serviceFactory.getKernel().getCommandManager();
+        if (manager != null && source.hasPermission(ADMIN_PERMISSION)) {
+            for (String generic : manager.getGenericNames()) {
+                if (!names.contains(generic)) {
+                    names.add(generic);
+                }
+            }
+        }
+        return names;
     }
 
     @Override

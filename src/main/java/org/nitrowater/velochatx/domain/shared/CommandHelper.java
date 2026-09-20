@@ -31,7 +31,6 @@ import java.util.Optional;
 public class CommandHelper {
 
     private final MessageService messageService;
-    private final PlayerActionService actionService;
     private final PlaceholderService placeholderService;
     private final WProxyServer wProxyServer;
     private final Locale defaultLocale;
@@ -54,14 +53,11 @@ public class CommandHelper {
                          Locale defaultLocale,
                          LoggerService loggerService) {
         this.messageService = messageService;
-        this.actionService = actionService;
         this.placeholderService = placeholderService;
         this.wProxyServer = wProxyServer;
         this.defaultLocale = defaultLocale;
         this.loggerService = loggerService;
     }
-
-    // === Send methods ===
 
     /**
      * Send an error message (red) to the source.

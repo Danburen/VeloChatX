@@ -4,9 +4,8 @@ import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
-import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
 import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
+import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
 
 import java.util.List;
 import java.util.Map;
@@ -26,10 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2.1.0
  * @author Danburen
  */
-public class ServerServiceImpl implements ServerService, EventListener<KernelConfigUpdateEvent>, PlaceholdersContributor {
+public class ServerServiceImpl implements ServerService {
 
     private volatile Config config;
     private final Map<String, UServer> servers = new ConcurrentHashMap<>();
+    private volatile List<String> boundServerNames = List.of();
     private final WProxyServer wProxyServer;
 
     /**
@@ -86,6 +86,11 @@ public class ServerServiceImpl implements ServerService, EventListener<KernelCon
     }
 
     @Override
+    public List<String> getBoundServerNames() {
+        return boundServerNames;
+    }
+
+    @Override
     public int getTotalPlayerCount() {
         return wProxyServer.getAllOnlinePlayers().size();
     }
@@ -101,13 +106,15 @@ public class ServerServiceImpl implements ServerService, EventListener<KernelCon
 
     private void loadServers() {
         servers.clear();
-        boolean displayEnabled = getConfig().getBoolean(ServerConfigKey.DISPLAY_ENABLED);
-        Map<String, String> displayMap = displayEnabled
-                ? getConfig().get(ServerConfigKey.DISPLAY_SERVER_DISPLAY)
-                : Map.of();
-        if (displayMap == null) {
-            displayMap = Map.of();
+        // The raw display map is the admin's declared ("bound") server list; keep it even when
+        // the display feature is off so the startup summary can report binding problems.
+        Map<String, String> rawDisplayMap = getConfig().get(ServerConfigKey.DISPLAY_SERVER_DISPLAY);
+        if (rawDisplayMap == null) {
+            rawDisplayMap = Map.of();
         }
+        boolean displayEnabled = getConfig().getBoolean(ServerConfigKey.DISPLAY_ENABLED);
+        Map<String, String> displayMap = displayEnabled ? rawDisplayMap : Map.of();
+        this.boundServerNames = List.copyOf(rawDisplayMap.keySet());
         // Always register every backend server; the display name falls back to the server name
         // when server-display is disabled or the server is not listed.
         for (UServer registered : wProxyServer.getAllRegisteredServers()) {

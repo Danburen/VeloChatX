@@ -1,7 +1,10 @@
 package org.nitrowater.velochatx.domain.server;
 
+import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UServer;
+import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
+import org.nitrowater.waterapi.domain.shared.service.EventListener;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +30,8 @@ import java.util.Optional;
  * @see UServer
  * @see ServerConfigKey
  */
-public interface ServerService extends ConfigurableService<ServerConfigKey> {
+public interface ServerService extends ConfigurableService<ServerConfigKey>,
+        EventListener<KernelConfigUpdateEvent>, PlaceholdersContributor {
 
     /**
      * Get all registered servers.
@@ -58,6 +62,18 @@ public interface ServerService extends ConfigurableService<ServerConfigKey> {
      * @return server count
      */
     int getServerCount();
+
+    /**
+     * Get the server names declared in {@code server-display.display}.
+     * <p>
+     * These are the names the admin bound display names to; the list may contain
+     * names that are not actually registered in Velocity (typos / servers that are
+     * not started yet). Use {@link #getServer(String)} to test existence.
+     * </p>
+     *
+     * @return immutable list of bound server names, empty when none configured
+     */
+    List<String> getBoundServerNames();
 
     /**
      * Get the total number of online players across all servers.

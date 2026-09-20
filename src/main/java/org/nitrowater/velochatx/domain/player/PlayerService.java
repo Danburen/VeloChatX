@@ -1,6 +1,8 @@
 package org.nitrowater.velochatx.domain.player;
 
 import org.nitrowater.waterapi.domain.model.UPlayer;
+import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
+import org.nitrowater.waterapi.domain.shared.service.Service;
 
 import java.util.Map;
 import java.util.Optional;
@@ -13,7 +15,7 @@ import java.util.UUID;
  * @author Danburen
  * @see PlayerServiceImpl
  */
-public interface PlayerService {
+public interface PlayerService extends Service, PlaceholdersContributor {
 
     /**
      * Store or update player record in database.

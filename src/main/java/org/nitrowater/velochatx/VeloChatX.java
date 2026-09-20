@@ -9,14 +9,15 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import org.nitrowater.velochatx.commands.ControlCommandHandler;
 import org.nitrowater.velochatx.commands.MentionCommandHandler;
 import org.nitrowater.velochatx.commands.MsgCommandHandler;
-import org.nitrowater.velochatx.domain.event.VeloChatXGameEventHandler;
 import org.nitrowater.velochatx.domain.event.handler.VCXEventHandler;
 import org.nitrowater.velochatx.domain.shared.ServiceFactory;
 import org.nitrowater.velochatx.events.PlayerEventManager;
 import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityPlayerPlatformStrategy;
 import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityWProxyServerModel;
+import org.nitrowater.waterapi.domain.command.CommandManager;
 import org.nitrowater.waterapi.domain.kernel.Kernel;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
+import org.nitrowater.waterapi.domain.shared.common.KernelMessage;
 import org.nitrowater.waterapi.domain.spi.*;
 import org.nitrowater.waterapi.plugin.WaterPlugin;
 
@@ -53,21 +54,21 @@ public class VeloChatX extends WaterPlugin {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         long start = System.currentTimeMillis();
-
-        // Check if plugin is enabled
-        boolean enabled = getKernel().getPluginConfigService()
-                .getConfigData().getBoolean("enable", true);
-
-        if (!enabled) {
-            getKernel().getLoggerService().warning("Plugin is disabled");
+        // Enable the kernel in the initialization phase so all of this plugin's startup
+        // output (banner, config, services, enable message) stays in one contiguous block
+        // instead of being split across the construction phase.
+        getKernel().enable();
+        // The kernel already validated config and disabled itself when `enable: false`.
+        if (getKernel().isDisabled()) {
             return;
         }
-
         // Initialize services
         init();
         long elapsed = System.currentTimeMillis() - start;
-        getKernel().getLoggerService().info("VeloChatX enabled in " + elapsed + "ms");
-
+        // Localized enable message (i18n); renders from default/{locale}.properties.
+        getKernel().getMessageLoggerService().auto(
+                KernelMessage.SUCCESSFULLY_ENABLE_MESSAGE, elapsed
+        );
         // Metrics
         Metrics metrics = metricsFactory.make(this, 23273);
     }
@@ -77,6 +78,7 @@ public class VeloChatX extends WaterPlugin {
         if (serviceFactory != null) {
             serviceFactory.close();
         }
+        this.disable();
     }
 
     private void init() {
@@ -94,11 +96,12 @@ public class VeloChatX extends WaterPlugin {
                 kernel, this, wProxyServer,
                 permissionService, actionService, tabListProvider, commandRegistrar
         );
+        // One-shot startup self-check: report loaded servers / channels / broadcasts.
+        serviceFactory.reportLoadSummary();
         serviceFactory.startSchedulers();
         // Register event handlers
         VCXEventHandler eventHandler = new org.nitrowater.velochatx.domain.event.handler.VCXEventHandler(
                 serviceFactory.getChatService(),
-                actionService,
                 actionService,
                 kernel.getMessageService(),
                 serviceFactory.getChannelService(),
@@ -120,27 +123,34 @@ public class VeloChatX extends WaterPlugin {
         proxyServer.getEventManager().register(this, playerEventManager);
         // Register commands
         registerCommands();
+        // Report config content problems (missing keys) with an update hint
+        kernel.checkConfigContent();
         // Check for updates
-        kernel.checkUpdate("Danburen");
+        kernel.checkUpdate();
     }
 
     private void registerCommands() {
-        var registrar = serviceFactory.getCommandRegistrar();
-
-        registrar.register(
+        CommandManager commands = getKernel().initCommandManager(
+                serviceFactory.getCommandRegistrar(),
                 "velochatx",
-                new ControlCommandHandler(serviceFactory, getKernel().getMessageLoggerService()),
-                "velochatx.player",
-                List.of("vcx", "chatx", "vc")
+                List.of("vcx", "chatx", "vc"),
+                "velochatx.admin"
         );
 
-        registrar.register("mention",
+        // Primary command requires `velochatx.player` (granted broadly; LP inheritance makes
+        // `velochatx.admin` include it). `help` stays reachable for every player that has it.
+        commands.registerPrimary(
+                new ControlCommandHandler(serviceFactory),
+                "velochatx.player"
+        );
+
+        commands.register("mention",
                 new MentionCommandHandler(serviceFactory),
                 "velochatx.player",
                 List.of("mention", "men", "at")
         );
 
-        registrar.register("vcmsg",
+        commands.register("vcmsg",
                 new MsgCommandHandler(serviceFactory),
                 "velochatx.player",
                 List.of("vcmsg", "vctell")
