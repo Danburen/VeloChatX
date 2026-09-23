@@ -2,7 +2,7 @@
 # 所有的键都不能删除或更改，所有的值可以自定义更改
 # 部分文本支持VeloChatX占位符
 # 此文件的版本，通常不需要改变，检测更新需要用到
-config-version: 2.0.1
+config-version: 2.1.0
 mention-to-message: "§2你提及了玩家 {Server}{Group}{Prefix}{Player}{Suffix}"
 mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix} §6提及了你!"
 no-self-action-message: "§c你无法对自己执行这个操作§r"
@@ -17,7 +17,6 @@ enable-vc-chat-message: "已连接至跨服聊天系统。"
 disable-vc-chat-message: "已断开跨服聊天系统的连接。您接下来无法看到其他服务器的消息了。"
 unknown-command-message: "未知的命令。"
 only-in-game-message: "此命令只能在游戏中使用。"
-only-in-console-message: "此命令只能在控制台使用。"
 no-permission: "您无权使用该命令！"
 ban-words-message: "您当前的发言存在违禁/敏感词汇,已屏蔽您对其他服的广播。"
 reject-list-show-message: "以下玩家已被你§6屏蔽§r"

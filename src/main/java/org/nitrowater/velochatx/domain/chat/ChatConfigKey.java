@@ -13,7 +13,7 @@ import org.nitrowater.waterapi.domain.shared.config.ConfigKey;
  * @author Danburen
  */
 public enum ChatConfigKey implements ConfigKey {
-    /** Whether crossing (cross-server) chat getBoolean enabled */
+    /** Whether crossing (cross-server) chat is enabled */
     CROSSING_CHAT_ENABLED("crossing-chat-enable", true),
     /** Chat format template */
     CHAT_FORMAT("chat-format", "{channel}{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}"),
@@ -21,14 +21,24 @@ public enum ChatConfigKey implements ConfigKey {
     CHAT_FORMAT_MODEL("chat-format-model", "none"),
 
     // Ban words
-    /** Whether ban words filter getBoolean enabled */
+    /** Whether ban words filter is enabled */
     BAN_WORDS_ENABLED("ban-words.enable", false),
     /** Whether to log ban word detection to console */
     BAN_WORDS_LOG("ban-words.log-to-console", false),
     /** Comma-separated list of banned words */
     BAN_WORDS_LIST("ban-words.words", ""),
     LOG_CHAT_ENABLED("log-text.enable", true),
-    LOG_CHAT_CONVERT("log-text.convert", true),;
+    LOG_CHAT_CONVERT("log-text.convert", true),
+
+    // Mention title
+    /** Whether to show a title on the mentioned player's screen */
+    MENTION_SHOW_TITLE_ENABLED("mention-show-title.enable", false),
+    /** Mention title fade-in time (seconds) */
+    MENTION_TITLE_FADE_IN("mention-show-title.time.fade-in", 10),
+    /** Mention title stay time (seconds) */
+    MENTION_TITLE_STAY("mention-show-title.time.stay", 40),
+    /** Mention title fade-out time (seconds) */
+    MENTION_TITLE_FADE_OUT("mention-show-title.time.fade-out", 10);
 
     private final String key;
     private final Object defaultValue;

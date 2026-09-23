@@ -3,6 +3,9 @@ package org.nitrowater.velochatx.domain.broadcast;
 import org.nitrowater.velochatx.domain.channel.Channel;
 import org.nitrowater.velochatx.domain.channel.ChannelService;
 import org.nitrowater.velochatx.domain.server.ServerService;
+import org.nitrowater.waterapi.domain.config.schema.SchemaDefaults;
+import org.nitrowater.waterapi.domain.config.schema.RegisteredSchema;
+import org.nitrowater.waterapi.domain.config.schema.KeyItemSchema;
 import org.nitrowater.waterapi.domain.kernel.ConfigLoader;
 import org.nitrowater.waterapi.domain.kernel.LocaleConfig;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
@@ -23,10 +26,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link BroadcastService}.
@@ -40,6 +43,20 @@ import java.util.stream.Collectors;
  */
 public class BroadcastServiceImpl implements BroadcastService {
 
+    /**
+     * broadcast.yml {@code locale.broadcast-list}. Each locale broadcast must carry a message
+     * list; {@code enable}, {@code prefix} and the server/channel lists are optional.
+     */
+    private static final RegisteredSchema SCHEMA = new RegisteredSchema(
+            BroadcastConfigKey.LOCALE_BROADCAST_LIST,
+            KeyItemSchema.builder()
+                    .required("message-list", List.of())
+                    .optional("enable", false)
+                    .optional("prefix", "")
+                    .optional("channel-list", List.of())
+                    .optional("server-list", List.of())
+                    .build());
+
     private volatile Config broadcastConfig;
     private final ServerService serverService;
     private final ChannelService channelService;
@@ -52,6 +69,8 @@ public class BroadcastServiceImpl implements BroadcastService {
     private final ConfigLoader configLoader;
     /** Language chain used to locate the shipped default broadcast.yml. */
     private final LocaleConfig localeConfig;
+    /** Declared defaults of {@link #SCHEMA}, used as the runtime fallback for omitted keys. */
+    private final SchemaDefaults localeDefaults = new SchemaDefaults(SCHEMA.schema().defaults());
 
     private volatile BroadcastModel globalBroadcast;
     private final List<BroadcastModel> localeBroadcasts = new ArrayList<>();
@@ -73,6 +92,11 @@ public class BroadcastServiceImpl implements BroadcastService {
         this.loggerService = loggerService;
         this.broadcastConfig = loadBroadcastConfig();
         loadBroadcasts();
+    }
+
+    @Override
+    public List<RegisteredSchema> schemas() {
+        return List.of(SCHEMA);
     }
 
     @Override
@@ -106,14 +130,19 @@ public class BroadcastServiceImpl implements BroadcastService {
     private Config loadBroadcastConfig() {
         if (configLoader == null || localeConfig == null) {
             loggerService.warning("Broadcast config loader unavailable, using defaults.");
-            return new Config(new FileConfigData(new HashMap<>()));
+            return emptyConfig();
         }
         try {
             return new Config(configLoader.loadOrCreate("broadcast", localeConfig.getLanguageChain()));
         } catch (IOException e) {
             loggerService.warning("Broadcast config is unavailable, using defaults: " + e.getMessage());
-            return new Config(new FileConfigData(new HashMap<>()));
+            return emptyConfig();
         }
+    }
+
+    /** Empty fallback config so a missing/broken file degrades to defaults instead of throwing. */
+    private static Config emptyConfig() {
+        return new Config(new FileConfigData(new HashMap<>()));
     }
 
     @Override
@@ -157,7 +186,7 @@ public class BroadcastServiceImpl implements BroadcastService {
         return serverBroadcasts.getOrDefault(serverName, List.of()).stream()
                 .flatMap(bct -> bct.getMessages().stream())
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -187,7 +216,7 @@ public class BroadcastServiceImpl implements BroadcastService {
                 ? channelService.getChannelForServer(previousServer.getName()).map(Channel::getName).orElse(null)
                 : null;
         boolean isChannelSwitch = previousServer != null
-                && !java.util.Objects.equals(currentChannelName, previousChannelName);
+                && !Objects.equals(currentChannelName, previousChannelName);
 
         boolean overlay = getConfig().getBoolean(BroadcastConfigKey.ENTRY_HIERARCHICAL_OVERLAY);
         // Level 1 (highest): Player switches channel
@@ -227,7 +256,7 @@ public class BroadcastServiceImpl implements BroadcastService {
                 ? channelService.getChannelForServer(currentServerName).map(Channel::getName).orElse(null)
                 : null;
         boolean isChannelSwitch = currentServerName != null
-                && !java.util.Objects.equals(previousChannelName, currentChannelName);
+                && !Objects.equals(previousChannelName, currentChannelName);
 
         boolean overlay = getConfig().getBoolean(BroadcastConfigKey.ENTRY_HIERARCHICAL_OVERLAY);
         // Level 1 (highest): Player switches channel
@@ -317,7 +346,7 @@ public class BroadcastServiceImpl implements BroadcastService {
 
         if (globalEnabled) {
             String globalPrefix = broadcastConfig.get(BroadcastConfigKey.GLOBAL_PREFIX);
-            List<String> globalMessages = broadcastConfig.get("global.message-list", List.of());
+            List<String> globalMessages = broadcastConfig.get(BroadcastConfigKey.GLOBAL_MESSAGE_LIST.getKey(), List.of());
 
             globalBroadcast = new BroadcastModel(
                     "global",
@@ -329,29 +358,32 @@ public class BroadcastServiceImpl implements BroadcastService {
         }
 
         if (localeEnabled) {
-            Map<String, Object> broadcastMap = broadcastConfig.get("locale.broadcast-list", Map.of());
+            Map<String, Object> broadcastMap = broadcastConfig.get(BroadcastConfigKey.LOCALE_BROADCAST_LIST.getKey(), Map.of());
             broadcastMap.forEach((key, value) -> {
-                String pathPrefix = "locale.broadcast-list." + key;
-                boolean enabled = broadcastConfig.get(pathPrefix + ".enable", false);
+                String pathPrefix = BroadcastConfigKey.LOCALE_BROADCAST_LIST.getKey() + "." + key;
+                boolean enabled = broadcastConfig.get(pathPrefix + ".enable", localeDefaults.bool("enable", false));
                 if (enabled) {
-                    String prefix = broadcastConfig.get(pathPrefix + ".prefix", "");
-                    List<String> messageList = broadcastConfig.get(pathPrefix + ".message-list", List.of());
-                    List<String> serverNames = broadcastConfig.get(pathPrefix + ".server-list", List.of());
-                    List<String> channelNames = broadcastConfig.get(pathPrefix + ".channel-list", List.of());
+                    String prefix = broadcastConfig.get(pathPrefix + ".prefix", localeDefaults.string("prefix", ""));
+                    List<String> messageList = broadcastConfig.get(pathPrefix + ".message-list",
+                            localeDefaults.<String>list("message-list", List.of()));
+                    List<String> serverNames = broadcastConfig.get(pathPrefix + ".server-list",
+                            localeDefaults.<String>list("server-list", List.of()));
+                    List<String> channelNames = broadcastConfig.get(pathPrefix + ".channel-list",
+                            localeDefaults.<String>list("channel-list", List.of()));
 
                     List<UServer> servers = serverNames.stream()
                             .filter(name -> name != null && !name.isBlank())
                             .map(serverService::getServer)
                             .filter(Optional::isPresent)
                             .map(Optional::get)
-                            .collect(Collectors.toList());
+                            .toList();
 
                     List<Channel> channels = channelNames.stream()
                             .filter(name -> name != null && !name.isBlank())
                             .map(channelService::getChannel)
                             .filter(Optional::isPresent)
                             .map(Optional::get)
-                            .collect(Collectors.toList());
+                            .toList();
 
                     BroadcastModel localeBct = new BroadcastModel(key, prefix, messageList, channels, servers);
                     localeBroadcasts.add(localeBct);
@@ -362,14 +394,13 @@ public class BroadcastServiceImpl implements BroadcastService {
     }
 
     private void buildServerBroadcastsMap() {
-        serverService.getAllServers().forEach(server ->
-                serverBroadcasts.put(server.getName(), new ArrayList<>())
-        );
-        if (globalBroadcast != null) {
-            serverService.getAllServers().forEach(server ->
-                    serverBroadcasts.get(server.getName()).add(globalBroadcast)
-            );
-        }
+        serverService.getAllServers().forEach(server -> {
+            List<BroadcastModel> broadcasts = new ArrayList<>();
+            if (globalBroadcast != null) {
+                broadcasts.add(globalBroadcast);
+            }
+            serverBroadcasts.put(server.getName(), broadcasts);
+        });
         localeBroadcasts.forEach(bct ->
                 bct.getServers().forEach(server ->
                         serverBroadcasts.computeIfAbsent(server.getName(), k -> new ArrayList<>())

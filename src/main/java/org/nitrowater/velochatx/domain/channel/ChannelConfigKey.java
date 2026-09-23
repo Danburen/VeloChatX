@@ -15,7 +15,6 @@ import java.util.HashMap;
  * @author Danburen
  */
 public enum ChannelConfigKey implements ConfigKey {
-    BROADCAST_ENABLED("broadcast-enable", false),
     GLOBAL("channels.global", true),
     CHANNEL_LIST("channels.channel-list", new HashMap<String, Object>()),;
 

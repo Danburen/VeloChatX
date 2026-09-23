@@ -1,14 +1,17 @@
 package org.nitrowater.velochatx.commands;
 
+import org.nitrowater.velochatx.domain.chat.ChatConfigKey;
 import org.nitrowater.velochatx.domain.shared.VeloChatXSystemMessage;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
+import org.nitrowater.waterapi.domain.shared.config.Config;
 import org.nitrowater.waterapi.domain.spi.CommandHandler;
 import org.nitrowater.waterapi.domain.spi.CommandSource;
 import org.nitrowater.velochatx.domain.player.PlayerService;
 import org.nitrowater.velochatx.domain.shared.CommandHelper;
 import org.nitrowater.velochatx.domain.shared.ServiceFactory;
 import org.nitrowater.velochatx.domain.shared.VeloChatXCustomMessage;
+import org.nitrowater.velochatx.domain.shared.VeloChatXPermissions;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +38,7 @@ public class MentionCommandHandler implements CommandHandler {
 
     @Override
     public boolean execute(CommandSource source, String[] args) {
-        if (!helper.checkPermission(source, "velochatx.player")) {
+        if (!helper.checkPermission(source, VeloChatXPermissions.PLAYER)) {
             return false;
         }
 
@@ -82,31 +85,22 @@ public class MentionCommandHandler implements CommandHandler {
             return true;
         }
         // Sender sees "you mentioned <target>" -> resolve {Player} from the TARGET context
-        PlaceholderContext targetContext = PlaceholderContext.builder()
-                .player(target)
-                .serverName(target.getCurrentServer().map(s -> s.getName()).orElse("unknown"))
-                .build();
+        PlaceholderContext targetContext = helper.contextOf(target);
         serviceFactory.getPlayerActionService().sendMessage(player,
                 helper.getMessage(VeloChatXCustomMessage.MENTION_TO, source), targetContext);
 
         // Target sees "<sender> mentioned you" -> resolve {Player} from the SENDER context
-        PlaceholderContext senderContext = PlaceholderContext.builder()
-                .player(player)
-                .serverName(player.getCurrentServer().map(s -> s.getName()).orElse("unknown"))
-                .build();
+        PlaceholderContext senderContext = helper.contextOf(player);
         serviceFactory.getPlayerActionService().sendMessage(target,
                 helper.getMessage(VeloChatXCustomMessage.MENTION_RECEIVE, source), senderContext);
         // Show title to target if enabled
-        if (serviceFactory.getKernel().getPluginConfigService().getConfigData()
-                .getBoolean("mention-show-title.enable", false)) {
+        Config config = serviceFactory.getChatService().getConfig();
+        if (config.getBoolean(ChatConfigKey.MENTION_SHOW_TITLE_ENABLED)) {
             String mainTitle = helper.getMessage(VeloChatXCustomMessage.MENTION_TITLE_MAIN, source);
             String subTitle = helper.getMessage(VeloChatXCustomMessage.MENTION_TITLE_SUB, source);
-            int fadeIn = serviceFactory.getKernel().getPluginConfigService().getConfigData()
-                    .get("mention-show-title.time.fade-in", 10);
-            int stay = serviceFactory.getKernel().getPluginConfigService().getConfigData()
-                    .get("mention-show-title.time.stay", 40);
-            int fadeOut = serviceFactory.getKernel().getPluginConfigService().getConfigData()
-                    .get("mention-show-title.time.fade-out", 10);
+            int fadeIn = config.get(ChatConfigKey.MENTION_TITLE_FADE_IN);
+            int stay = config.get(ChatConfigKey.MENTION_TITLE_STAY);
+            int fadeOut = config.get(ChatConfigKey.MENTION_TITLE_FADE_OUT);
 
             String resolvedMain = serviceFactory.getKernel().getPlaceholderService()
                     .resolve(mainTitle, senderContext);
@@ -126,18 +120,17 @@ public class MentionCommandHandler implements CommandHandler {
     }
 
     private void sendMentionToSource(CommandSource source, UPlayer player, UPlayer target) {
-        // Sender sees "you mentioned <target>"
-        PlaceholderContext targetContext = PlaceholderContext.builder()
-                .player(target)
-                .serverName(target.getCurrentServer().map(s -> s.getName()).orElse("unknown"))
-                .build();
-
+        // Sender sees "you mentioned <target>"; {Player} resolves from the target's context
         serviceFactory.getPlayerActionService().sendMessage(player,
-                helper.getMessage(VeloChatXCustomMessage.MENTION_TO, source), targetContext);
+                helper.getMessage(VeloChatXCustomMessage.MENTION_TO, source), helper.contextOf(target));
     }
 
     @Override
     public List<String> tabComplete(CommandSource source, String[] args) {
+        // Never enumerate online player names for sources without the player permission.
+        if (!source.hasPermission(VeloChatXPermissions.PLAYER)) {
+            return List.of();
+        }
         if (args.length <= 1) {
             String prefix = args.length == 1 ? args[0].toLowerCase() : "";
             return helper.getPlayerNamesExcluding(source).stream()
@@ -145,10 +138,5 @@ public class MentionCommandHandler implements CommandHandler {
                     .toList();
         }
         return List.of();
-    }
-
-    @Override
-    public String getPermission() {
-        return "velochatx.player";
     }
 }

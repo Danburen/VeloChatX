@@ -8,7 +8,7 @@ java {
     }
 }
 
-group = 'me.waterwood'
+group = 'org.nitrowater'
 version = '2.1.0'
 
 repositories {

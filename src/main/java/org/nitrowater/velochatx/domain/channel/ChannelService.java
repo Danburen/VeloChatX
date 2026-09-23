@@ -1,5 +1,6 @@
 package org.nitrowater.velochatx.domain.channel;
 
+import org.nitrowater.waterapi.domain.config.application.SchemaProvider;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
@@ -19,9 +20,6 @@ import java.util.Optional;
  *
  * <p>Configuration accessed via {@link #getConfig()} with {@link ChannelConfigKey}:</p>
  * <pre>{@code
- * // Check if enabled
- * boolean enabled = channelService.getConfig().get(ChannelConfigKey.BROADCAST_ENABLED);
- *
  * // Check if global mode
  * boolean global = channelService.getConfig().get(ChannelConfigKey.GLOBAL);
  * }</pre>
@@ -32,7 +30,7 @@ import java.util.Optional;
  * @see UServer
  * @see ChannelConfigKey
  */
-public interface ChannelService extends ConfigurableService<ChannelConfigKey>,
+public interface ChannelService extends SchemaProvider, ConfigurableService<ChannelConfigKey>,
         EventListener<KernelConfigUpdateEvent>, PlaceholdersContributor {
 
     /**

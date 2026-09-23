@@ -2,7 +2,6 @@ package org.nitrowater.velochatx.domain.event.handler;
 
 import org.nitrowater.velochatx.domain.broadcast.BroadcastConfigKey;
 import org.nitrowater.velochatx.domain.broadcast.BroadcastService;
-import org.nitrowater.velochatx.domain.channel.ChannelConfigKey;
 import org.nitrowater.velochatx.domain.channel.ChannelService;
 import org.nitrowater.velochatx.domain.chat.ChatConfigKey;
 import org.nitrowater.velochatx.domain.chat.ChatService;
@@ -86,7 +85,8 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
                 );
                 if (chatService.getBooleanConfig(ChatConfigKey.BAN_WORDS_LOG)) {
                     PlaceholderContext ctx = PlaceholderContext.builder()
-                            .dynamicParams(Map.of("message", finalMessage)).build();
+                            .dynamicParams(Map.of("message", finalMessage))
+                            .build();
                     messageLoggerService.auto(VeloChatXSystemMessage.BAN_WORDS_LOG, ctx);
                 }
                 return;
@@ -164,24 +164,19 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
         broadcastService.broadcastPlayerJoin(player, currServer, prevServer);
         // Send channel welcome message (servers without a channel are skipped)
         channelService.getChannelForServer(currServer.getName()).ifPresent(channel -> {
-            if (channelService.getConfig().get(
-                    ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.enable",
-                    true)
-            ) {
-                String welcomeMessage = messageLoggerService
-                        .getPlaceholderService()
-                        .resolve(
-                                channelService.getConfig().get(
-                                        ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channel.getName() + ".welcome.message",
-                                        "Welcome to the channel!"
-                                ),
-                                PlaceholderContext.builder()
-                                        .player(player)
-                                        .serverName(currServer.getName())
-                                        .build()
-                        );
-                playerActionService.sendMessage(player, welcomeMessage);
+            if (!channel.isWelcomeEnabled()) {
+                return;
             }
+            String welcomeMessage = messageLoggerService
+                    .getPlaceholderService()
+                    .resolve(
+                            channel.getWelcomeMessage(),
+                            PlaceholderContext.builder()
+                                    .player(player)
+                                    .serverName(currServer.getName())
+                                    .build()
+                    );
+            playerActionService.sendMessage(player, welcomeMessage);
         });
         // Update tab-list
         tabListService.queueUpdate(new TabListUpdateTask(
@@ -234,7 +229,6 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
         // Broadcast proxy leave (broadcast to all)
         broadcastService.broadcastProxyLeave(player);
         playerService.updateLeaveTime(player.getUuid(), System.currentTimeMillis());
-        // Update tablist - remove player from all online players' tablist
         UUID uuid = player.getUuid();
         wProxyServer.getAllOnlinePlayers().forEach(onlinePlayer -> {
             tabListService.queueUpdate(new TabListUpdateTask(

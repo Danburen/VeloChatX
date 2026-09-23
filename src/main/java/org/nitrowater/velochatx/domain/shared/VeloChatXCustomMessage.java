@@ -32,7 +32,6 @@ public enum VeloChatXCustomMessage implements MessageTemplate {
     FAIL_FIND_PLAYER("fail-find-player-message"),
     UNKNOWN_COMMAND("unknown-command-message"),
     ONLY_IN_GAME("only-in-game-message"),
-    ONLY_IN_CONSOLE("only-in-console-message"),
     NO_PERMISSION("no-permission-message"),
     INCORRECT_COMMAND_ARGUMENTS("incorrect-command-arguments-message"),
     MESSAGE_LOCALE_CANT_LOAD("cant-load-message"),;

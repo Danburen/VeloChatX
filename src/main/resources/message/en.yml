@@ -1,12 +1,12 @@
-#The following getBoolean the message configuration displayed to players in the game
+#The following is the message configuration displayed to players in the game
 #All keys cannot be deleted or changed, and all values can be customized
 #Some text supports velochatx placeholders
 # Version of this file, generally does not need to be changed, used for update checks
-config-version: 2.0.1
+config-version: 2.1.0
 mention-to-message: "§2you mentioned§r {Server}{Group}{Prefix}{Player}{Suffix}"
-mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix}s §6 getBoolean mention you!"
+mention-receive-message: "{Server}{Group}{Prefix}{Player}{Suffix}s §6 is mention you!"
 no-self-action-message: "§cYou can't do this yourself!§r"
-fail-find-player-message: "§6can't find the player: %s ,getBoolean he §coffline§r or §cvanished§r?"
+fail-find-player-message: "§6can't find the player: %s ,is he §coffline§r or §cvanished§r?"
 mention-title-show-main: "§cAttention §6you have been mentioned!"
 mention-title-show-sub: "{Group}{Prefix}{Player}{Suffix} §e mentioned you!"
 msg-to-message: "[§cPriChat§r] §2You§r §7->§r {Server}{Group}{Prefix}{Player}{Suffix} §8:§r {Message}"
@@ -17,7 +17,6 @@ enable-vc-chat-message: "You have connect to crossing server chat system"
 disable-vc-chat-message: "You have disconnect the crossing server chat system."
 unknown-command-message: "Unknown command."
 only-in-game-message: "This command can only be used in game."
-only-in-console-message: "This command can only be used in console."
 no-permission: "You are not allow to do this!"
 ban-words-message: "Your Message contains prohibited/sensitive vocabulary,broadcasts have been blocked."
 reject-list-show-message: "The following players have been §6blocked§r"

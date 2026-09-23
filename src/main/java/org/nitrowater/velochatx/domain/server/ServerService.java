@@ -1,5 +1,6 @@
 package org.nitrowater.velochatx.domain.server;
 
+import org.nitrowater.waterapi.domain.config.application.SchemaProvider;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
@@ -18,11 +19,11 @@ import java.util.Optional;
  *
  * <p>Configuration accessed via {@link #getConfig()} with {@link ServerConfigKey}:</p>
  * <pre>{@code
- * // Check if display names enabled
- * boolean enabled = serverService.getConfig().get(ServerConfigKey.DISPLAY_ENABLED);
+ * // Check if display names enabled (dual-read: legacy server-display.enable then server.display-enable)
+ * boolean enabled = ServerConfigKey.isDisplayEnabled(serverService.getConfig());
  *
- * // Get proxy display
- * String proxy = serverService.getConfig().get(ServerConfigKey.PROXY_DISPLAY);
+ * // Get proxy display (dual-read: legacy server-display.proxy then server.proxy)
+ * String proxy = serverService.getProxyDisplay();
  * }</pre>
  *
  * @since 2.1.0
@@ -30,7 +31,7 @@ import java.util.Optional;
  * @see UServer
  * @see ServerConfigKey
  */
-public interface ServerService extends ConfigurableService<ServerConfigKey>,
+public interface ServerService extends SchemaProvider, ConfigurableService<ServerConfigKey>,
         EventListener<KernelConfigUpdateEvent>, PlaceholdersContributor {
 
     /**
@@ -55,6 +56,15 @@ public interface ServerService extends ConfigurableService<ServerConfigKey>,
      * @return the display name, or the server name if not configured
      */
     String getDisplay(String serverName);
+
+    /**
+     * Effective proxy display: legacy {@code server-display.proxy} while present,
+     * else {@code server.proxy}, else the ConfigKey default. Used by {@code {proxy}}
+     * and console private-message rendering.
+     *
+     * @return the proxy display string
+     */
+    String getProxyDisplay();
 
     /**
      * Get the total number of registered servers.
@@ -89,4 +99,39 @@ public interface ServerService extends ConfigurableService<ServerConfigKey>,
      * @return      {@link UServer} instance
      */
     UServer getOrCreate(String name);
+
+    /** Binding state of a backend relative to the plugin's server declaration. */
+    enum BindingState {
+        /** Declared (legacy {@code server-display.display} or new {@code server.list}) and registered by Velocity. */
+        BOUND,
+        /** Registered by Velocity but not declared in config. */
+        UNBOUND,
+        /** Declared in config but not registered by Velocity. */
+        PHANTOM
+    }
+
+    /**
+     * Get the binding state of a server.
+     *
+     * @param serverName the server id (registered or declared)
+     * @return the state, or empty when the name is neither registered nor declared
+     */
+    Optional<BindingState> getBindingState(String serverName);
+
+    /**
+     * Channel names a server declares via the new {@code server.list.<id>.channels} key.
+     * <p>Only meaningful when legacy channel membership is absent; see
+     * {@code docs/server-binding-plan.md}.</p>
+     *
+     * @param serverName the server id
+     * @return immutable list of channel names (empty when none)
+     */
+    List<String> getDeclaredChannelNames(String serverName);
+
+    /**
+     * Whether any legacy binding key ({@code server-display.display}) is present in the config.
+     *
+     * @return {@code true} when legacy bindings are in use
+     */
+    boolean hasLegacyBindings();
 }

@@ -163,8 +163,8 @@ WaterApiConfigModelTest  tests=3 failures=0 errors=0
 
 | 文件 | 说明 |
 |---|---|
-| `manager/`（8 类） | `BasicMethods` / `ChannelManager` / `ChatManager` / `LogManager` / `MessageManager` / `PlayerManager` / `TabListManager` / `TaskManager`，均引用已删除的 `org.waterwood.*` |
-| `events/PlayerEvents.java`、`events/ServerEvents.java` | 引用 `me.waterwood.velochatx.*` |
+| `manager/`（8 类） | `BasicMethods` / `ChannelManager` / `ChatManager` / `LogManager` / `MessageManager` / `PlayerManager` / `TabListManager` / `TaskManager`，均引用已删除的 `org.Danburen.*` |
+| `events/PlayerEvents.java`、`events/ServerEvents.java` | 引用 `me.Danburen.velochatx.*` |
 | `mapper/MapperBase.java`、`mapper/FilePlayerMapper.java`、`mapper/PlayerMapperArchived.java` | 旧数据层 |
 | `entity/Channel.java` | 与 `domain/channel/Channel` 重复 |
 | `utils/BroadCastUtil.java`、`utils/SubServer.java`、`utils/TitleShow.java`、`utils/PlayerAttribution.java` | 与 domain 版重复 |
@@ -191,7 +191,7 @@ WaterApiConfigModelTest  tests=3 failures=0 errors=0
 | `system-message/en.yml` | 缺 `config-file-reload-error` | 补齐 |
 | `system-message/*.yml` | `ignore/reject/remove-command-format` 文案已过时（命令已合并为 block/unblock） | 更新文案 |
 | `config/en.yml` | 缺 `tab-list.refresh-ratio`；`mention-show-title` 走硬编码 key | 补配置项、收敛到 ConfigKey |
-| `plugin.yml` | `main: me.waterwood.velochatx.VeloChatX`、version 2.0.8 过期 | 更新或删除（Velocity 走 `@Plugin` 注解） |
+| `plugin.yml` | `main: me.Danburen.velochatx.VeloChatX`、version 2.0.8 过期 | 更新或删除（Velocity 走 `@Plugin` 注解） |
 
 ---
 

@@ -1,17 +1,17 @@
 package org.nitrowater.velochatx.commands;
 
 import org.nitrowater.velochatx.domain.shared.VeloChatXSystemMessage;
-import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.spi.CommandHandler;
 import org.nitrowater.waterapi.domain.spi.CommandSource;
 import org.nitrowater.velochatx.domain.player.PlayerService;
-import org.nitrowater.velochatx.domain.server.ServerConfigKey;
 import org.nitrowater.velochatx.domain.shared.CommandHelper;
 import org.nitrowater.velochatx.domain.shared.ServiceFactory;
 import org.nitrowater.velochatx.domain.shared.VeloChatXCustomMessage;
+import org.nitrowater.velochatx.domain.shared.VeloChatXPermissions;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +37,7 @@ public class MsgCommandHandler implements CommandHandler {
 
     @Override
     public boolean execute(CommandSource source, String[] args) {
-        if (!helper.checkPermission(source, "velochatx.player")) {
+        if (!helper.checkPermission(source, VeloChatXPermissions.PLAYER)) {
             return false;
         }
 
@@ -88,25 +88,24 @@ public class MsgCommandHandler implements CommandHandler {
     private void sendToSender(CommandSource source, UPlayer sender, UPlayer target, String message) {
         String text = helper.getMessage(VeloChatXCustomMessage.MSG_TO, source)
                 .replace("{Message}", message);
-        serviceFactory.getPlayerActionService().sendMessage(sender, text, contextOf(target));
+        serviceFactory.getPlayerActionService().sendMessage(sender, text, helper.contextOf(target));
     }
 
     /** Receiver sees "sender -> you"; placeholders describe the SENDER. */
     private void sendToReceiver(CommandSource localeSource, UPlayer receiver, UPlayer sender, String message) {
         String text = helper.getMessage(VeloChatXCustomMessage.MSG_RECEIVE, localeSource)
                 .replace("{Message}", message);
-        serviceFactory.getPlayerActionService().sendMessage(receiver, text, contextOf(sender));
+        serviceFactory.getPlayerActionService().sendMessage(receiver, text, helper.contextOf(sender));
     }
 
-    /** Console sender: the proxy identity (server-display.proxy) replaces {Player}. */
+    /** Console sender: the proxy identity (server.proxy / legacy server-display.proxy) replaces {Player}. */
     private void sendFromProxy(CommandSource source, UPlayer target, String message) {
-        String proxyDisplay = serviceFactory.getServerService().getConfig()
-                .get(ServerConfigKey.PROXY_DISPLAY);
+        String proxyDisplay = serviceFactory.getServerService().getProxyDisplay();
         // Console sees "you -> target", resolved from the target's context.
         String toSender = helper.getMessage(VeloChatXCustomMessage.MSG_TO, source)
                 .replace("{Message}", message);
         source.sendMessage(serviceFactory.getKernel().getPlaceholderService()
-                .resolve(toSender, contextOf(target)));
+                .resolve(toSender, helper.contextOf(target)));
         // Target sees "proxy -> you"; the console has no player profile, so only {Player} is filled.
         String toReceiver = helper.getMessage(VeloChatXCustomMessage.MSG_RECEIVE, source)
                 .replace("{Message}", message)
@@ -115,23 +114,16 @@ public class MsgCommandHandler implements CommandHandler {
                 PlaceholderContext.builder().build());
     }
 
-    private static PlaceholderContext contextOf(UPlayer player) {
-        return PlaceholderContext.builder()
-                .player(player)
-                .serverName(player.getCurrentServer().map(UServer::getName).orElse("unknown"))
-                .build();
-    }
-
     private String buildMessage(String[] args) {
-        StringBuilder messageBuilder = new StringBuilder(args[1]);
-        for (int i = 2; i < args.length; i++) {
-            messageBuilder.append(" ").append(args[i]);
-        }
-        return messageBuilder.toString();
+        return String.join(" ", Arrays.copyOfRange(args, 1, args.length));
     }
 
     @Override
     public List<String> tabComplete(CommandSource source, String[] args) {
+        // Never enumerate online player names for sources without the player permission.
+        if (!source.hasPermission(VeloChatXPermissions.PLAYER)) {
+            return List.of();
+        }
         if (args.length <= 1) {
             String prefix = args.length == 1 ? args[0].toLowerCase() : "";
             return helper.getPlayerNamesExcluding(source).stream()
@@ -139,10 +131,5 @@ public class MsgCommandHandler implements CommandHandler {
                     .toList();
         }
         return List.of();
-    }
-
-    @Override
-    public String getPermission() {
-        return "velochatx.player";
     }
 }

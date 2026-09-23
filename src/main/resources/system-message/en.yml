@@ -1,27 +1,23 @@
 # Admin messages (not recommended to modify)
 # These messages are for admin/console only, not visible to regular players
 # Version of this file, generally does not need to be changed, used for update checks
-config-version: 2.0.1
+config-version: 2.1.0
 
 # Channel info
 show-channel-info-command-title: "The current channels are as follows: Channel ID | Channel Name (Total Online Players) | Sub-servers Included (Online Players)"
+show-channel-info-command-entry: "%s | %s : %d players"
+
+# Runtime status (/velochatx status)
+status-command-title: "VeloChatX status:"
+status-server-line: "Servers: %d recognized (%d online / %d offline)"
+status-channel-line: "Channels: %d"
+status-broadcast-line: "Broadcast messages: %d (global %d / locale %d)"
 
 # Log format
 ban-words-log-message: "{Player} §c's message contains sensitive/forbidden words:§r {Message}"
 
 # Internal hints
-use-default-chat-format-message: "Using the default chat format %s"
 fail-parsing-chat-format-message: "An error occurred while parsing the chat format. Please check if the chat format in config.yml is configured correctly\n{Server}, {Player}, and {Message} are all required."
-crossing-chat-disable-message: "§8Crossing server chat now is disabled§r"
-broadcast-disable-message: "§8Broadcast system now is disabled§r"
-
-# Startup load summary (logged to console while loading)
-server-load-all-online-message: "Detected %d server(s), all online."
-server-load-partial-message: "Detected %d server(s), §a%s§r online, §c%s§r not online yet."
-server-load-none-online-message: "Detected %d server(s), all not online yet: §c%s§r."
-channel-load-message: "Loaded %d channel(s) (%s)"
-channel-load-count-message: "Loaded %d channel(s)"
-broadcast-load-message: "Loaded %d sub-broadcast(s), %d broadcast message(s) in total."
 
 # Command help text
 mention-command-format-message: "§6/mention <PlayerName>§r - §4Display a mention message to a specific player. §r"
@@ -35,3 +31,20 @@ control-command-format-message: "§6/velochatx block|unblock <PlayerName>§r - �
 show-channel-info-command-format-message: "§6/velochatx show-channel-info§r - §4Display information for all channels. §r"
 list-command-format-message: "§6/velochatx list §r - §4Show the players you have blocked. §r"
 placeholder-command-format-message: "§6/velochatx placeholder {placeholder} §r - §4show server targeted placeholder"
+status-command-format-message: "§6/velochatx status§r - §4Show runtime status§r"
+migrate-command-format-message: "§6/velochatx config migration [name|all] [--dry-run]§r - §4Migrate legacy config keys (e.g. server bindings) to the current schema§r"
+
+# Server/channel binding diagnostics
+binding-unbound-server: "Backend server '%s' is not declared under server-display.display / server.list -> cross-server chat will print the raw name and {channel} will be empty. Declare it and add it to a channel."
+binding-phantom-server: "Config declares '%s' but Velocity has no such backend -> the entry never matches. Check [servers] in velocity.toml (ids are case-sensitive)."
+binding-channel-unknown-server: "Channel '%s' lists server '%s' which Velocity does not know -> the entry was dropped. Check [servers] in velocity.toml."
+binding-channel-empty: "Channel '%s' has no valid servers after validation -> {channel} will resolve to empty."
+binding-channel-empty-dropped: "Channel '%s' has no valid servers after validation (missing refs: %s) -> {channel} will resolve to empty."
+binding-server-without-channel: "Server '%s' belongs to no channel. With channels.global=false it cannot communicate with any other server."
+binding-check-ok: "Server/channel binding check: OK."
+binding-summary-warning: "%d binding issue(s): %d warning(s) / %d hint(s); hints are in debug log or /velochatx status."
+binding-summary-info: "%d binding hint(s). Run /velochatx status for details."
+binding-legacy-hint: "Legacy server bindings (server-display.display / channels.*.servers) are in use. Run /velochatx config migration to switch to server.list."
+status-binding-title: "Server binding (%d):"
+status-binding-entry: "  %s : %s"
+status-binding-issues: "Binding issues: %d (%d warning)"

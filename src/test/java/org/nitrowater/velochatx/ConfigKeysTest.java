@@ -19,8 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * Guards that every {@link ConfigKey} used by the code actually exists in the
  * shipped language templates (en + zh).
+ * <p>Legacy compat keys that the shipped config intentionally omits (they are only read
+ * when an old user file still has them) are excluded from the shipped-template check.</p>
  */
 class ConfigKeysTest {
+
+    /** Runtime-only compat reads: absent from shipped config after the 2.1.1 migration. */
+    private static final java.util.Set<String> LEGACY_ONLY_KEYS = java.util.Set.of(
+            "server-display.enable",
+            "server-display.proxy",
+            "server-display.display");
 
     @Test
     void allConfigKeysExistInLanguageTemplates() throws Exception {
@@ -35,6 +43,9 @@ class ConfigKeysTest {
                 assertKey(config, key, "config/" + lang + ".yml");
             }
             for (ConfigKey key : ServerConfigKey.values()) {
+                if (LEGACY_ONLY_KEYS.contains(key.getKey())) {
+                    continue;
+                }
                 assertKey(config, key, "config/" + lang + ".yml");
             }
             for (ConfigKey key : TabListConfigKey.values()) {

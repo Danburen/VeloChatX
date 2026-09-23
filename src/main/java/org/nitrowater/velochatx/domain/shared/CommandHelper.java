@@ -1,15 +1,13 @@
 package org.nitrowater.velochatx.domain.shared;
 
-import lombok.Getter;
-import org.nitrowater.waterapi.domain.logger.LoggerService;
+import org.nitrowater.waterapi.domain.message.MessageService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
+import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
 import org.nitrowater.waterapi.domain.shared.common.MessageTemplate;
 import org.nitrowater.waterapi.domain.spi.CommandSource;
-import org.nitrowater.waterapi.domain.spi.PlayerActionService;
-import org.nitrowater.waterapi.domain.message.MessageService;
 import org.nitrowater.waterapi.common.ChatColor;
 import org.nitrowater.waterapi.utils.Colors;
 
@@ -34,29 +32,23 @@ public class CommandHelper {
     private final PlaceholderService placeholderService;
     private final WProxyServer wProxyServer;
     private final Locale defaultLocale;
-    @Getter
-    private final LoggerService loggerService;
 
     /**
      * Create a new CommandHelper.
      *
-     * @param messageService    the message service for localized messages
-     * @param actionService     the player action service
+     * @param messageService     the message service for localized messages
      * @param placeholderService the placeholder service
-     * @param wProxyServer      the proxy server
-     * @param defaultLocale     the default locale
+     * @param wProxyServer       the proxy server
+     * @param defaultLocale      the default locale
      */
     public CommandHelper(MessageService messageService,
-                         PlayerActionService actionService,
                          PlaceholderService placeholderService,
                          WProxyServer wProxyServer,
-                         Locale defaultLocale,
-                         LoggerService loggerService) {
+                         Locale defaultLocale) {
         this.messageService = messageService;
         this.placeholderService = placeholderService;
         this.wProxyServer = wProxyServer;
         this.defaultLocale = defaultLocale;
-        this.loggerService = loggerService;
     }
 
     /**
@@ -109,18 +101,17 @@ public class CommandHelper {
     }
 
     /**
-     * Send a formatted message with placeholder resolution.
+     * Build a placeholder context for a player, carrying the player's current server
+     * name so that {@code {server}} resolves.
      *
-     * @param source   the command source
-     * @param template the message template
-     * @param player   the player for placeholder context
+     * @param player the player
+     * @return the placeholder context
      */
-    public void sendFormatted(CommandSource source, String template, UPlayer player) {
-        PlaceholderContext context = PlaceholderContext.builder()
+    public PlaceholderContext contextOf(UPlayer player) {
+        return PlaceholderContext.builder()
                 .player(player)
-                .serverName(player.getCurrentServer().map(s -> s.getName()).orElse("unknown"))
+                .serverName(player.getCurrentServer().map(UServer::getName).orElse("unknown"))
                 .build();
-        source.sendMessage(placeholderService.resolve(template, context));
     }
 
     // === Message get methods ===
@@ -161,27 +152,6 @@ public class CommandHelper {
         }
     }
 
-    /**
-     * Get a localized message using MessageTemplate.
-     *
-     * @param template the message template
-     * @param locale   the locale
-     * @return the localized message
-     */
-    public String getMessage(MessageTemplate template, Locale locale) {
-        return messageService.getMessage(template, locale.getLanguage());
-    }
-
-    /**
-     * Send a system info message to the source using MessageTemplate.
-     *
-     * @param source   the command source
-     * @param template the system message template
-     */
-    public void sendSystemInfo(CommandSource source, MessageTemplate template) {
-        source.sendMessage(getMessage(template, source));
-    }
-
     // === Player methods ===
 
     /**
@@ -203,17 +173,6 @@ public class CommandHelper {
      */
     public Optional<UPlayer> getPlayer(String name) {
         return wProxyServer.getPlayer(name);
-    }
-
-    /**
-     * Get all online player names.
-     *
-     * @return list of online player names
-     */
-    public List<String> getAllPlayerNames() {
-        return wProxyServer.getAllOnlinePlayers().stream()
-                .map(UPlayer::getLoginName)
-                .toList();
     }
 
     /**
@@ -277,18 +236,5 @@ public class CommandHelper {
             return false;
         }
         return true;
-    }
-
-    public void NoticeAndTipForCorrectCommandFormat(CommandSource source, VeloChatXSystemMessage veloChatXSystemMessage) {
-        source.sendMessage(
-                Colors.coloredText(
-                        getMessage(
-                                VeloChatXCustomMessage.INCORRECT_COMMAND_ARGUMENTS,
-                                source,
-                                getMessage(veloChatXSystemMessage, source)
-                        ),
-                        ChatColor.RED
-                )
-        );
     }
 }

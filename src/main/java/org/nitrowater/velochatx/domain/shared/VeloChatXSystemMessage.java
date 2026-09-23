@@ -14,20 +14,16 @@ import org.nitrowater.waterapi.domain.shared.common.MessageTemplate;
 public enum VeloChatXSystemMessage implements MessageTemplate {
     // Channel info
     SHOW_CHANNEL_INFO_COMMAND_TITLE("show-channel-info-command-title"),
+    SHOW_CHANNEL_INFO_COMMAND_ENTRY("show-channel-info-command-entry"),
+    // Status command
+    STATUS_COMMAND_TITLE("status-command-title"),
+    STATUS_SERVER_LINE("status-server-line"),
+    STATUS_CHANNEL_LINE("status-channel-line"),
+    STATUS_BROADCAST_LINE("status-broadcast-line"),
     // Log format
     BAN_WORDS_LOG("ban-words-log-message"),
     // Internal hints
-    USE_DEFAULT_CHAT_FORMAT("use-default-chat-format-message"),
     FAIL_PARSING_CHAT_FORMAT("fail-parsing-chat-format-message"),
-    CROSSING_CHAT_DISABLE("crossing-chat-disable-message"),
-    BROADCAST_DISABLE("broadcast-disable-message"),
-    // Startup load summary (servers / channels / broadcasts)
-    SERVER_LOAD_ALL_ONLINE("server-load-all-online-message"),
-    SERVER_LOAD_PARTIAL("server-load-partial-message"),
-    SERVER_LOAD_NONE_ONLINE("server-load-none-online-message"),
-    CHANNEL_LOAD("channel-load-message"),
-    CHANNEL_LOAD_COUNT("channel-load-count-message"),
-    BROADCAST_LOAD("broadcast-load-message"),
     // Command help text
     MENTION_COMMAND_FORMAT("mention-command-format-message"),
     MSG_COMMAND_FORMAT("msg-command-format-message"),
@@ -39,7 +35,23 @@ public enum VeloChatXSystemMessage implements MessageTemplate {
     SHOW_CHANNEL_INFO_COMMAND_FORMAT("show-channel-info-command-format-message"),
     LIST_COMMAND_FORMAT("list-command-format-message"),
     PLACEHOLDER_COMMAND_FORMAT("placeholder-command-format-message"),
-    RELOAD_COMMAND_FORMAT("reload-command-format-message");
+    RELOAD_COMMAND_FORMAT("reload-command-format-message"),
+    STATUS_COMMAND_FORMAT("status-command-format-message"),
+    MIGRATE_COMMAND_FORMAT("migrate-command-format-message"),
+    // Server/channel binding diagnostics (see BindingDiagnostics)
+    BINDING_UNBOUND_SERVER("binding-unbound-server"),
+    BINDING_PHANTOM_SERVER("binding-phantom-server"),
+    BINDING_CHANNEL_UNKNOWN_SERVER("binding-channel-unknown-server"),
+    BINDING_CHANNEL_EMPTY("binding-channel-empty"),
+    BINDING_CHANNEL_EMPTY_DROPPED("binding-channel-empty-dropped"),
+    BINDING_SERVER_WITHOUT_CHANNEL("binding-server-without-channel"),
+    BINDING_CHECK_OK("binding-check-ok"),
+    BINDING_SUMMARY_WARNING("binding-summary-warning"),
+    BINDING_SUMMARY_INFO("binding-summary-info"),
+    BINDING_LEGACY_HINT("binding-legacy-hint"),
+    STATUS_BINDING_TITLE("status-binding-title"),
+    STATUS_BINDING_ENTRY("status-binding-entry"),
+    STATUS_BINDING_ISSUES("status-binding-issues");
 
     private final String key;
 

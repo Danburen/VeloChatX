@@ -2,6 +2,9 @@ package org.nitrowater.velochatx.domain.broadcast;
 
 import org.nitrowater.waterapi.domain.shared.config.ConfigKey;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Configuration keys for broadcast settings.
  * <p>
@@ -23,10 +26,14 @@ public enum BroadcastConfigKey implements ConfigKey {
     GLOBAL_ENABLED("global.enable", true),
     /** Global broadcast prefix */
     GLOBAL_PREFIX("global.prefix", "§7[§b服务器娘§7]§r §8:§r"),
+    /** Global broadcast message list */
+    GLOBAL_MESSAGE_LIST("global.message-list", List.<String>of()),
 
     // Locale (local) broadcast
     /** Whether locale broadcast is enabled */
     LOCALE_ENABLED("locale.enable", false),
+    /** Locale broadcast entries (user-owned collection of per-locale broadcasts) */
+    LOCALE_BROADCAST_LIST("locale.broadcast-list", Map.<String, Object>of()),
 
     // Welcome broadcast
     /** Whether welcome broadcast is enabled */

@@ -1,10 +1,10 @@
 # VelochatX 2.0.0
 # build java version: JE 17
-# author: waterwood
+# author: danburen
 # Available language zh,en
 
 # This version of the file, usually does not need to be changed, the update check uses it
-config-version: 2.0.2
+config-version: 2.1.1
 # Auto update / Auto download
 check-update:
   enable: true
@@ -16,15 +16,13 @@ enable: true
 debug: false
 # whether enable crossing chat
 crossing-chat-enable: true
-# whether enable broadcast
-broadcast-enable: true
 
 # Configure the format of chat output. {xxx} represents replaced variables
 # In the message, these rules are also applicable
-# channel: returns the server channel where the player getBoolean located
+# channel: returns the server channel where the player is located
 # Group: returns the player's group
 # Prefix/Suffix: returns the player's prefix/suffix
-# Server: returns the server the player getBoolean on, the server display name can be converted below in server-display before output;
+# Server: returns the server the player is on, the server display name can be converted below in server before output;
 # player: returns the player's name
 # Message: the player's message text
 # NOTE: SERVER && MESSAGE && PlayerName are required, if missing, it will use the default output format: [{Server}]{PlayerName}: {Message}
@@ -37,40 +35,78 @@ chat-format: "{channel}{Group}{Server}{Prefix}{Player}{Suffix} §8:§r {Message}
 chat-format-model: "none"
 
 # Plugin message file's language version, typically set automatically based on your Java JVM version
-locale: zh
+locale: en
 
-# global/locale option here determines if the information displayed to the player (mentions, private messages, etc.) getBoolean based on the player's client or the server language?
+# global/locale option here determines if the information displayed to the player (mentions, private messages, etc.) is based on the player's client or the server language?
 # global: Display to the player based on server language (customizable messages can be changed)
 # locale: Display messages to players based on their client's language (cannot customize messages, only show built-in default plugin messages)
 player-locale: global
 
 # Whether to output all player text to the console
-# If the server getBoolean running low on memory, you can disable this feature, especially when the number of players getBoolean very large
+# If the server is running low on memory, you can disable this feature, especially when the number of players is very large
 log-text:
   enable: true
   # Whether to convert the text output in the console to match the color (achieves the same effect as in the game, logs will not show color codes, does not affect the game output colors)
   convert: true
 
-# Convert the server's display name
-# The keys corresponding to the display must match the server names in Velocity.toml -> [servers]
-# proxy represents the proxy server, such as Velocity;
-# If "unknown" or "未known" appears, it indicates the corresponding server getBoolean missing below
-# e.g. [Lobby]steven: hello -> [大厅服]steven: hello
-server-display:
-  enable: true
+# Convert the server's display name (see server.list below).
+# [IMPORTANT] The keys under "list" MUST exactly match the server ids in Velocity.toml -> [servers] (case-sensitive).
+# Only backends declared here use the display name below; an undeclared backend with display-enable=true prints as
+# [raw-name] (auto-wrapped to match the bracketed style below), and {channel} resolves to an empty string.
+# With display-enable=false every backend prints its raw name (no auto brackets).
+# Conversely, a name declared here that does not exist in Velocity.toml will never match a real backend.
+# On startup the plugin prints a WARNING listing every undeclared / non-existent server, so watch the console.
+# proxy represents the proxy server itself, such as Velocity.
+# Prefer server.proxy below; server-display.proxy is legacy (read first while present).
+# Tip: {Server} already carries the display name / brackets — do not wrap it again in chat-format.
+# Legacy keys server-display.enable / proxy / display are migrated by /velochatx config migration to
+# server.display-enable / server.proxy / server.list (legacy still dual-read while present).
+
+# Server binding (recommended).
+#   display-enable : whether undeclared backends get bracketed display names (legacy
+#                    server-display.enable wins while present); optional, default false
+#   proxy  : proxy display name for {proxy} (legacy server-display.proxy wins while present), optional
+#   list   : per-backend bindings
+# Keys under list MUST equal the server ids in Velocity.toml -> [servers] (case-sensitive).
+#   display  : the display name (equivalent to legacy server-display.display.<id>), optional
+#   channels : the channels this server belongs to (equivalent to listing it in
+#              channels.channel-list.<channel>.servers), optional
+# Shape mirrors channels.channel-list below — add more entries the same way, one under another:
+#   <server-id>:
+#     display: "Display Name"
+#     channels:
+#       - <channel-name>
+# A backend declared neither here nor in server-display.display: with display-enable=true {server} prints
+# [raw-name] and {channel} is empty; with display-enable=false {server} prints the raw name.
+# [NOTE] If ANY channels.channel-list.<channel>.servers is a non-empty list (legacy membership),
+#        every channels under this section is ignored and membership follows channel-list;
+#        display still applies per id.
+server:
+  display-enable: true
   proxy: "[§5Proxy Server§r]"
-  display:
-    lobby: "[§dLobby Server§r]"
-    server1: "[§3Mini Game Server§r]"
-    server2: "[§2Survival Server§r]"
+  list:
+    lobby:
+      display: "[§dLobby Server§r]"
+      channels:
+        - login
+    server1:
+      display: "[§3Mini Game Server§r]"
+      channels:
+        - games
+    server2:
+      display: "[§2Survival Server§r]"
+      channels:
+        - survive
 
 # @from version 1.4.0
 # Group each server
 # A channel group can have multiple sub-servers, and a server can belong to multiple channels
-# When a server appears in multiple channels simultaneously, {channel} getBoolean replaced with the first server it appears in
-# If global getBoolean set to false, only servers in the same channel can communicate with each other
-# If global getBoolean set to true, messages from all servers (whether in the channel or not) will be communicated
-# If a server getBoolean not in the channel, it will default to global, and {channel} placeholder will be replaced with an empty string
+# When a server appears in multiple channels simultaneously, {channel} is replaced with the first server it appears in
+# If global is set to false, only servers in the same channel can communicate with each other
+# If global is set to true, messages from all servers (whether in the channel or not) will be communicated
+# If a server is not in the channel, it will default to global, and {channel} placeholder will be replaced with an empty string
+# [IMPORTANT] Membership lives on server.list.<id>.channels (see above); channels.*.servers is the
+#             legacy form and is removed by /velochatx config migration. Unknown ids are dropped with a WARNING.
 channels:
   global: true
   channel-list:
@@ -79,22 +115,16 @@ channels:
       welcome:
         enable: true
         message: "Welcome to the Login Channel"
-      servers:
-        - lobby
     games:
       display: "[§6Mini Game Channel§r]"
       welcome:
         enable: true
         message: "Welcome to the Mini Game Channel"
-      servers:
-        - server1
     survive:
       display: "[§6Survival Channel§r]"
       welcome:
         enable: true
         message: "Welcome to the Survival Channel"
-      servers:
-        - server2
     # You can add more channels following the above format (please maintain the consistency of the format)
 
 # Whether to show a title on the player's screen when mentioning them
@@ -110,7 +140,7 @@ mention-show-title:
 # interval: Please note that for servers with many players, setting a larger value will reduce resource usage. The larger the player count, the more resources it will consume.
 tab-list:
   enable: true
-  interval: 1000 # Refresh interval in milliseconds, enter 0 if no refresh getBoolean needed
+  interval: 1000 # Refresh interval in milliseconds, enter 0 if no refresh is needed
   refresh-ratio: 0.5 # Dynamic refresh ratio: 0 = fixed interval, (0,1] = interval scales with player count
   format: "{server}{prefix}{player}{Suffix}" # Format for each player's tab row. You can refer to the chat format placeholders and server placeholders
   header: "Welcome to {proxy} Current Server: {server}"
@@ -121,10 +151,3 @@ ban-words:
   enable: true
   log-to-console: true
   words: "fuck,damn,shit,dog,junk,**"
-
-# Whether to enable the player's cross-server blocking function (future updates, currently enabled by default)
-# max-list represents how many players to store (for large servers, a smaller value getBoolean better)
-# Stored in the database as UUID, each player takes approximately 16B
-ban-list:
-  enable: true
-  max-player: 20

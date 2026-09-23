@@ -11,11 +11,17 @@ import org.nitrowater.velochatx.commands.MentionCommandHandler;
 import org.nitrowater.velochatx.commands.MsgCommandHandler;
 import org.nitrowater.velochatx.domain.event.handler.VCXEventHandler;
 import org.nitrowater.velochatx.domain.shared.ServiceFactory;
+import org.nitrowater.velochatx.domain.shared.VeloChatXPermissions;
 import org.nitrowater.velochatx.events.PlayerEventManager;
-import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityPlayerPlatformStrategy;
-import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityWProxyServerModel;
 import org.nitrowater.waterapi.domain.command.CommandManager;
+import org.nitrowater.waterapi.domain.infra.velocity.adapter.SafePermissionService;
+import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityColoredMessageSender;
+import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityCommandRegistrar;
+import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityPlayerPlatformStrategy;
+import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityTabListProvider;
+import org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityWProxyServerModel;
 import org.nitrowater.waterapi.domain.kernel.Kernel;
+import org.nitrowater.waterapi.domain.model.UPlayerRegistry;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.shared.common.KernelMessage;
 import org.nitrowater.waterapi.domain.spi.*;
@@ -36,7 +42,7 @@ import java.util.List;
 @Plugin(
         id = "velochatx",
         name = "VeloChatX",
-        authors = "Waterwood",
+        authors = "Danburen",
         version = "2.1.0")
 public class VeloChatX extends WaterPlugin {
 
@@ -70,7 +76,7 @@ public class VeloChatX extends WaterPlugin {
                 KernelMessage.SUCCESSFULLY_ENABLE_MESSAGE, elapsed
         );
         // Metrics
-        Metrics metrics = metricsFactory.make(this, 23273);
+        metricsFactory.make(this, 23273);
     }
 
     @Subscribe
@@ -86,11 +92,11 @@ public class VeloChatX extends WaterPlugin {
         VelocityPlayerPlatformStrategy strategy = new VelocityPlayerPlatformStrategy();
         WProxyServer wProxyServer = new VelocityWProxyServerModel(proxyServer, strategy);
         // Create Velocity SPI implementations
-        PermissionService permissionService = new org.nitrowater.waterapi.domain.infra.velocity.adapter.SafePermissionService();
-        ColoredMessageSender messageSender = new org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityColoredMessageSender(proxyServer);
-        PlayerActionService actionService = new org.nitrowater.waterapi.domain.spi.PlayerActionService(messageSender, kernel.getPlaceholderService());
-        TabListProvider tabListProvider = new org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityTabListProvider(proxyServer);
-        CommandRegistrar commandRegistrar = new org.nitrowater.waterapi.domain.infra.velocity.adapter.VelocityCommandRegistrar(proxyServer);
+        PermissionService permissionService = new SafePermissionService();
+        ColoredMessageSender messageSender = new VelocityColoredMessageSender(proxyServer);
+        PlayerActionService actionService = new PlayerActionService(messageSender, kernel.getPlaceholderService());
+        TabListProvider tabListProvider = new VelocityTabListProvider(proxyServer);
+        CommandRegistrar commandRegistrar = new VelocityCommandRegistrar(proxyServer);
         // Create service factory
         this.serviceFactory = new ServiceFactory(
                 kernel, this, wProxyServer,
@@ -98,9 +104,12 @@ public class VeloChatX extends WaterPlugin {
         );
         // One-shot startup self-check: report loaded servers / channels / broadcasts.
         serviceFactory.reportLoadSummary();
+        // Report server-display / channel binding mismatches at WARNING level (unbound backends,
+        // phantom entries, dead channel servers) so degraded chat formatting is not silent.
+        serviceFactory.reportBindingProblems();
         serviceFactory.startSchedulers();
         // Register event handlers
-        VCXEventHandler eventHandler = new org.nitrowater.velochatx.domain.event.handler.VCXEventHandler(
+        VCXEventHandler eventHandler = new VCXEventHandler(
                 serviceFactory.getChatService(),
                 actionService,
                 kernel.getMessageService(),
@@ -113,11 +122,8 @@ public class VeloChatX extends WaterPlugin {
                 serviceFactory.getTabListService()
         );
 
-        PlayerEventManager playerEventManager = new org.nitrowater.velochatx.events.PlayerEventManager(
-                new org.nitrowater.waterapi.domain.model.UPlayerRegistry(
-                        strategy,
-                        wProxyServer
-                ),
+        PlayerEventManager playerEventManager = new PlayerEventManager(
+                new UPlayerRegistry(strategy, wProxyServer),
                 eventHandler
         );
         proxyServer.getEventManager().register(this, playerEventManager);
@@ -134,27 +140,46 @@ public class VeloChatX extends WaterPlugin {
                 serviceFactory.getCommandRegistrar(),
                 "velochatx",
                 List.of("vcx", "chatx", "vc"),
-                "velochatx.admin"
+                VeloChatXPermissions.ADMIN
         );
 
-        // Primary command requires `velochatx.player` (granted broadly; LP inheritance makes
-        // `velochatx.admin` include it). `help` stays reachable for every player that has it.
-        commands.registerPrimary(
-                new ControlCommandHandler(serviceFactory),
-                "velochatx.player"
+        // The primary command is registered as a TREE: every subcommand carries its own
+        // permission, so a platform (Velocity renders Brigadier `requires(...)`) exposes only the
+        // subcommands a source may use — no unauthorized subcommand shows up in the client
+        // command tree or tab completion. `help` is unrestricted; `config`/`reload` require
+        // `velochatx.admin`. Handlers keep their internal checks as defence in depth.
+        ControlCommandHandler controlHandler = new ControlCommandHandler(serviceFactory);
+        commands.registerTree(
+                "velochatx",
+                List.of("vcx", "chatx", "vc"),
+                controlHandler.buildTree(),
+                null
         );
 
+        // mention / vcmsg are single commands whose permission lives at the root, so a plain
+        // permission-scoped registration is enough: Velocity hides the node from unauthorized
+        // sources while tab completion (player names) is preserved.
         commands.register("mention",
                 new MentionCommandHandler(serviceFactory),
-                "velochatx.player",
+                VeloChatXPermissions.PLAYER,
                 List.of("mention", "men", "at")
         );
 
         commands.register("vcmsg",
                 new MsgCommandHandler(serviceFactory),
-                "velochatx.player",
+                VeloChatXPermissions.PLAYER,
                 List.of("vcmsg", "vctell")
         );
+
+        // Debug-only hint (invisible unless `debug: true`): Velocity itself has no OP concept, so
+        // these nodes must be granted through a proxy permission plugin such as LuckPerms.
+        // Uses the message-only debug overload on purpose: the node names live in single quotes,
+        // which MessageFormat would treat as escapes.
+        getKernel().getLoggerService().debug(
+                "VeloChatX commands ready. Velocity has no operator status; grant permission nodes "
+                        + "velochatx.admin (config/reload/status/show-channel-info/placeholder) and "
+                        + "velochatx.player (on/off/block/unblock/list) through a proxy permission "
+                        + "plugin such as LuckPerms.");
     }
 
     /**

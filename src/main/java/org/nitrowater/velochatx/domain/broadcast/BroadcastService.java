@@ -1,6 +1,7 @@
 package org.nitrowater.velochatx.domain.broadcast;
 
 import org.nitrowater.waterapi.domain.config.application.ConfigService;
+import org.nitrowater.waterapi.domain.config.application.SchemaProvider;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UServer;
@@ -32,7 +33,7 @@ import java.util.Optional;
  * @see BroadcastConfigKey
  * @see BroadcastModel
  */
-public interface BroadcastService extends ConfigurableService<BroadcastConfigKey>, ConfigService,
+public interface BroadcastService extends SchemaProvider, ConfigurableService<BroadcastConfigKey>, ConfigService,
         EventListener<KernelConfigUpdateEvent> {
 
     /**

@@ -1,10 +1,10 @@
 # VelochatX 2.0.0
 # build java version: JE 17
-# author: waterwood
+# author: Danburen
 # Available language zh,en
 
 # 此文件的版本，通常不需要改变，检测更新需要用到
-config-version: 2.0.2
+config-version: 2.1.1
 # 自动更新 / 自动下载
 check-update:
   enable: true
@@ -16,15 +16,13 @@ enable: true
 debug: false
 # 跨服功能是否启用
 crossing-chat-enable: true
-# 广播功能是否启用 (广播配置请前往broadcast.yml更改)
-broadcast-enable: true
 
 # 配置聊天输出的格式{xxx}代表替换的变量
 # 在message里，这些规则也适用
 # channel: 返回玩家所在的服务器频道
 # Group: 返回玩家的组别
 # Prefix/Suffix: 返回玩家的前/后缀
-# Server: 返回玩家所在的服务器，服务器的显示名字可以在下面的server-display来转换后再输出;
+# Server: 返回玩家所在的服务器，服务器的显示名字可以在下面的 server 来转换后再输出;
 # player: 返回玩家的名字
 # Message: 玩家的消息文本
 # NOTE : SERVER && MESSAGE && PlayName 这三个字段是必须的，如果少了就好用默认的输出format:[{Server}]{PlayerName}: {Message}
@@ -51,18 +49,49 @@ log-text:
   # 是否要转换输出到终端的文本颜色(实现和游戏中一样的效果，日志中不会显示颜色代码，不影响游戏中输出的颜色)
   convert: true
 
-# 转换输出的服务器的显示名称
-# display的键对应的必须是Velocity中的服务器名字 -> Velocity.toml -> [servers]
-# proxy表示代理服务器，如Velocity;
-# 如果出现 unknown 或 未知字样则表示下方缺少对应的服务器
-# e.g. [Lobby]steven: hello -> [大厅服]steven: hello
-server-display:
-  enable: true
+# 转换输出的服务器的显示名称（见下方 server.list）
+# 【重要】list 下的键必须与 Velocity.toml -> [servers] 里的服务器 id 完全一致（区分大小写）。
+# 只有在这里声明的后端服务器才会使用下面的显示名；未声明的后端在 display-enable=true 时会以 [原始名]
+# 输出（自动补中括号，与下方配置风格一致），{channel} 占位符会被替换成空字符串。
+# display-enable=false 时全部输出原始名（不补括号）。
+# 反之，这里声明了但 Velocity.toml 里不存在的服务器永远不会被匹配到。
+# 插件启动时会用 WARNING 列出所有“未声明”和“不存在”的服务器，请留意控制台。
+# 请优先使用下方 server.proxy；server-display.proxy 为旧键（存在时优先读取）。
+# 提示：{Server} 占位符本身已含显示名/括号，chat-format 里请勿再手动包一层 []。
+# 旧键 server-display.enable / proxy / display 由 /velochatx config migration 迁移到
+# server.display-enable / server.proxy / server.list（旧键存在时仍优先双读）。
+
+# 服务器绑定（推荐）
+#   display-enable : 未声明的后端是否补中括号显示名（旧键 server-display.enable 存在时优先），可选，默认 false
+#   proxy  : 代理服显示名（{proxy}；旧键 server-display.proxy 存在时优先），可选
+#   list   : 各后端服务器绑定
+# list 下的键必须等于 Velocity.toml -> [servers] 的服务器 id（区分大小写）。
+#   display  : 显示名（等价于旧的 server-display.display.<id>），可选
+#   channels : 该服务器所属频道（等价于在 channels.channel-list.<频道>.servers 里列出它），可选
+# 结构与下面 channels.channel-list 对称，可按同样格式一行一行往下加：
+#   <服务器id>:
+#     display: "显示名"
+#     channels:
+#       - <频道名>
+# 未在此声明的后端：display-enable=true 时 {server} 输出 [原始名]，{channel} 为空；display-enable=false 时输出原始名。
+# 【注意】若任一 channels.channel-list.<频道>.servers 为非空列表（旧绑定模式），
+#         则本节所有 channels 被整体忽略，成员以 channel-list 为准；仅 display 仍逐项生效。
+server:
+  display-enable: true
   proxy: "[§5代理服§r]"
-  display:
-    lobby: "[§d大厅服§r]"
-    server1: "[§3小游戏服§r]"
-    server2: "[§2生存服§r]"
+  list:
+    lobby:
+      display: "[§d大厅服§r]"
+      channels:
+        - login
+    server1:
+      display: "[§3小游戏服§r]"
+      channels:
+        - games
+    server2:
+      display: "[§2生存服§r]"
+      channels:
+        - survive
 
 # @自 1.4.0 版本加入
 # 为每个服务器分组
@@ -71,6 +100,8 @@ server-display:
 # global 为 false 的时候则仅仅频道内的服务器消息互通
 # global 被设置 true 则所有服务器的消息(不论是否在频道内)都会互通
 # 若某个服务器不在频道内，则默认接入global，即全服互通，{channel} 占位符则会被替换成空字符串
+# 【重要】成员关系写在 server.list.<频道>（见上方）；channels.*.servers 为旧形态，
+#         /velochatx config migration 会删除它们。不存在的服务器 id 会被丢弃并 WARNING 提示。
 channels:
   global: true
   channel-list:
@@ -79,22 +110,16 @@ channels:
       welcome:
         enable: true
         message: "欢迎加入登录频道"
-      servers:
-        - lobby
     games:
       display: "[§6小游戏频道§r]"
       welcome:
         enable: true
         message: "欢迎加入小游戏频道"
-      servers:
-        - server1
     survive:
       display: "[§6生存频道§r]"
       welcome:
         enable: true
         message: "欢迎加入生存频道"
-      servers:
-        - server2
     # 可以按照以上的格式往下添加多个频道(请注意格式要保持一致)
 
 # 是否在提醒的时候给玩家大屏幕显示标题
@@ -123,10 +148,3 @@ ban-words:
   enable: true
   log-to-console: true
   words: "操,干,日,狗,垃圾,傻逼"
-
-# 是否启用玩家的跨服屏蔽功能(未来更新功能，当前版本默认启用)
-# max-list 表示最多存储多少个玩家(对于超大型服务器这个值越小越好)
-# 以 UUID 形式存储在数据库当中，一个玩家约 16B
-ban-list:
-  enable: true
-  max-player: 20

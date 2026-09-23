@@ -18,9 +18,6 @@ import org.nitrowater.velochatx.domain.tablist.TabListServiceImpl;
 import org.nitrowater.velochatx.mapper.migration.V001__CreatePlayerTables;
 import org.nitrowater.velochatx.mapper.migration.V002__CreateIgnoreRejectTables;
 import org.nitrowater.waterapi.domain.config.application.ConfigManager;
-import org.nitrowater.waterapi.domain.config.application.ConfigService;
-import org.nitrowater.waterapi.domain.config.schema.ItemSchema;
-import org.nitrowater.waterapi.domain.config.schema.KeyItemSchema;
 import org.nitrowater.waterapi.domain.infra.io.database.Database;
 import org.nitrowater.waterapi.domain.infra.io.database.H2DataBase;
 import org.nitrowater.waterapi.domain.infra.io.database.migration.MigrationManager;
@@ -35,15 +32,15 @@ import org.nitrowater.waterapi.domain.logger.LoggerService;
 import org.nitrowater.waterapi.domain.logger.MessageLoggerService;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
-import org.nitrowater.waterapi.domain.placeholder.PlaceholdersContributor;
 import org.nitrowater.waterapi.domain.shared.config.Config;
-import org.nitrowater.waterapi.domain.shared.service.EventListener;
 import org.nitrowater.waterapi.domain.shared.service.SchedulerService;
-import org.nitrowater.waterapi.domain.shared.service.Service;
 import org.nitrowater.waterapi.domain.spi.*;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Factory that wires and initializes all domain services.
@@ -82,8 +79,6 @@ public class ServiceFactory {
                           TabListProvider tabListProvider,
                           CommandRegistrar commandRegistrar) {
         this.kernel = kernel;
-        // Register VeloChatX's user-owned dynamic config collections (also whitelists them).
-        registerConfigSchemas(kernel.getConfigManager());
         this.wProxyServer = wProxyServer;
         // Extract services from kernel
         PlaceholderService placeholderService = kernel.getPlaceholderService();
@@ -98,6 +93,9 @@ public class ServiceFactory {
         // Infrastructure
         this.scheduler = new VelocitySchedulerService(wProxyServer.toNative(), pluginInstance);
         this.database = initDatabase(dataFolder.getAbsolutePath(), loggerService);
+        this.kernel.getConfigManager().registerMigrations("config", List.of(
+                new ServerBindingConfigMigration())
+        );
         // Domain services
         this.serverService = new ServerServiceImpl(mainConfig, wProxyServer);
         this.channelService = new ChannelServiceImpl(mainConfig, serverService);
@@ -115,29 +113,33 @@ public class ServiceFactory {
         this.broadcastService = new BroadcastServiceImpl(
                 broadcastConfigLoader, broadcastLocale, serverService, channelService, wProxyServer,
                 placeholderService, actionService, scheduler, loggerService);
+        // Register the services' user-owned config collections (also whitelists them from config
+        // diffs / self-update). Must run before Kernel#checkConfigContent().
+        this.kernel.getConfigManager().registerSchemas(
+                Stream.of(
+                                channelService.schemas(),
+                                broadcastService.schemas(),
+                                serverService.schemas()
+                        )
+                        .filter(Objects::nonNull)
+                        .flatMap(Collection::stream)
+                        .toList()
+        );
 
         this.chatService = new ChatServiceImpl(mainConfig, placeholderService, messageLoggerService);
 
         this.commandRegistrar = commandRegistrar;
         this.commandHelper = new CommandHelper(
                 kernel.getMessageService(),
-                actionService,
                 placeholderService,
                 wProxyServer,
-                kernel.getLocale(),
-                loggerService
+                kernel.getLocale()
         );
         this.loadSummaryReporter = new LoadSummaryReporter(
                 serverService,
                 channelService,
                 broadcastService,
-                kernel.getMessageService(),
                 loggerService
-        );
-
-        List<Service> services = List.of(
-                serverService, channelService, playerService,
-                tabListService, broadcastService, chatService
         );
 
         placeholderService.registerContributors(
@@ -154,8 +156,12 @@ public class ServiceFactory {
         kernel.registerConfigServices(broadcastService);
 
         // Full reload (/<cmd> reload) re-reads configs; restart schedulers so interval
-        // changes (broadcast / tab-list) take effect without a restart.
-        kernel.registerReloadHook(this::restartSchedulers);
+        // changes (broadcast / tab-list) take effect without a restart, and re-run the binding
+        // check so a fixed config stops reporting old problems.
+        kernel.registerReloadHook(() -> {
+            restartSchedulers();
+            reportBindingProblems();
+        });
     }
 
     public void startSchedulers() {
@@ -169,6 +175,57 @@ public class ServiceFactory {
      */
     public void reportLoadSummary() {
         loadSummaryReporter.report();
+    }
+
+    /**
+     * Analyze the mismatch between Velocity's registered backends, {@code server-display.display}
+     * and the configured channels. Shared by the startup self-check and {@code /velochatx status}.
+     *
+     * @return the current binding issues; empty when everything lines up
+     */
+    public List<BindingDiagnostics.Issue> analyzeBindings() {
+        return BindingDiagnostics.analyze(serverService, channelService);
+    }
+
+    /**
+     * Log every server/channel binding problem at WARNING level once during startup, so admins
+     * see why a backend may be printed with its raw name or an empty {@code {channel}}.
+     * <p>The legacy-binding migration hint is suppressed when {@code config} already has a
+     * pending migration: {@code checkConfigContent} prints one combined upgrade note instead.</p>
+     */
+    public void reportBindingProblems() {
+        boolean legacy = serverService.hasLegacyBindings();
+        boolean migrationCarriesHint = false;
+        ConfigManager manager = kernel.getConfigManager();
+        if (manager != null) {
+            migrationCarriesHint = manager.hasPendingMigration("config");
+        }
+        BindingDiagnostics.report(
+                kernel.getLoggerService(),
+                analyzeBindings(),
+                legacy && !migrationCarriesHint,
+                messageRenderer()
+        );
+    }
+
+    /**
+     * Build a localizer for binding diagnostics: resolves the template through the kernel's
+     * message service in the server locale, then applies {@link String#format}.
+     */
+    private BindingDiagnostics.Renderer messageRenderer() {
+        org.nitrowater.waterapi.domain.message.MessageService messageService = kernel.getMessageService();
+        String lang = kernel.getLocale().getLanguage();
+        return (template, args) -> {
+            String message = messageService.getMessage(template, lang);
+            if (args == null || args.length == 0) {
+                return message;
+            }
+            try {
+                return String.format(message, args);
+            } catch (java.util.IllegalFormatException e) {
+                return message;
+            }
+        };
     }
 
     public void stopSchedulers() {
@@ -189,34 +246,6 @@ public class ServiceFactory {
     public void close() {
         stopSchedulers();
         database.close();
-    }
-
-    /**
-     * Register the item schemas of VeloChatX's user-owned dynamic collections. Registering a
-     * schema also whitelists the collection from config diffs / self-update, so shipped example
-     * entries are neither reported as missing nor re-inserted. Validation is read-only and runs
-     * once at startup ({@code Kernel#checkConfigContent}).
-     */
-    private static void registerConfigSchemas(ConfigManager configManager) {
-        // config.yml: each channel must declare its servers; the welcome block is optional, but
-        // when present it needs both enable and message.
-        configManager.registerItemSchema("channels.channel-list",
-                KeyItemSchema.builder()
-                        .required("servers")
-                        .optional("welcome", welcome -> welcome
-                                .required("enable")
-                                .required("message"))
-                        .build());
-        // broadcast.yml: each locale broadcast must carry at least a message list.
-        configManager.registerItemSchema("locale.broadcast-list",
-                KeyItemSchema.builder()
-                        .required("message-list")
-                        .optional("prefix")
-                        .optional("channel-list")
-                        .optional("server-list")
-                        .build());
-        // config.yml: server display names are free-form (whitelist only, no checks).
-        configManager.registerItemSchema("server-display.display", ItemSchema.freeform());
     }
 
     private Database initDatabase(String dataFolderPath, LoggerService loggerService) {
@@ -252,9 +281,5 @@ public class ServiceFactory {
      */
     public void reloadAll() throws java.io.IOException {
         kernel.reloadConfigServices();
-    }
-
-    public WProxyServer getWProxyServer() {
-        return this.wProxyServer;
     }
 }
