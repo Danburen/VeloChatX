@@ -47,6 +47,7 @@ public class ChatServiceImpl implements ChatService {
             chatFormat = "{server} {player}: {message}";
             messageLoggerService.warn(VeloChatXSystemMessage.FAIL_PARSING_CHAT_FORMAT);
         }
+        applyLogColorMode();
     }
 
     @Override
@@ -57,6 +58,19 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public void onEvent(KernelConfigUpdateEvent event) {
         this.config = event.getConfig();
+        applyLogColorMode();
+    }
+
+    /**
+     * Push {@code log-text.convert} into the shared logger.
+     * <p>That switch decides how <b>all</b> console/log output renders Minecraft color codes:
+     * {@code true} converts {@code §} codes to ANSI terminal colors (the log file stays clean
+     * because Velocity strips ANSI there), {@code false} strips them so raw {@code §} codes are
+     * never printed. Re-applied on every config reload.</p>
+     */
+    private void applyLogColorMode() {
+        messageLoggerService.getLoggerService()
+                .setMessageColorParseMode(getConfig().getBoolean(ChatConfigKey.LOG_CHAT_CONVERT));
     }
 
     @Override

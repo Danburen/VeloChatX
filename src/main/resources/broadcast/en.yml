@@ -1,6 +1,6 @@
 # 【Enabled since version 2.0.0】
 # Version of this file, generally does not need to be changed, used for update checks
-config-version: 2.0.1
+config-version: 2.1.0
 # Whether to shuffle the broadcast order
 random: true
 # Interval between each broadcast (in seconds)

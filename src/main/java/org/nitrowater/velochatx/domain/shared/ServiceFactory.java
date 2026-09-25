@@ -1,6 +1,7 @@
 package org.nitrowater.velochatx.domain.shared;
 
 import lombok.Getter;
+import org.nitrowater.velochatx.domain.broadcast.BroadcastEntryConfigMigration;
 import org.nitrowater.velochatx.domain.broadcast.BroadcastService;
 import org.nitrowater.velochatx.domain.broadcast.BroadcastServiceImpl;
 import org.nitrowater.velochatx.domain.channel.ChannelService;
@@ -17,7 +18,6 @@ import org.nitrowater.velochatx.domain.tablist.TabListService;
 import org.nitrowater.velochatx.domain.tablist.TabListServiceImpl;
 import org.nitrowater.velochatx.mapper.migration.V001__CreatePlayerTables;
 import org.nitrowater.velochatx.mapper.migration.V002__CreateIgnoreRejectTables;
-import org.nitrowater.waterapi.domain.config.application.ConfigManager;
 import org.nitrowater.waterapi.domain.infra.io.database.Database;
 import org.nitrowater.waterapi.domain.infra.io.database.H2DataBase;
 import org.nitrowater.waterapi.domain.infra.io.database.migration.MigrationManager;
@@ -66,7 +66,7 @@ public class ServiceFactory {
     private final ChatService chatService;
     private final CommandRegistrar commandRegistrar;
     private final CommandHelper commandHelper;
-    private final LoadSummaryReporter loadSummaryReporter;
+    private final DiagnosticsService diagnosticsService;
 
     @Getter
     private final PlayerActionService playerActionService;
@@ -95,6 +95,9 @@ public class ServiceFactory {
         this.database = initDatabase(dataFolder.getAbsolutePath(), loggerService);
         this.kernel.getConfigManager().registerMigrations("config", List.of(
                 new ServerBindingConfigMigration())
+        );
+        this.kernel.getConfigManager().registerMigrations("broadcast", List.of(
+                new BroadcastEntryConfigMigration())
         );
         // Domain services
         this.serverService = new ServerServiceImpl(mainConfig, wProxyServer);
@@ -135,11 +138,11 @@ public class ServiceFactory {
                 wProxyServer,
                 kernel.getLocale()
         );
-        this.loadSummaryReporter = new LoadSummaryReporter(
+        this.diagnosticsService = new DiagnosticsService(
                 serverService,
                 channelService,
                 broadcastService,
-                loggerService
+                kernel
         );
 
         placeholderService.registerContributors(
@@ -160,72 +163,13 @@ public class ServiceFactory {
         // check so a fixed config stops reporting old problems.
         kernel.registerReloadHook(() -> {
             restartSchedulers();
-            reportBindingProblems();
+            diagnosticsService.reportBindingProblems();
         });
     }
 
     public void startSchedulers() {
         broadcastService.startScheduler();
         tabListService.startConsumer();
-    }
-
-    /**
-     * Log the one-shot startup self-check summary for the loaded
-     * servers, channels and broadcasts. Intended to run once on first load.
-     */
-    public void reportLoadSummary() {
-        loadSummaryReporter.report();
-    }
-
-    /**
-     * Analyze the mismatch between Velocity's registered backends, {@code server-display.display}
-     * and the configured channels. Shared by the startup self-check and {@code /velochatx status}.
-     *
-     * @return the current binding issues; empty when everything lines up
-     */
-    public List<BindingDiagnostics.Issue> analyzeBindings() {
-        return BindingDiagnostics.analyze(serverService, channelService);
-    }
-
-    /**
-     * Log every server/channel binding problem at WARNING level once during startup, so admins
-     * see why a backend may be printed with its raw name or an empty {@code {channel}}.
-     * <p>The legacy-binding migration hint is suppressed when {@code config} already has a
-     * pending migration: {@code checkConfigContent} prints one combined upgrade note instead.</p>
-     */
-    public void reportBindingProblems() {
-        boolean legacy = serverService.hasLegacyBindings();
-        boolean migrationCarriesHint = false;
-        ConfigManager manager = kernel.getConfigManager();
-        if (manager != null) {
-            migrationCarriesHint = manager.hasPendingMigration("config");
-        }
-        BindingDiagnostics.report(
-                kernel.getLoggerService(),
-                analyzeBindings(),
-                legacy && !migrationCarriesHint,
-                messageRenderer()
-        );
-    }
-
-    /**
-     * Build a localizer for binding diagnostics: resolves the template through the kernel's
-     * message service in the server locale, then applies {@link String#format}.
-     */
-    private BindingDiagnostics.Renderer messageRenderer() {
-        org.nitrowater.waterapi.domain.message.MessageService messageService = kernel.getMessageService();
-        String lang = kernel.getLocale().getLanguage();
-        return (template, args) -> {
-            String message = messageService.getMessage(template, lang);
-            if (args == null || args.length == 0) {
-                return message;
-            }
-            try {
-                return String.format(message, args);
-            } catch (java.util.IllegalFormatException e) {
-                return message;
-            }
-        };
     }
 
     public void stopSchedulers() {

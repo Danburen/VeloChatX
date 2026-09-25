@@ -10,6 +10,7 @@ import org.nitrowater.waterapi.plugin.PluginContext;
 import org.nitrowater.velochatx.domain.player.PlayerService;
 import org.nitrowater.velochatx.domain.shared.BindingDiagnostics;
 import org.nitrowater.velochatx.domain.shared.CommandHelper;
+import org.nitrowater.velochatx.domain.shared.DiagnosticsService;
 import org.nitrowater.velochatx.domain.shared.ServiceFactory;
 import org.nitrowater.velochatx.domain.shared.StatusSnapshot;
 import org.nitrowater.velochatx.domain.shared.VeloChatXSystemMessage;
@@ -18,6 +19,7 @@ import org.nitrowater.velochatx.domain.shared.VeloChatXPermissions;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Main control command handler for VeloChatX.
@@ -38,7 +40,10 @@ public class ControlCommandHandler implements CommandHandler {
 
     private static final List<String> BLOCK_ACTIONS = List.of("block", "unblock");
     private static final List<String> CONFIG_FILES = List.of("config", "message", "broadcast");
-    private static final List<String> CONFIG_ACTIONS = List.of("reload", "update", "diff", "migration", "migrate");
+    private static final List<String> CONFIG_ACTIONS = List.of("reload", "update", "diff", "migrate");
+    /** Valid config targets for the third token: a managed file name or {@code all}. */
+    private static final List<String> CONFIG_TARGETS =
+            Stream.concat(CONFIG_FILES.stream(), Stream.of("all")).toList();
 
     /** A subcommand together with the requirements to see/use it. */
     private record SubCommand(String name, String permission, boolean playerOnly) {
@@ -104,12 +109,13 @@ public class ControlCommandHandler implements CommandHandler {
     public CommandNode buildTree() {
         CommandNode.Builder root = CommandNode.builder("velochatx")
                 // Bare `/velochatx` still prints the identity / help line.
-                .executor(this::execute);
+                // Pass `this` (not `this::execute`) so tabComplete is preserved.
+                .executor(this);
         for (SubCommand command : ADMIN_COMMANDS) {
             root.child(CommandNode.builder(command.name())
                     .permission(command.permission())
                     .playerOnly(command.playerOnly())
-                    .executor(this::execute)
+                    .executor(this)
                     .build());
         }
         return root.build();
@@ -127,7 +133,8 @@ public class ControlCommandHandler implements CommandHandler {
         List<SubCommand> commands = source.hasPermission(ADMIN_PERMISSION) ? ADMIN_COMMANDS : DEFAULT_COMMANDS;
         Set<VeloChatXSystemMessage> printed = new LinkedHashSet<>();
         for (SubCommand command : commands) {
-            if (!isAvailable(source, command)) {
+            if ((command.playerOnly() && !source.isPlayer())
+                    || (command.permission() != null && !source.hasPermission(command.permission()))) {
                 continue;
             }
             VeloChatXSystemMessage template = switch (command.name) {
@@ -156,39 +163,22 @@ public class ControlCommandHandler implements CommandHandler {
         return true;
     }
 
-    /** A subcommand is listed/available only when its permission is held and, when player-only, the source is a player. */
-    private static boolean isAvailable(CommandSource source, SubCommand command) {
-        if (command.playerOnly() && !source.isPlayer()) {
-            return false;
-        }
-        return command.permission() == null || source.hasPermission(command.permission());
-    }
-
-    private boolean handleShowChannelInfo(CommandSource source) {
-        helper.sendInfo(source, helper.getMessage(VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_TITLE, source));
-
-        serviceFactory.getChannelService().getAllChannels().forEach(channel ->
-                helper.sendInfo(source, helper.getMessage(
-                        VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_ENTRY, source,
-                        channel.getName(), channel.getDisplayName(), channel.getOnlinePlayerCount())));
-        return true;
-    }
-
     /**
-     * Report a one-shot runtime status summary: how many servers are recognized (and how
-     * many of them are online), how many channels are loaded and how many broadcast messages
+     * Report a one-shot runtime status summary: how many servers are declared (and how many of
+     * them Velocity has registered), how many channels are loaded and how many broadcast messages
      * exist. The numbers come from the same {@link StatusSnapshot} the debug-level startup
      * self-check uses.
      */
     private boolean handleStatus(CommandSource source) {
-        StatusSnapshot snapshot = StatusSnapshot.collect(
-                serviceFactory.getServerService(),
-                serviceFactory.getChannelService(),
-                serviceFactory.getBroadcastService());
+        DiagnosticsService diagnostics = serviceFactory.getDiagnosticsService();
+        StatusSnapshot snapshot = diagnostics.snapshot();
 
         helper.sendInfo(source, helper.getMessage(VeloChatXSystemMessage.STATUS_COMMAND_TITLE, source));
+        // "Online/offline" here = declared ∩ Velocity-registered, NOT process liveness.
+        // registeredCount is the raw velocity.toml [servers] size, which also exposes UNBOUND ids.
         helper.sendInfo(source, helper.getMessage(VeloChatXSystemMessage.STATUS_SERVER_LINE, source,
-                snapshot.getServerBound(), snapshot.getServerOnline(), snapshot.getServerOffline()));
+                snapshot.getServerBound(), snapshot.getServerOnline(), snapshot.getServerOffline(),
+                snapshot.getRegisteredServers().size()));
         helper.sendInfo(source, helper.getMessage(VeloChatXSystemMessage.STATUS_CHANNEL_LINE, source,
                 snapshot.getChannelCount()));
         helper.sendInfo(source, helper.getMessage(VeloChatXSystemMessage.STATUS_BROADCAST_LINE, source,
@@ -202,7 +192,7 @@ public class ControlCommandHandler implements CommandHandler {
                 VeloChatXSystemMessage.STATUS_BINDING_TITLE, source, states.size()));
         states.forEach((name, state) -> helper.sendInfo(source, helper.getMessage(
                 VeloChatXSystemMessage.STATUS_BINDING_ENTRY, source, name, state)));
-        List<BindingDiagnostics.Issue> issues = serviceFactory.analyzeBindings();
+        List<BindingDiagnostics.Issue> issues = diagnostics.analyzeBindings();
         long warnings = issues.stream()
                 .filter(issue -> issue.severity() == BindingDiagnostics.Severity.WARNING)
                 .count();
@@ -214,19 +204,6 @@ public class ControlCommandHandler implements CommandHandler {
             for (BindingDiagnostics.Issue issue : issues) {
                 helper.sendInfo(source, helper.getMessage(issue.template(), source, issue.args()));
             }
-        }
-        return true;
-    }
-
-    private boolean handlePlaceholder(CommandSource source, String[] args) {
-        if (args.length == 2 && source.isPlayer()) {
-            helper.toUPlayer(source).ifPresent(player -> {
-                String resolved = serviceFactory.getKernel().getPlaceholderService()
-                        .resolve(args[1], PlaceholderContext.builder()
-                                .player(player)
-                                .build());
-                helper.sendInfo(source, resolved);
-            });
         }
         return true;
     }
@@ -252,10 +229,42 @@ public class ControlCommandHandler implements CommandHandler {
                 return true;
             }
             case "list" -> {
-                return handleList(source, playerService.getOrCreateAttrs(player.getUuid()));
+                var attrs = playerService.getOrCreateAttrs(player.getUuid());
+                if (attrs.getBlockedPlayers().isEmpty()) {
+                    helper.sendInfo(source, helper.getMessage(VeloChatXCustomMessage.EMPTY_LIST_SHOW, source));
+                    return true;
+                }
+                helper.sendSuccess(source, VeloChatXCustomMessage.REJECT_LIST_SHOW);
+                attrs.getBlockedPlayers().forEach(uuid -> {
+                    String name = serviceFactory.getWProxyServer().getPlayer(uuid)
+                            .map(UPlayer::getLoginName)
+                            .orElse("Unknown");
+                    helper.sendInfo(source, "§6*§r " + name);
+                });
+                return true;
             }
             case "block", "unblock" -> {
-                return handleBlockAction(source, player, playerService, subCommand, args);
+                if (!helper.checkArgs(source, args, 2, 2)
+                        || !helper.checkNotSelf(source, args[1])) {
+                    return false;
+                }
+                Optional<UPlayer> optTarget = helper.getPlayer(args[1]);
+                if (optTarget.isEmpty()) {
+                    helper.sendError(source, VeloChatXCustomMessage.FAIL_FIND_PLAYER);
+                    return false;
+                }
+                UPlayer target = optTarget.get();
+                PlaceholderContext targetContext = helper.contextOf(target);
+                if (subCommand.equals("block")) {
+                    playerService.blockPlayer(player.getUuid(), target.getUuid());
+                    helper.sendInfo(source, serviceFactory.getKernel().getPlaceholderService()
+                            .resolve(helper.getMessage(VeloChatXCustomMessage.HAS_BLOCK, source), targetContext));
+                } else {
+                    playerService.unblockPlayer(player.getUuid(), target.getUuid());
+                    helper.sendInfo(source, serviceFactory.getKernel().getPlaceholderService()
+                            .resolve(helper.getMessage(VeloChatXCustomMessage.HAS_UNBLOCK, source), targetContext));
+                }
+                return true;
             }
             default -> {
                 helper.sendError(source, VeloChatXCustomMessage.UNKNOWN_COMMAND);
@@ -264,65 +273,12 @@ public class ControlCommandHandler implements CommandHandler {
         }
     }
 
-    private boolean handleList(CommandSource source, org.nitrowater.velochatx.domain.player.PlayerAttribution attrs) {
-        if (attrs.getBlockedPlayers().isEmpty()) {
-            helper.sendInfo(source, helper.getMessage(VeloChatXCustomMessage.EMPTY_LIST_SHOW, source));
-            return true;
-        }
-
-        helper.sendSuccess(source, (VeloChatXCustomMessage.REJECT_LIST_SHOW));
-        attrs.getBlockedPlayers().forEach(uuid -> {
-            String name = serviceFactory.getWProxyServer().getPlayer(uuid)
-                    .map(UPlayer::getLoginName)
-                    .orElse("Unknown");
-            helper.sendInfo(source, "§6*§r " + name);
-        });
-
-        return true;
-    }
-
-    private boolean handleBlockAction(CommandSource source, UPlayer player, PlayerService playerService,
-                                       String action, String[] args) {
-        if (!helper.checkArgs(source, args, 2, 2)) {
-            return false;
-        }
-
-        String targetName = args[1];
-        if (!helper.checkNotSelf(source, targetName)) {
-            // checkNotSelf already sent the error message
-            return false;
-        }
-
-        Optional<UPlayer> optTarget = helper.getPlayer(targetName);
-        if (optTarget.isEmpty()) {
-            helper.sendError(source, VeloChatXCustomMessage.FAIL_FIND_PLAYER);
-            return false;
-        }
-
-        UPlayer target = optTarget.get();
-        UUID playerUuid = player.getUuid();
-        UUID targetUuid = target.getUuid();
-
-        PlaceholderContext targetContext = helper.contextOf(target);
-
-        if (action.equals("block")) {
-            playerService.blockPlayer(playerUuid, targetUuid);
-            helper.sendInfo(source, serviceFactory.getKernel().getPlaceholderService()
-                    .resolve(helper.getMessage(VeloChatXCustomMessage.HAS_BLOCK, source), targetContext));
-        } else {
-            playerService.unblockPlayer(playerUuid, targetUuid);
-            helper.sendInfo(source, serviceFactory.getKernel().getPlaceholderService()
-                    .resolve(helper.getMessage(VeloChatXCustomMessage.HAS_UNBLOCK, source), targetContext));
-        }
-
-        return true;
-    }
-
     /** Subcommand names visible to the source (permission + source type filtered). */
     private List<String> availableCommandNames(CommandSource source) {
         List<SubCommand> commands = source.hasPermission(ADMIN_PERMISSION) ? ADMIN_COMMANDS : DEFAULT_COMMANDS;
         List<String> names = commands.stream()
-                .filter(command -> isAvailable(source, command))
+                .filter(command -> (!command.playerOnly() || source.isPlayer())
+                        && (command.permission() == null || source.hasPermission(command.permission())))
                 .map(SubCommand::name)
                 .collect(Collectors.toCollection(ArrayList::new));
         // Kernel-provided generic subcommands (config / reload) require admin.
@@ -369,7 +325,14 @@ public class ControlCommandHandler implements CommandHandler {
             }
             switch (subCommand) {
                 case "show-channel-info" -> {
-                    return handleShowChannelInfo(source);
+                    helper.sendInfo(source, helper.getMessage(
+                            VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_TITLE, source));
+                    serviceFactory.getChannelService().getAllChannels().forEach(channel ->
+                            helper.sendInfo(source, helper.getMessage(
+                                    VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_ENTRY, source,
+                                    channel.getName(), channel.getDisplayName(),
+                                    channel.getOnlinePlayerCount())));
+                    return true;
                 }
                 case "status" -> {
                     return handleStatus(source);
@@ -379,7 +342,16 @@ public class ControlCommandHandler implements CommandHandler {
                         helper.sendError(source, VeloChatXCustomMessage.ONLY_IN_GAME);
                         return false;
                     }
-                    return handlePlaceholder(source, args);
+                    if (args.length == 2) {
+                        helper.toUPlayer(source).ifPresent(player -> {
+                            String resolved = serviceFactory.getKernel().getPlaceholderService()
+                                    .resolve(args[1], PlaceholderContext.builder()
+                                            .player(player)
+                                            .build());
+                            helper.sendInfo(source, resolved);
+                        });
+                    }
+                    return true;
                 }
                 default -> {
                     // "config" / "reload" are kernel generic subcommands, handled above. Reaching
@@ -410,20 +382,30 @@ public class ControlCommandHandler implements CommandHandler {
 
     @Override
     public List<String> tabComplete(CommandSource source, String[] args) {
-        if (args.length == 0 || args.length == 1) {
+        if (args.length == 0) {
             return availableCommandNames(source);
         }
+        if (args.length == 1) {
+            String prefix = args[0].toLowerCase(Locale.ROOT);
+            return availableCommandNames(source).stream()
+                    .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
+                    .toList();
+        }
 
-        String subCommand = args[0].toLowerCase();
+        String subCommand = args[0].toLowerCase(Locale.ROOT);
         // /<cmd> config <reload|update|diff|migration> [name|all] [--dry-run]
         if (subCommand.equals("config") && source.hasPermission(ADMIN_PERMISSION)) {
-            if (args.length == 2) {
-                return CONFIG_ACTIONS;
-            }
-            if (args.length == 3) {
-                return CONFIG_FILES;
-            }
-            return List.of();
+            return switch (args.length) {
+                case 2 -> CONFIG_ACTIONS;
+                case 3 -> CONFIG_TARGETS;
+                // Only migration accepts a flag as the fourth token.
+                case 4 -> {
+                    String action = args[1] == null ? "" : args[1].toLowerCase(Locale.ROOT);
+                    yield action.equals("migration") || action.equals("migrate")
+                            ? List.of("--dry-run") : List.of();
+                }
+                default -> List.of();
+            };
         }
         if (args.length == 2 && BLOCK_ACTIONS.contains(subCommand)
                 && source.isPlayer() && source.hasPermission(PLAYER_PERMISSION)) {

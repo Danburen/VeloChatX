@@ -55,9 +55,11 @@ class ServerBindingConfigMigrationTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void removesOrphanIntVersionKeyAndLeavesAlreadyMigratedConfigAlone() {
+    void removesOrphanIntVersionKeyAndDeadSwitchesAndLeavesAlreadyMigratedConfigAlone() {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("config-migration-version", 1);
+        data.put("broadcast-enable", true);
+        data.put("ban-list", "Steve");
 
         Map<String, Object> list = new LinkedHashMap<>();
         Map<String, Object> lobby = new LinkedHashMap<>();
@@ -82,9 +84,15 @@ class ServerBindingConfigMigrationTest {
         new ServerBindingConfigMigration().migrate(data);
 
         assertFalse(data.containsKey("config-migration-version"));
-        // Orphan cleanup only: structure beyond the orphan key is unchanged.
+        assertFalse(data.containsKey("broadcast-enable"));
+        assertFalse(data.containsKey("ban-list"));
+        // Orphan cleanup only: structure beyond the orphan keys is unchanged.
         data.remove("config-migration-version");
+        data.remove("broadcast-enable");
+        data.remove("ban-list");
         before.remove("config-migration-version");
+        before.remove("broadcast-enable");
+        before.remove("ban-list");
         assertEquals(before, data);
     }
 

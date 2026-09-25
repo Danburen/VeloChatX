@@ -9,7 +9,7 @@ show-channel-info-command-entry: "%s | %s : %d players"
 
 # Runtime status (/velochatx status)
 status-command-title: "VeloChatX status:"
-status-server-line: "Servers: %d recognized (%d online / %d offline)"
+status-server-line: "Servers: %d declared (Velocity registered %d / unregistered %d); Velocity has %d registered"
 status-channel-line: "Channels: %d"
 status-broadcast-line: "Broadcast messages: %d (global %d / locale %d)"
 

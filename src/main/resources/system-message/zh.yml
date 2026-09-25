@@ -9,7 +9,7 @@ show-channel-info-command-entry: "%s | %s : %d 名玩家"
 
 # 运行统计（/velochatx status）
 status-command-title: "VeloChatX 运行统计："
-status-server-line: "服务器：已识别 %d（在线 %d / 未上线 %d）"
+status-server-line: "服务器：已声明 %d 个（Velocity 已注册 %d / 未注册 %d）；Velocity 实际注册 %d 个"
 status-channel-line: "频道：%d"
 status-broadcast-line: "广播消息：%d（全局 %d / 分区 %d）"
 

@@ -117,27 +117,13 @@ public class CommandHelper {
     // === Message get methods ===
 
     /**
-     * Get a localized message using MessageTemplate.
+     * Get a localized message using MessageTemplate, with optional format args.
      * Automatically determines the message source based on the template type.
      *
      * @param template the message template
      * @param source   the command source (for locale)
+     * @param args     the arguments to format into the message (may be empty)
      * @return the localized message
-     */
-    public String getMessage(MessageTemplate template, CommandSource source) {
-        Locale locale = source.getLocale().orElse(defaultLocale);
-        return messageService.getMessage(template, locale.getLanguage());
-    }
-
-    /**
-     * Get a localized message using MessageTemplate, with args formatted
-     * Automatically determines the message source based on the template type.
-     *
-     * @param template the message template
-     * @param source   the command source (for locale)
-     * @param args     the arguments to format into the message
-     * @return the localized message
-     * @see #getMessage(MessageTemplate, CommandSource)
      */
     public String getMessage(MessageTemplate template, CommandSource source, Object... args) {
         Locale locale = source.getLocale().orElse(defaultLocale);

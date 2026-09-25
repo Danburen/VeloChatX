@@ -103,10 +103,10 @@ public class VeloChatX extends WaterPlugin {
                 permissionService, actionService, tabListProvider, commandRegistrar
         );
         // One-shot startup self-check: report loaded servers / channels / broadcasts.
-        serviceFactory.reportLoadSummary();
+        serviceFactory.getDiagnosticsService().reportLoadSummary();
         // Report server-display / channel binding mismatches at WARNING level (unbound backends,
         // phantom entries, dead channel servers) so degraded chat formatting is not silent.
-        serviceFactory.reportBindingProblems();
+        serviceFactory.getDiagnosticsService().reportBindingProblems();
         serviceFactory.startSchedulers();
         // Register event handlers
         VCXEventHandler eventHandler = new VCXEventHandler(

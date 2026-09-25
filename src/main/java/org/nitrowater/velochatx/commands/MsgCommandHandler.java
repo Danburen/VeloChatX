@@ -58,7 +58,7 @@ public class MsgCommandHandler implements CommandHandler {
             return false;
         }
         UPlayer target = optTarget.get();
-        String message = buildMessage(args);
+        String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
         Optional<UPlayer> optSender = helper.toUPlayer(source);
         if (optSender.isEmpty()) {
@@ -80,7 +80,11 @@ public class MsgCommandHandler implements CommandHandler {
             return true;
         }
         sendToSender(source, player, target, message);
-        sendToReceiver(source, target, player, message);
+        // Receiver sees "sender -> you"; placeholders describe the SENDER.
+        String receiveText = helper.getMessage(VeloChatXCustomMessage.MSG_RECEIVE, source)
+                .replace("{Message}", message);
+        serviceFactory.getPlayerActionService().sendMessage(
+                target, receiveText, helper.contextOf(player));
         return true;
     }
 
@@ -89,13 +93,6 @@ public class MsgCommandHandler implements CommandHandler {
         String text = helper.getMessage(VeloChatXCustomMessage.MSG_TO, source)
                 .replace("{Message}", message);
         serviceFactory.getPlayerActionService().sendMessage(sender, text, helper.contextOf(target));
-    }
-
-    /** Receiver sees "sender -> you"; placeholders describe the SENDER. */
-    private void sendToReceiver(CommandSource localeSource, UPlayer receiver, UPlayer sender, String message) {
-        String text = helper.getMessage(VeloChatXCustomMessage.MSG_RECEIVE, localeSource)
-                .replace("{Message}", message);
-        serviceFactory.getPlayerActionService().sendMessage(receiver, text, helper.contextOf(sender));
     }
 
     /** Console sender: the proxy identity (server.proxy / legacy server-display.proxy) replaces {Player}. */
@@ -112,10 +109,6 @@ public class MsgCommandHandler implements CommandHandler {
                 .replace("{Player}", proxyDisplay);
         serviceFactory.getPlayerActionService().sendMessage(target, toReceiver,
                 PlaceholderContext.builder().build());
-    }
-
-    private String buildMessage(String[] args) {
-        return String.join(" ", Arrays.copyOfRange(args, 1, args.length));
     }
 
     @Override

@@ -6,7 +6,6 @@ import org.nitrowater.velochatx.domain.channel.ChannelService;
 import org.nitrowater.velochatx.domain.server.ServerService;
 import org.nitrowater.waterapi.domain.model.UServer;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,12 +13,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Immutable snapshot of what the plugin currently has loaded: bound servers (and how many of
- * them are actually online), channels and broadcast messages.
+ * Immutable snapshot of what the plugin currently has loaded: declared servers (and how many
+ * of them Velocity has registered), channels and broadcast messages.
  * <p>
  * This is the single source of truth shared by the {@code /velochatx status} command and the
- * debug-level startup self-check ({@link LoadSummaryReporter}), so both always report the
- * same numbers.
+ * debug-level startup self-check ({@link DiagnosticsService}), so both always report the
+ * same numbers. "online/offline" = declared ∩ Velocity-registered, NOT process liveness.
  * </p>
  *
  * @since 2.1.0
@@ -71,30 +70,24 @@ public final class StatusSnapshot {
     public static StatusSnapshot collect(ServerService serverService,
                                          ChannelService channelService,
                                          BroadcastService broadcastService) {
-        List<String> online = new ArrayList<>();
-        List<String> offline = new ArrayList<>();
-        // A declared server is "online" when Velocity actually registered it; otherwise it is a
-        // declared-but-not-started (or mistyped) backend.
-        for (String name : serverService.getBoundServerNames()) {
-            if (serverService.getServer(name).isPresent()) {
-                online.add(name);
-            } else {
-                offline.add(name);
-            }
-        }
-
-        // Real backends Velocity knows about, and which of them the declaration forgot.
+        List<String> declared = serverService.getBoundServerNames();
         List<String> registered = serverService.getAllServers().stream()
                 .map(UServer::getName)
                 .toList();
-        Set<String> bound = new HashSet<>(serverService.getBoundServerNames());
+        Set<String> registeredSet = new HashSet<>(registered);
+        Set<String> declaredSet = new HashSet<>(declared);
+
+        // Declared ∩ registered vs declared-only (PHANTOM). "Online" means Velocity knows the id,
+        // not that the backend process is up — see STATUS_SERVER_LINE wording.
+        List<String> online = declared.stream().filter(registeredSet::contains).toList();
+        List<String> offline = declared.stream().filter(name -> !registeredSet.contains(name)).toList();
         List<String> unbound = registered.stream()
-                .filter(name -> !bound.contains(name))
+                .filter(name -> !declaredSet.contains(name))
                 .toList();
 
         // Per-server binding state, declared servers first.
         Map<String, String> states = new LinkedHashMap<>();
-        for (String name : serverService.getBoundServerNames()) {
+        for (String name : declared) {
             states.put(name, serverService.getBindingState(name)
                     .map(Enum::name).orElse("BOUND"));
         }
@@ -124,20 +117,22 @@ public final class StatusSnapshot {
         return onlineServers.size() + offlineServers.size();
     }
 
-    /** Number of declared servers that Velocity has registered. */
+    /** Number of declared servers that Velocity has registered (NOT process liveness). */
     public int getServerOnline() {
         return onlineServers.size();
     }
 
-    /** Number of declared servers that are not registered yet. */
+    /** Number of declared servers missing from Velocity {@code [servers]} (phantoms). */
     public int getServerOffline() {
         return offlineServers.size();
     }
 
+    /** Declared servers that Velocity registered, in declaration order. */
     public List<String> getOnlineServers() {
         return onlineServers;
     }
 
+    /** Declared servers Velocity does not know (config typos / not in velocity.toml). */
     public List<String> getOfflineServers() {
         return offlineServers;
     }

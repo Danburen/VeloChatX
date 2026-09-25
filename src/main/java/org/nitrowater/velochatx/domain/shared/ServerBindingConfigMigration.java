@@ -18,8 +18,9 @@ import java.util.Map;
  * The transferred legacy keys are removed so the new representation takes effect (the compat
  * layer prefers legacy keys while they exist). Sections are only created when a value is
  * actually written, so an already-migrated config is left untouched. After the transfer an
- * empty {@code server-display} section is dropped entirely. The orphaned
- * {@code config-migration-version} bookkeeping key from the pre-SemVer scheme is cleaned up.
+ * empty {@code server-display} section is dropped entirely. Orphaned bookkeeping / removed
+ * switches ({@code config-migration-version}, {@code broadcast-enable}, {@code ban-list})
+ * are cleaned up.
  *
  * @since 2.1.0
  * @author Danburen
@@ -42,6 +43,12 @@ public final class ServerBindingConfigMigration implements ConfigMigration {
         if (data == null) {
             return;
         }
+        // Pre-SemVer bookkeeping used an int key; drop it so it never lingers as an orphan
+        // (current scheme records progress in config-version, see ConfigMigrationManager).
+        data.remove("config-migration-version");
+        // 2.0.1 switches removed from shipped config with no runtime readers.
+        data.remove("broadcast-enable");
+        data.remove("ban-list");
 
         Map<String, Object> list = null;
         // server-display.display.<id> -> server.list.<id>.display

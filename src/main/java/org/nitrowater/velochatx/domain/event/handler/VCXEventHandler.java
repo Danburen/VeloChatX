@@ -26,7 +26,6 @@ import org.nitrowater.waterapi.domain.placeholder.PlaceholderContext;
 import org.nitrowater.waterapi.domain.shared.common.ChatFormatModel;
 import org.nitrowater.waterapi.domain.shared.common.WColor;
 import org.nitrowater.waterapi.domain.spi.PlayerActionService;
-import org.nitrowater.waterapi.utils.Colors;
 import org.nitrowater.waterapi.utils.MessageConverter;
 
 import java.io.IOException;
@@ -93,16 +92,9 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
             }
         }
         if(chatService.getBooleanConfig(ChatConfigKey.LOG_CHAT_ENABLED)) {
-            // convert color to console
-            if(chatService.getBooleanConfig(ChatConfigKey.LOG_CHAT_CONVERT)){
-                messageLoggerService.getLoggerService().info(
-                        Colors.parseColorToAnsi(finalMessage)
-                );
-            } else {
-                messageLoggerService.getLoggerService().info(
-                        Colors.stripAllColors(finalMessage)
-                );
-            }
+            // Single color gate: ChatServiceImpl pushes log-text.convert into the logger
+            // (setMessageColorParseMode), which renders the line in one place - no pre-conversion here.
+            messageLoggerService.getLoggerService().info(finalMessage);
         }
         if(chatService.getBooleanConfig(ChatConfigKey.CROSSING_CHAT_ENABLED)) {
             String sourceServerName = player.getCurrentServer()

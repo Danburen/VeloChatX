@@ -75,8 +75,11 @@ public class MentionCommandHandler implements CommandHandler {
         PlayerService playerService = serviceFactory.getPlayerService();
         // Check if target has blocked the sender (silent block)
         if (playerService.getOrCreateAttrs(target.getUuid()).isBlocked(player.getUuid())) {
-            // Silent block - sender sees "mention sent", but target doesn't receive
-            sendMentionToSource(source, player, target);
+            // Silent block - sender sees "mention sent", but target doesn't receive.
+            // {Player} resolves from the target's context.
+            serviceFactory.getPlayerActionService().sendMessage(player,
+                    helper.getMessage(VeloChatXCustomMessage.MENTION_TO, source),
+                    helper.contextOf(target));
             return true;
         }
         // Check if sender has blocked the target
@@ -117,12 +120,6 @@ public class MentionCommandHandler implements CommandHandler {
         );
 
         return true;
-    }
-
-    private void sendMentionToSource(CommandSource source, UPlayer player, UPlayer target) {
-        // Sender sees "you mentioned <target>"; {Player} resolves from the target's context
-        serviceFactory.getPlayerActionService().sendMessage(player,
-                helper.getMessage(VeloChatXCustomMessage.MENTION_TO, source), helper.contextOf(target));
     }
 
     @Override

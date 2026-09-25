@@ -49,17 +49,6 @@ log-text:
   # 是否要转换输出到终端的文本颜色(实现和游戏中一样的效果，日志中不会显示颜色代码，不影响游戏中输出的颜色)
   convert: true
 
-# 转换输出的服务器的显示名称（见下方 server.list）
-# 【重要】list 下的键必须与 Velocity.toml -> [servers] 里的服务器 id 完全一致（区分大小写）。
-# 只有在这里声明的后端服务器才会使用下面的显示名；未声明的后端在 display-enable=true 时会以 [原始名]
-# 输出（自动补中括号，与下方配置风格一致），{channel} 占位符会被替换成空字符串。
-# display-enable=false 时全部输出原始名（不补括号）。
-# 反之，这里声明了但 Velocity.toml 里不存在的服务器永远不会被匹配到。
-# 插件启动时会用 WARNING 列出所有“未声明”和“不存在”的服务器，请留意控制台。
-# 请优先使用下方 server.proxy；server-display.proxy 为旧键（存在时优先读取）。
-# 提示：{Server} 占位符本身已含显示名/括号，chat-format 里请勿再手动包一层 []。
-# 旧键 server-display.enable / proxy / display 由 /velochatx config migration 迁移到
-# server.display-enable / server.proxy / server.list（旧键存在时仍优先双读）。
 
 # 服务器绑定（推荐）
 #   display-enable : 未声明的后端是否补中括号显示名（旧键 server-display.enable 存在时优先），可选，默认 false

@@ -49,19 +49,6 @@ log-text:
   # Whether to convert the text output in the console to match the color (achieves the same effect as in the game, logs will not show color codes, does not affect the game output colors)
   convert: true
 
-# Convert the server's display name (see server.list below).
-# [IMPORTANT] The keys under "list" MUST exactly match the server ids in Velocity.toml -> [servers] (case-sensitive).
-# Only backends declared here use the display name below; an undeclared backend with display-enable=true prints as
-# [raw-name] (auto-wrapped to match the bracketed style below), and {channel} resolves to an empty string.
-# With display-enable=false every backend prints its raw name (no auto brackets).
-# Conversely, a name declared here that does not exist in Velocity.toml will never match a real backend.
-# On startup the plugin prints a WARNING listing every undeclared / non-existent server, so watch the console.
-# proxy represents the proxy server itself, such as Velocity.
-# Prefer server.proxy below; server-display.proxy is legacy (read first while present).
-# Tip: {Server} already carries the display name / brackets — do not wrap it again in chat-format.
-# Legacy keys server-display.enable / proxy / display are migrated by /velochatx config migration to
-# server.display-enable / server.proxy / server.list (legacy still dual-read while present).
-
 # Server binding (recommended).
 #   display-enable : whether undeclared backends get bracketed display names (legacy
 #                    server-display.enable wins while present); optional, default false

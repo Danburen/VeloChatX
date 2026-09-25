@@ -3,6 +3,7 @@ package org.nitrowater.velochatx.domain.shared;
 import org.nitrowater.velochatx.domain.channel.Channel;
 import org.nitrowater.velochatx.domain.channel.ChannelConfigKey;
 import org.nitrowater.velochatx.domain.channel.ChannelService;
+import org.nitrowater.velochatx.domain.channel.ChannelServiceImpl;
 import org.nitrowater.velochatx.domain.server.ServerConfigKey;
 import org.nitrowater.velochatx.domain.server.ServerService;
 import org.nitrowater.waterapi.domain.logger.LoggerService;
@@ -12,6 +13,7 @@ import org.nitrowater.waterapi.domain.shared.config.Config;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -73,19 +75,14 @@ public final class BindingDiagnostics {
                 case UNBOUND_SERVER -> VeloChatXSystemMessage.BINDING_UNBOUND_SERVER;
                 case PHANTOM_SERVER -> VeloChatXSystemMessage.BINDING_PHANTOM_SERVER;
                 case CHANNEL_UNKNOWN_SERVER -> VeloChatXSystemMessage.BINDING_CHANNEL_UNKNOWN_SERVER;
-                // Empty channels fold their dropped server ids into the second arg so the admin
-                // sees the root cause on the same WARNING line instead of a hidden INFO entry.
-                case CHANNEL_EMPTY -> hasDroppedServers()
+                // Empty channels fold dropped server ids into args[1] so the root cause shares
+                // the WARNING line instead of hiding behind a separate INFO entry.
+                case CHANNEL_EMPTY -> args != null && args.length >= 2
+                        && args[1] != null && !args[1].toString().isBlank()
                         ? VeloChatXSystemMessage.BINDING_CHANNEL_EMPTY_DROPPED
                         : VeloChatXSystemMessage.BINDING_CHANNEL_EMPTY;
                 case SERVER_WITHOUT_CHANNEL -> VeloChatXSystemMessage.BINDING_SERVER_WITHOUT_CHANNEL;
             };
-        }
-
-        /** Whether {@code args[1]} carries a non-blank dropped-server id list. */
-        private boolean hasDroppedServers() {
-            return args != null && args.length >= 2
-                    && args[1] != null && !args[1].toString().isBlank();
         }
     }
 
@@ -190,14 +187,38 @@ public final class BindingDiagnostics {
     /**
      * Read the RAW server ids a channel declares (the resolved {@link Channel#getServers()} list
      * has already dropped unknown entries, so it cannot be used to detect them).
+     * <p>Dual-read, mirroring {@code ChannelServiceImpl.loadChannels}: when any channel still has
+     * a non-empty legacy {@code servers} list, only that source is used; otherwise membership is
+     * reverse-looked-up from {@code server.list.<id>.channels} (post-migration shape).</p>
      */
-    private static List<String> declaredChannelServers(Config config, String channelName) {
+    static List<String> declaredChannelServers(Config config, String channelName) {
         if (config == null || channelName == null) {
             return List.of();
         }
-        String path = ChannelConfigKey.CHANNEL_LIST.getKey() + "." + channelName + ".servers";
-        List<String> declared = new ArrayList<>(config.getCollection(path, List.<String>of()));
-        declared.removeIf(name -> name == null || name.isBlank());
+        Map<String, Object> channelMap = config.get(ChannelConfigKey.CHANNEL_LIST);
+        List<String> declared = new ArrayList<>();
+        if (ChannelServiceImpl.legacyMembership(channelMap)) {
+            if (channelMap != null && channelMap.get(channelName) instanceof Map<?, ?> entry
+                    && entry.get("servers") instanceof List<?> servers) {
+                for (Object server : servers) {
+                    if (server != null && !server.toString().isBlank()) {
+                        declared.add(server.toString());
+                    }
+                }
+            }
+            return declared;
+        }
+        Map<String, Object> serverList = config.get(ServerConfigKey.SERVER_LIST);
+        if (serverList == null) {
+            return declared;
+        }
+        for (Map.Entry<?, ?> e : serverList.entrySet()) {
+            if (e.getValue() instanceof Map<?, ?> entry
+                    && entry.get("channels") instanceof List<?> channels
+                    && channels.stream().anyMatch(channelName::equals)) {
+                declared.add(String.valueOf(e.getKey()));
+            }
+        }
         return declared;
     }
 

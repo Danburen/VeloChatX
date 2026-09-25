@@ -163,7 +163,7 @@ public class ChannelServiceImpl implements ChannelService {
      * @param channelMap {@code channels.channel-list} (may be {@code null})
      * @return {@code true} when legacy membership is present
      */
-    static boolean legacyMembership(Map<String, Object> channelMap) {
+    public static boolean legacyMembership(Map<String, Object> channelMap) {
         if (channelMap == null) {
             return false;
         }
