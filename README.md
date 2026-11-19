@@ -26,6 +26,10 @@ Whether you want a solid out-of-the-box chat experience or a flexible foundation
 * persist data with database
 * tab list replace
 * flexable inner server placeholder
+* server bindings (`server.list`) with display names and channels, legacy config auto-migration
+* config maintenance via `/velochatx config diff | update | migration | reload`
+* hierarchical join/leave broadcasts (proxy / channel / backend)
+* per-command permissions with permission-filtered tab completion
 
 > [!NOTE]
 > See version changes:

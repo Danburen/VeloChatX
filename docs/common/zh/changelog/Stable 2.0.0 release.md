@@ -76,3 +76,48 @@
 - 修复了玩家消息转发的适合对于部分客户端颜色不转义的问题。
 ### 新特性
 - 用户可以通过更改配置文件当中的 'chat-format-model' 来选择不同的转换模型。
+
+## [2.1.0] - [2026.11.19]
+> 完整重构版本：内核拆分为独立 WaterAPI 模块，配置、消息、命令、Tab 列表等子系统重写；配置结构升级至 `config-version: 2.1.0`。
+### 重构
+- 按领域重新分层（chat / channel / broadcast / player / tablist / server / shared），由 ServiceFactory 统一装配
+- 包名由 `me.waterwood.velochatx` 迁移至 `org.nitrowater.velochatx`
+- 新增独立内核模块 WaterAPI（配置、消息、命令树、占位符、日志、更新检查、数据库迁移）
+- 补充 50+ 组单元测试
+
+### 新特性
+- 配置系统：`config-version` 校验、`/velochatx config diff|update|migration|reload`、缺失键补齐（保留注释并滚动备份到 bak/）、旧配置迁移（支持 `--dry-run`）
+- 服务器绑定：新增 `server.list.<id>`（显示名 + 频道），兼容旧键并自动迁移，未注册服务器标记 PHANTOM
+- 层级进出广播：`entry-broadcast` 按 proxy > channel > backend 触发，可配置 scope、消息与终端日志
+- 聊天格式模型：`chat-format-model` 支持 none / legacy / mini-message
+- Tab 列表重写：队列合并、动态刷新间隔（`interval * (1 + 在线人数/20 * refresh-ratio)`）、跨子服保留条目、进出服即时刷新 header/footer
+- 统一命令树与权限模型：按子命令授权（`velochatx.player.<cmd>` / `velochatx.admin.<cmd>`），Tab 补全按权限过滤
+- 新增 `/velochatx status`、`/velochatx placeholder <文本>`、`/velochatx show-channel-info`
+- 多语言消息分层（message / system-message / default），支持 `player-locale: global|locale`
+- 玩家数据持久化：H2 数据库 + V001/V002 自动迁移
+- 自动更新与终端日志颜色转换
+
+### 修复
+- 修复 LuckPerms 前后缀 `&` 颜色代码在聊天、Tab、广播中不生效
+- 修复 `getMessage(key, lang)` 参数顺序错误导致的 `MESSAGE_MISSING`
+- 修复玩家语言在登录时被缓存为空，导致中文客户端显示英文
+- 修复违禁词控制台日志 `PLUGIN_MESSAGE_MISSING` 与 `{Player}` 为空
+- 修复切换子服后 Tab 条目丢失、离开代理后条目残留
+- 修复玩家离开后 `{total_online}` 与 Tab header/footer 长时间不刷新
+- 修复 `config migration` 无迁移项但缺键时不提示 `config update`
+- 修复 `/velochatx placeholder` 只解析单个参数
+
+### 改动
+- 频道成员关系统一至 `server.list.<id>.channels`，`channels.channel-list.<name>.servers` 转为旧格式
+- 玩家进出广播迁移至 `broadcast.yml` 的 `entry-broadcast`
+- `locale/*.properties` 由 `system-message/*.yml` 与 `message/*.yml` 取代
+
+### 升级须知
+1. 备份 `plugins/VeloChatX/`
+2. 启动后执行 `/velochatx config migration`
+3. 执行 `/velochatx config update` 后 `/velochatx config reload`
+4. 旧 `locale/*.properties` 自定义内容迁移到 `system-message/<语言>.yml`
+
+### 已知问题
+- `chat-format-model: none` 对部分 Fabric 客户端可能显示异常，建议使用 `legacy`
+- MiniMessage 模式依赖客户端标签支持

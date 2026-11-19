@@ -73,3 +73,48 @@
 - Fixed the problem that the player's message forwarding is not escaped for some clients.
 ### Features
 - Users can choose different conversion models by changing the 'chat-format-model' in the configuration file.
+
+## [2.1.0] - [2026.11.19]
+> Full rewrite: the kernel is now the standalone WaterAPI module; config, messages, commands and the tab list were rewritten. The config schema is now `config-version: 2.1.0`.
+### Refactor
+- Re-layered by domain (chat / channel / broadcast / player / tablist / server / shared) wired by ServiceFactory
+- Package renamed from `me.waterwood.velochatx` to `org.nitrowater.velochatx`
+- Added the standalone WaterAPI kernel (config, messages, command tree, placeholders, logging, update checks, DB migrations)
+- Added 50+ unit test suites
+
+### Features
+- Config system: `config-version` validation, `/velochatx config diff|update|migration|reload`, missing-key insertion (comments kept, `bak/` backup), legacy config migration with `--dry-run`
+- Server bindings: `server.list.<id>` (display name + channels), legacy keys accepted and migrated, unregistered servers marked PHANTOM
+- Hierarchical entry broadcasts: `entry-broadcast` at proxy > channel > backend with per-level scope, messages and console logging
+- Chat format models: `chat-format-model` supports none / legacy / mini-message
+- Tab list rewrite: queue coalescing, dynamic interval (`interval * (1 + online/20 * refresh-ratio)`), proxy-wide entries kept across server switches, immediate header/footer refresh on join/leave
+- Unified command tree and permissions: per-subcommand nodes (`velochatx.player.<cmd>` / `velochatx.admin.<cmd>`), permission-filtered tab completion
+- New `/velochatx status`, `/velochatx placeholder <text>`, `/velochatx show-channel-info`
+- Layered localization (message / system-message / default) with `player-locale: global|locale`
+- Player persistence: H2 database with automatic V001/V002 migrations
+- Update checker and colored console logging
+
+### Fixed
+- LuckPerms `&` color codes in prefixes/suffixes now apply in chat, tab list and broadcasts
+- Fixed swapped `getMessage(key, lang)` parameters that returned `MESSAGE_MISSING`
+- Fixed the player locale cached as empty at login (Chinese clients saw English)
+- Fixed the ban-word console log `PLUGIN_MESSAGE_MISSING` and empty `{Player}`
+- Fixed tab entries lost after a server switch and stale entries after a proxy leave
+- Fixed `{total_online}` and the tab header/footer staying stale after a player left
+- Fixed `config migration` not hinting `config update` when only keys were missing
+- Fixed `/velochatx placeholder` resolving only a single argument
+
+### Changes
+- Channel membership now lives in `server.list.<id>.channels`; `channels.channel-list.<name>.servers` is legacy
+- Player entry broadcasts moved to `entry-broadcast` in `broadcast.yml`
+- `locale/*.properties` replaced by `system-message/*.yml` and `message/*.yml`
+
+### Upgrade Notes
+1. Back up `plugins/VeloChatX/`
+2. Start once and run `/velochatx config migration`
+3. Run `/velochatx config update`, then `/velochatx config reload`
+4. Move custom strings from `locale/*.properties` to `system-message/<lang>.yml`
+
+### Known Issues
+- `chat-format-model: none` can render oddly on some Fabric clients; prefer `legacy`
+- MiniMessage mode depends on client tag support
