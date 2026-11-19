@@ -97,8 +97,8 @@ class ServerBindingConfigMigrationTest {
     }
 
     @Test
-    void versionIsSemVerTarget211() {
-        assertEquals(new SemVer(2, 1, 1), new ServerBindingConfigMigration().version());
+    void versionIsSemVerTarget210() {
+        assertEquals(new SemVer(2, 1, 0), new ServerBindingConfigMigration().version());
     }
 
     @Test

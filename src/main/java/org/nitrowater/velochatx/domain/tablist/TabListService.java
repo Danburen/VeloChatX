@@ -5,6 +5,8 @@ import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.shared.service.ConfigurableService;
 import org.nitrowater.waterapi.domain.shared.service.EventListener;
 
+import java.util.UUID;
+
 /**
  * Service interface for tab list customization.
  * <p>
@@ -44,11 +46,15 @@ public interface TabListService extends ConfigurableService<TabListConfigKey>,
 
     /**
      * Remove a player from another player's tab list.
+     * <p>
+     * The source is identified by UUID so an entry can be removed after its player left the
+     * proxy (a {@link UPlayer} handle is no longer resolvable then).
+     * </p>
      *
-     * @param sourcePlayer the player to remove
+     * @param sourceUuid   the UUID of the player to remove
      * @param targetPlayer the player whose tab list to modify
      */
-    void removePlayerFromTabList(UPlayer sourcePlayer, UPlayer targetPlayer);
+    void removePlayerFromTabList(UUID sourceUuid, UPlayer targetPlayer);
 
     /**
      * Refresh all players' tab lists.

@@ -3,9 +3,11 @@ package org.nitrowater.velochatx.domain.player;
 import org.nitrowater.velochatx.domain.player.infra.PlayerBlockedMapper;
 import org.nitrowater.velochatx.domain.player.infra.PlayerMapper;
 import org.nitrowater.velochatx.domain.player.infra.PlayerStatusMapper;
+import org.nitrowater.waterapi.domain.infra.io.database.DatabaseException;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.placeholder.PlaceholderService;
 import org.nitrowater.waterapi.domain.spi.PermissionService;
+import org.nitrowater.waterapi.utils.Colors;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -81,6 +83,16 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
+    public Optional<String> getPlayerName(UUID uuid) {
+        try {
+            return Optional.ofNullable(playerMapper.getPlayerName(uuid));
+        } catch (DatabaseException e) {
+            // Display-only lookup: degrade to "Unknown" instead of failing the list command.
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public void blockPlayer(UUID uuid, UUID targetUuid) {
         PlayerAttribution attrs = getOrCreateAttrs(uuid);
         attrs.blockPlayer(targetUuid);
@@ -107,10 +119,14 @@ public class PlayerServiceImpl implements PlayerService {
                 .map(UPlayer::getLoginName).orElse(""));
         service.register("ping", ctx -> ctx.getPlayer()
                 .map(p -> String.valueOf(p.getPing())).orElse("0"));
+        // LuckPerms stores prefix/suffix colors with '&' codes; normalise them so every
+        // consumer (chat format, tab list, broadcasts) can parse them as '§' codes.
         service.register("prefix", ctx -> ctx.getPlayer()
-                .flatMap(permissionService::getPrefix).orElse(""));
+                .flatMap(permissionService::getPrefix)
+                .map(Colors::translateAlternateColorCodes).orElse(""));
         service.register("suffix", ctx -> ctx.getPlayer()
-                .flatMap(permissionService::getSuffix).orElse(""));
+                .flatMap(permissionService::getSuffix)
+                .map(Colors::translateAlternateColorCodes).orElse(""));
         service.register("group", ctx -> ctx.getPlayer()
                 .flatMap(permissionService::getGroup).orElse(""));
     }

@@ -37,7 +37,7 @@ public class MsgCommandHandler implements CommandHandler {
 
     @Override
     public boolean execute(CommandSource source, String[] args) {
-        if (!helper.checkPermission(source, VeloChatXPermissions.PLAYER)) {
+        if (!helper.checkPermission(source, VeloChatXPermissions.playerNodes("vcmsg"))) {
             return false;
         }
 
@@ -74,9 +74,8 @@ public class MsgCommandHandler implements CommandHandler {
             sendToSender(source, player, target, message);
             return true;
         }
-        // Sender blocked the target -> refuse to send.
+        // Sender blocked the target -> silently drop: no reply, nothing delivered.
         if (playerService.getOrCreateAttrs(player.getUuid()).isBlocked(target.getUuid())) {
-            helper.sendInfo(source, helper.getMessage(VeloChatXCustomMessage.HAS_BLOCK, source));
             return true;
         }
         sendToSender(source, player, target, message);
@@ -113,16 +112,7 @@ public class MsgCommandHandler implements CommandHandler {
 
     @Override
     public List<String> tabComplete(CommandSource source, String[] args) {
-        // Never enumerate online player names for sources without the player permission.
-        if (!source.hasPermission(VeloChatXPermissions.PLAYER)) {
-            return List.of();
-        }
-        if (args.length <= 1) {
-            String prefix = args.length == 1 ? args[0].toLowerCase() : "";
-            return helper.getPlayerNamesExcluding(source).stream()
-                    .filter(name -> name.toLowerCase().startsWith(prefix))
-                    .toList();
-        }
-        return List.of();
+        // Never enumerate online player names for sources without the vcmsg permission.
+        return helper.playerNameTabComplete(source, args, VeloChatXPermissions.playerNodes("vcmsg"));
     }
 }

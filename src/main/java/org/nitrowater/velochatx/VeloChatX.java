@@ -143,31 +143,21 @@ public class VeloChatX extends WaterPlugin {
                 VeloChatXPermissions.ADMIN
         );
 
-        // The primary command is registered as a TREE: every subcommand carries its own
-        // permission, so a platform (Velocity renders Brigadier `requires(...)`) exposes only the
-        // subcommands a source may use — no unauthorized subcommand shows up in the client
-        // command tree or tab completion. `help` is unrestricted; `config`/`reload` require
-        // `velochatx.admin`. Handlers keep their internal checks as defence in depth.
         ControlCommandHandler controlHandler = new ControlCommandHandler(serviceFactory);
         commands.registerTree(
-                "velochatx",
-                List.of("vcx", "chatx", "vc"),
                 controlHandler.buildTree(),
-                null
+                List.of("vcx", "chatx", "vc")
         );
 
-        // mention / vcmsg are single commands whose permission lives at the root, so a plain
-        // permission-scoped registration is enough: Velocity hides the node from unauthorized
-        // sources while tab completion (player names) is preserved.
         commands.register("mention",
                 new MentionCommandHandler(serviceFactory),
-                VeloChatXPermissions.PLAYER,
+                VeloChatXPermissions.playerNodes("mention"),
                 List.of("mention", "men", "at")
         );
 
         commands.register("vcmsg",
                 new MsgCommandHandler(serviceFactory),
-                VeloChatXPermissions.PLAYER,
+                VeloChatXPermissions.playerNodes("vcmsg"),
                 List.of("vcmsg", "vctell")
         );
 
@@ -176,10 +166,10 @@ public class VeloChatX extends WaterPlugin {
         // Uses the message-only debug overload on purpose: the node names live in single quotes,
         // which MessageFormat would treat as escapes.
         getKernel().getLoggerService().debug(
-                "VeloChatX commands ready. Velocity has no operator status; grant permission nodes "
-                        + "velochatx.admin (config/reload/status/show-channel-info/placeholder) and "
-                        + "velochatx.player (on/off/block/unblock/list) through a proxy permission "
-                        + "plugin such as LuckPerms.");
+                "VeloChatX commands ready. Velocity has no operator status; grant per-command "
+                        + "nodes (velochatx.admin.status, velochatx.player.mention, ...) or the "
+                        + "group nodes velochatx.admin / velochatx.player through a proxy "
+                        + "permission plugin such as LuckPerms.");
     }
 
     /**

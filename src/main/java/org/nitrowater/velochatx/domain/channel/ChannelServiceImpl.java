@@ -127,14 +127,10 @@ public class ChannelServiceImpl implements ChannelService {
         if (getConfig().get(ChannelConfigKey.GLOBAL)) {
             return true;
         }
-        Set<String> sourceChannels = new HashSet<>();
+        // Communicable when some channel contains both servers.
         for (Channel channel : channels.values()) {
-            if (channel.getServers().contains(source)) {
-                sourceChannels.add(channel.getName());
-            }
-        }
-        for (Channel channel : channels.values()) {
-            if (channel.getServers().contains(target) && sourceChannels.contains(channel.getName())) {
+            List<UServer> members = channel.getServers();
+            if (members.contains(source) && members.contains(target)) {
                 return true;
             }
         }

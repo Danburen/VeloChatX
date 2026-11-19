@@ -21,7 +21,8 @@ public class PlayerAttribution {
     private final Set<UUID> blockedPlayers = ConcurrentHashMap.newKeySet();
 
     @Builder.Default
-    private boolean chatOffLine = false;
+    // Written by command threads, read on the chat path: volatile for cross-thread visibility.
+    private volatile boolean chatOffLine = false;
 
     /**
      * Block a player.

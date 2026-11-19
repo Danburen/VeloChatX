@@ -4,14 +4,14 @@
 config-version: 2.1.0
 
 # Channel info
-show-channel-info-command-title: "The current channels are as follows: Channel ID | Channel Name (Total Online Players) | Sub-servers Included (Online Players)"
-show-channel-info-command-entry: "%s | %s : %d players"
+show-channel-info-command-title: "§6The current channels are as follows:§7 Channel ID | Channel Name (Total Online Players) | Sub-servers Included (Online Players)§r"
+show-channel-info-command-entry: "§f%s§7 | §f%s§7 : §a%d players§r"
 
 # Runtime status (/velochatx status)
-status-command-title: "VeloChatX status:"
-status-server-line: "Servers: %d declared (Velocity registered %d / unregistered %d); Velocity has %d registered"
-status-channel-line: "Channels: %d"
-status-broadcast-line: "Broadcast messages: %d (global %d / locale %d)"
+status-command-title: "§6VeloChatX status:§r"
+status-server-line: "§7Servers: §f%d declared §7(Velocity registered §a%d §7/ unregistered §c%d§7); Velocity has §f%d registered§r"
+status-channel-line: "§7Channels: §f%d§r"
+status-broadcast-line: "§7Broadcast messages: §f%d §7(global %d / locale %d)§r"
 
 # Log format
 ban-words-log-message: "{Player} §c's message contains sensitive/forbidden words:§r {Message}"
@@ -29,22 +29,22 @@ on-command-format-message: "§6/velochatx on§r - §4Enable cross-server chat su
 off-command-format-message: "§6/velochatx off§r - §4Disable cross-server chat support for you. §r"
 control-command-format-message: "§6/velochatx block|unblock <PlayerName>§r - §4Block/unblock a player§r"
 show-channel-info-command-format-message: "§6/velochatx show-channel-info§r - §4Display information for all channels. §r"
-list-command-format-message: "§6/velochatx list §r - §4Show the players you have blocked. §r"
-placeholder-command-format-message: "§6/velochatx placeholder {placeholder} §r - §4show server targeted placeholder"
+list-command-format-message: "§6/velochatx list [block]§r - §4Show the players you have blocked. §r"
+placeholder-command-format-message: "§6/velochatx placeholder \"<text with placeholders>\"§r - §4Resolve and show placeholders in the text (the whole string is the template)§r"
 status-command-format-message: "§6/velochatx status§r - §4Show runtime status§r"
 migrate-command-format-message: "§6/velochatx config migration [name|all] [--dry-run]§r - §4Migrate legacy config keys (e.g. server bindings) to the current schema§r"
 
-# Server/channel binding diagnostics
-binding-unbound-server: "Backend server '%s' is not declared under server-display.display / server.list -> cross-server chat will print the raw name and {channel} will be empty. Declare it and add it to a channel."
-binding-phantom-server: "Config declares '%s' but Velocity has no such backend -> the entry never matches. Check [servers] in velocity.toml (ids are case-sensitive)."
-binding-channel-unknown-server: "Channel '%s' lists server '%s' which Velocity does not know -> the entry was dropped. Check [servers] in velocity.toml."
-binding-channel-empty: "Channel '%s' has no valid servers after validation -> {channel} will resolve to empty."
-binding-channel-empty-dropped: "Channel '%s' has no valid servers after validation (missing refs: %s) -> {channel} will resolve to empty."
-binding-server-without-channel: "Server '%s' belongs to no channel. With channels.global=false it cannot communicate with any other server."
-binding-check-ok: "Server/channel binding check: OK."
-binding-summary-warning: "%d binding issue(s): %d warning(s) / %d hint(s); hints are in debug log or /velochatx status."
-binding-summary-info: "%d binding hint(s). Run /velochatx status for details."
-binding-legacy-hint: "Legacy server bindings (server-display.display / channels.*.servers) are in use. Run /velochatx config migration to switch to server.list."
-status-binding-title: "Server binding (%d):"
+# Server/channel binding diagnostics (§0-f/§r only: the startup logger ANSI converter matches just those)
+binding-unbound-server: "§eBackend server '%s' is not declared under server-display.display / server.list -> cross-server chat will print the raw name and {channel} will be empty. Declare it and add it to a channel.§r"
+binding-phantom-server: "§eConfig declares '%s' but Velocity has no such backend -> the entry never matches. Check [servers] in velocity.toml (ids are case-sensitive).§r"
+binding-channel-unknown-server: "§eChannel '%s' lists server '%s' which Velocity does not know -> the entry was dropped. Check [servers] in velocity.toml.§r"
+binding-channel-empty: "§eChannel '%s' has no valid servers after validation -> {channel} will resolve to empty.§r"
+binding-channel-empty-dropped: "§eChannel '%s' has no valid servers after validation (missing refs: %s) -> {channel} will resolve to empty.§r"
+binding-server-without-channel: "§eServer '%s' belongs to no channel. With channels.global=false it cannot communicate with any other server.§r"
+binding-check-ok: "§aServer/channel binding check: OK.§r"
+binding-summary-warning: "§e%d binding issue(s): %d warning(s) / %d hint(s); hints are in debug log or /velochatx status.§r"
+binding-summary-info: "§7%d binding hint(s). Run /velochatx status for details.§r"
+binding-legacy-hint: "§eLegacy server bindings (server-display.display / channels.*.servers) are in use. Run /velochatx config migration to switch to server.list.§r"
+status-binding-title: "§7Server binding (§f%d§7):§r"
 status-binding-entry: "  %s : %s"
-status-binding-issues: "Binding issues: %d (%d warning)"
+status-binding-issues: "§7Binding issues: §f%d §7(§c%d warning§7)§r"

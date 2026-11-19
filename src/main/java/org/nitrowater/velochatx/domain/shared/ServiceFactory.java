@@ -91,7 +91,7 @@ public class ServiceFactory {
         ConfigLoader broadcastConfigLoader = kernel.getConfigLoader(FileExtension.YML);
         LocaleConfig broadcastLocale = kernel.getPluginConfigService().getLocaleConfig();
         // Infrastructure
-        this.scheduler = new VelocitySchedulerService(wProxyServer.toNative(), pluginInstance);
+        this.scheduler = new VelocitySchedulerService(wProxyServer.toNative(), pluginInstance, loggerService);
         this.database = initDatabase(dataFolder.getAbsolutePath(), loggerService);
         this.kernel.getConfigManager().registerMigrations("config", List.of(
                 new ServerBindingConfigMigration())
@@ -111,7 +111,8 @@ public class ServiceFactory {
         this.playerActionService = new PlayerActionService(
                 new VelocityColoredMessageSender(wProxyServer.toNative()), placeholderService);
 
-        this.tabListService = new TabListServiceImpl(mainConfig, wProxyServer, placeholderService, tabListProvider, scheduler);
+        this.tabListService = new TabListServiceImpl(mainConfig, wProxyServer, placeholderService, tabListProvider,
+                scheduler, loggerService);
 
         this.broadcastService = new BroadcastServiceImpl(
                 broadcastConfigLoader, broadcastLocale, serverService, channelService, wProxyServer,

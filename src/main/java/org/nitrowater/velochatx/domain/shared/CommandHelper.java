@@ -178,18 +178,33 @@ public class CommandHelper {
     // === Check methods ===
 
     /**
-     * Check if the source has the required permission.
+     * Any-of permission gate: an empty list is unrestricted (handled by {@code hasAnyPermission}).
      *
-     * @param source     the command source
-     * @param permission the required permission
-     * @return true if the source has permission
+     * @return true when allowed, otherwise sends NO_PERMISSION and returns false
      */
-    public boolean checkPermission(CommandSource source, String permission) {
-        if (source.hasPermission(permission)) {
+    public boolean checkPermission(CommandSource source, List<String> permissions) {
+        if (source.hasAnyPermission(permissions)) {
             return true;
         }
         sendError(source, VeloChatXCustomMessage.NO_PERMISSION);
         return false;
+    }
+
+    /**
+     * Player-name completion shared by {@code /mention} and {@code /vcmsg}: never enumerate
+     * online names for an unauthorized source.
+     */
+    public List<String> playerNameTabComplete(CommandSource source, String[] args, List<String> permissions) {
+        if (!source.hasAnyPermission(permissions)) {
+            return List.of();
+        }
+        if (args.length <= 1) {
+            String prefix = args.length == 1 ? args[0].toLowerCase(Locale.ROOT) : "";
+            return getPlayerNamesExcluding(source).stream()
+                    .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
+                    .toList();
+        }
+        return List.of();
     }
 
     /**

@@ -35,9 +35,6 @@ public class ControlCommandHandler implements CommandHandler {
     private final ServiceFactory serviceFactory;
     private final CommandHelper helper;
 
-    private static final String ADMIN_PERMISSION = VeloChatXPermissions.ADMIN;
-    private static final String PLAYER_PERMISSION = VeloChatXPermissions.PLAYER;
-
     private static final List<String> BLOCK_ACTIONS = List.of("block", "unblock");
     private static final List<String> CONFIG_FILES = List.of("config", "message", "broadcast");
     private static final List<String> CONFIG_ACTIONS = List.of("reload", "update", "diff", "migrate");
@@ -45,82 +42,66 @@ public class ControlCommandHandler implements CommandHandler {
     private static final List<String> CONFIG_TARGETS =
             Stream.concat(CONFIG_FILES.stream(), Stream.of("all")).toList();
 
-    /** A subcommand together with the requirements to see/use it. */
-    private record SubCommand(String name, String permission, boolean playerOnly) {
-    }
-
-    /** Commands listed to a source holding {@link #ADMIN_PERMISSION}. */
-    private static final List<SubCommand> ADMIN_COMMANDS = List.of(
-            new SubCommand("help", null, false),
-            new SubCommand("config", ADMIN_PERMISSION, false),
-            new SubCommand("reload", ADMIN_PERMISSION, false),
-            new SubCommand("show-channel-info", ADMIN_PERMISSION, false),
-            new SubCommand("status", ADMIN_PERMISSION, false),
-            new SubCommand("placeholder", ADMIN_PERMISSION, true),
-            new SubCommand("on", PLAYER_PERMISSION, true),
-            new SubCommand("off", PLAYER_PERMISSION, true),
-            new SubCommand("block", PLAYER_PERMISSION, true),
-            new SubCommand("unblock", PLAYER_PERMISSION, true),
-            new SubCommand("list", PLAYER_PERMISSION, true)
-    );
-
     /**
-     * Commands listed otherwise: every non-admin command. {@code help} is always available to
-     * everyone. Derived from {@link #ADMIN_COMMANDS} so the two lists cannot drift apart.
+     * The command tree — the single source of truth for dispatch, help and completion.
+     * Built once in the constructor and shared with registration via {@link #buildTree()}.
      */
-    private static final List<SubCommand> DEFAULT_COMMANDS = ADMIN_COMMANDS.stream()
-            .filter(command -> !ADMIN_PERMISSION.equals(command.permission()))
-            .toList();
-
-    /** Player-only action subcommands, derived from the command table. */
-    private static final Set<String> PLAYER_SUBCOMMANDS = ADMIN_COMMANDS.stream()
-            .filter(SubCommand::playerOnly)
-            .filter(command -> PLAYER_PERMISSION.equals(command.permission()))
-            .map(SubCommand::name)
-            .collect(Collectors.toUnmodifiableSet());
-
-    /**
-     * Admin-permission subcommands, derived from the command table. Used to tell an unauthorized
-     * source apart from a genuinely unknown subcommand, so a denial reports "no permission"
-     * instead of the misleading "unknown command".
-     */
-    private static final Set<String> ADMIN_SUBCOMMANDS = ADMIN_COMMANDS.stream()
-            .filter(command -> ADMIN_PERMISSION.equals(command.permission()))
-            .map(SubCommand::name)
-            .collect(Collectors.toUnmodifiableSet());
+    private final CommandNode root;
 
     public ControlCommandHandler(ServiceFactory serviceFactory) {
         this.serviceFactory = serviceFactory;
         this.helper = serviceFactory.getCommandHelper();
+        this.root = buildRoot();
+    }
+
+    /** Declare one subcommand node: tier + the permissions derived from it (see {@link VeloChatXPermissions#nodesFor}). */
+    private CommandNode child(String name, CommandNode.Access access, boolean playerOnly) {
+        return CommandNode.builder(name)
+                .access(access)
+                .permissions(VeloChatXPermissions.nodesFor(name, access))
+                .playerOnly(playerOnly)
+                .executor(this)
+                .build();
     }
 
     /**
-     * Build the platform-agnostic command tree from the subcommand table.
-     * <p>
-     * Each subcommand becomes a literal child carrying its permission / player-only flag, so a
-     * platform (Velocity renders Brigadier {@code requires(...)}) only exposes the subcommands a
-     * source is allowed to use. Every leaf shares this handler's
-     * {@link #execute(CommandSource, String[])}: argument zero is the subcommand, mirroring the
-     * string-dispatch contract.
-     * </p>
-     *
-     * @return the root node of the tree
+     * The full subcommand declaration (tree = table: dispatch, help and completion all read
+     * it). Each command accepts its own {@code velochatx.player.<cmd>} /
+     * {@code velochatx.admin.<cmd>} node, the group node, and (for player commands)
+     * {@code velochatx.admin}.
      */
-    public CommandNode buildTree() {
-        CommandNode.Builder root = CommandNode.builder("velochatx")
-                // Bare `/velochatx` still prints the identity / help line.
-                // Pass `this` (not `this::execute`) so tabComplete is preserved.
-                .executor(this);
-        for (SubCommand command : ADMIN_COMMANDS) {
-            root.child(CommandNode.builder(command.name())
-                    .permission(command.permission())
-                    .playerOnly(command.playerOnly())
-                    .executor(this)
-                    .build());
-        }
+    private CommandNode buildRoot() {
+        // Bare `/velochatx` still prints the identity / help line.
+        // Pass `this` (not `this::execute`) so tabComplete is preserved.
+        CommandNode.Builder root = CommandNode.builder("velochatx").executor(this);
+        root.child(child("help", CommandNode.Access.OPEN, false));
+        root.child(child("config", CommandNode.Access.ADMIN, false));
+        root.child(child("reload", CommandNode.Access.ADMIN, false));
+        root.child(child("show-channel-info", CommandNode.Access.ADMIN, false));
+        root.child(child("status", CommandNode.Access.ADMIN, false));
+        root.child(child("placeholder", CommandNode.Access.ADMIN, true));
+        root.child(child("on", CommandNode.Access.PLAYER, true));
+        root.child(child("off", CommandNode.Access.PLAYER, true));
+        root.child(child("block", CommandNode.Access.PLAYER, true));
+        root.child(child("unblock", CommandNode.Access.PLAYER, true));
+        root.child(child("list", CommandNode.Access.PLAYER, true));
         return root.build();
     }
 
+    /**
+     * The platform-agnostic command tree, shared between registration and dispatch.
+     * <p>
+     * Each subcommand is a literal child carrying its access tier, permission / player-only
+     * flags, so a platform (Velocity renders Brigadier {@code requires(...)}) only exposes the
+     * subcommands a source is allowed to use. Every leaf shares this handler's
+     * {@link #execute(CommandSource, String[])}: argument zero is the subcommand.
+     * </p>
+     *
+     * @return the root node of the tree (cached; built once in the constructor)
+     */
+    public CommandNode buildTree() {
+        return root;
+    }
 
     private String pluginIdentity() {
         PluginContext context = serviceFactory.getKernel().getPluginContext();
@@ -130,14 +111,10 @@ public class ControlCommandHandler implements CommandHandler {
     private boolean handleHelp(CommandSource source) {
         helper.sendInfo(source, pluginIdentity());
 
-        List<SubCommand> commands = source.hasPermission(ADMIN_PERMISSION) ? ADMIN_COMMANDS : DEFAULT_COMMANDS;
         Set<VeloChatXSystemMessage> printed = new LinkedHashSet<>();
-        for (SubCommand command : commands) {
-            if ((command.playerOnly() && !source.isPlayer())
-                    || (command.permission() != null && !source.hasPermission(command.permission()))) {
-                continue;
-            }
-            VeloChatXSystemMessage template = switch (command.name) {
+        // Same visibility filter as completion: only what this source may actually run.
+        for (String name : availableCommandNames(source)) {
+            VeloChatXSystemMessage template = switch (name) {
                 case "help" -> VeloChatXSystemMessage.HELP_COMMAND_FORMAT;
                 case "show-channel-info" -> VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_FORMAT;
                 case "status" -> VeloChatXSystemMessage.STATUS_COMMAND_FORMAT;
@@ -191,7 +168,12 @@ public class ControlCommandHandler implements CommandHandler {
         helper.sendInfo(source, helper.getMessage(
                 VeloChatXSystemMessage.STATUS_BINDING_TITLE, source, states.size()));
         states.forEach((name, state) -> helper.sendInfo(source, helper.getMessage(
-                VeloChatXSystemMessage.STATUS_BINDING_ENTRY, source, name, state)));
+                VeloChatXSystemMessage.STATUS_BINDING_ENTRY, source, name, switch (state) {
+                    case "BOUND" -> "§a" + state;
+                    case "UNBOUND" -> "§e" + state;
+                    case "PHANTOM" -> "§c" + state;
+                    default -> state;
+                })));
         List<BindingDiagnostics.Issue> issues = diagnostics.analyzeBindings();
         long warnings = issues.stream()
                 .filter(issue -> issue.severity() == BindingDiagnostics.Severity.WARNING)
@@ -229,6 +211,12 @@ public class ControlCommandHandler implements CommandHandler {
                 return true;
             }
             case "list" -> {
+                // /velochatx list [block]; bare `list` defaults to `block`
+                if (args.length > 2 || (args.length == 2 && !args[1].equalsIgnoreCase("block"))) {
+                    helper.sendError(source, VeloChatXCustomMessage.INCORRECT_COMMAND_ARGUMENTS);
+                    helper.sendInfo(source, helper.getMessage(VeloChatXSystemMessage.LIST_COMMAND_FORMAT, source));
+                    return false;
+                }
                 var attrs = playerService.getOrCreateAttrs(player.getUuid());
                 if (attrs.getBlockedPlayers().isEmpty()) {
                     helper.sendInfo(source, helper.getMessage(VeloChatXCustomMessage.EMPTY_LIST_SHOW, source));
@@ -238,7 +226,7 @@ public class ControlCommandHandler implements CommandHandler {
                 attrs.getBlockedPlayers().forEach(uuid -> {
                     String name = serviceFactory.getWProxyServer().getPlayer(uuid)
                             .map(UPlayer::getLoginName)
-                            .orElse("Unknown");
+                            .orElseGet(() -> playerService.getPlayerName(uuid).orElse("Unknown"));
                     helper.sendInfo(source, "§6*§r " + name);
                 });
                 return true;
@@ -275,17 +263,15 @@ public class ControlCommandHandler implements CommandHandler {
 
     /** Subcommand names visible to the source (permission + source type filtered). */
     private List<String> availableCommandNames(CommandSource source) {
-        List<SubCommand> commands = source.hasPermission(ADMIN_PERMISSION) ? ADMIN_COMMANDS : DEFAULT_COMMANDS;
-        List<String> names = commands.stream()
-                .filter(command -> (!command.playerOnly() || source.isPlayer())
-                        && (command.permission() == null || source.hasPermission(command.permission())))
-                .map(SubCommand::name)
+        List<String> names = root.getChildren().stream()
+                .filter(command -> command.isVisible(source))
+                .map(CommandNode::getName)
                 .collect(Collectors.toCollection(ArrayList::new));
-        // Kernel-provided generic subcommands (config / reload) require admin.
+        // Kernel generics not already in the tree, gated by the kernel's own any-of nodes.
         CommandManager manager = serviceFactory.getKernel().getCommandManager();
-        if (manager != null && source.hasPermission(ADMIN_PERMISSION)) {
+        if (manager != null) {
             for (String generic : manager.getGenericNames()) {
-                if (!names.contains(generic)) {
+                if (!names.contains(generic) && manager.permits(source, generic)) {
                     names.add(generic);
                 }
             }
@@ -295,17 +281,19 @@ public class ControlCommandHandler implements CommandHandler {
 
     @Override
     public boolean execute(CommandSource source, String[] args) {
-        // `config migration [name|all] [--dry-run]` needs four tokens; everything else stays at three.
-        int maxArgs = args.length > 0 && "config".equalsIgnoreCase(args[0]) ? 4 : 3;
-        if (args.length > maxArgs) {
-            helper.sendError(source, VeloChatXCustomMessage.INCORRECT_COMMAND_ARGUMENTS);
-            return false;
-        }
         if (args.length == 0) {
             helper.sendInfo(source, pluginIdentity());
             return true;
         }
         String subCommand = args[0].toLowerCase();
+        // `placeholder` takes a free-form string, so it has no token limit.
+        // `config migration [name|all] [--dry-run]` needs four tokens; everything else stays at three.
+        boolean freeForm = "placeholder".equals(subCommand);
+        int maxArgs = "config".equals(subCommand) ? 4 : 3;
+        if (!freeForm && args.length > maxArgs) {
+            helper.sendError(source, VeloChatXCustomMessage.INCORRECT_COMMAND_ARGUMENTS);
+            return false;
+        }
         // Help is always reachable, for every player and the console.
         if (subCommand.equals("help")) {
             return handleHelp(source);
@@ -315,69 +303,72 @@ public class ControlCommandHandler implements CommandHandler {
         if (commands != null && commands.executeGeneric(source, subCommand, args)) {
             return true;
         }
-        // Admin commands. The command itself is registered WITHOUT a Velocity-level permission
-        // (see VeloChatX#registerCommands), so a known admin subcommand typed by an unauthorized
-        // source must report NO_PERMISSION rather than fall through to UNKNOWN_COMMAND.
-        if (ADMIN_SUBCOMMANDS.contains(subCommand)) {
-            if (!source.hasPermission(ADMIN_PERMISSION)) {
-                helper.sendError(source, VeloChatXCustomMessage.NO_PERMISSION);
-                return false;
-            }
-            switch (subCommand) {
-                case "show-channel-info" -> {
-                    helper.sendInfo(source, helper.getMessage(
-                            VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_TITLE, source));
-                    serviceFactory.getChannelService().getAllChannels().forEach(channel ->
-                            helper.sendInfo(source, helper.getMessage(
-                                    VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_ENTRY, source,
-                                    channel.getName(), channel.getDisplayName(),
-                                    channel.getOnlinePlayerCount())));
-                    return true;
-                }
-                case "status" -> {
-                    return handleStatus(source);
-                }
-                case "placeholder" -> {
-                    if (!source.isPlayer()) {
-                        helper.sendError(source, VeloChatXCustomMessage.ONLY_IN_GAME);
-                        return false;
-                    }
-                    if (args.length == 2) {
-                        helper.toUPlayer(source).ifPresent(player -> {
-                            String resolved = serviceFactory.getKernel().getPlaceholderService()
-                                    .resolve(args[1], PlaceholderContext.builder()
-                                            .player(player)
-                                            .build());
-                            helper.sendInfo(source, resolved);
-                        });
-                    }
-                    return true;
-                }
-                default -> {
-                    // "config" / "reload" are kernel generic subcommands, handled above. Reaching
-                    // this branch means the kernel command manager is unavailable.
-                    helper.sendError(source, VeloChatXCustomMessage.UNKNOWN_COMMAND);
-                    return false;
-                }
-            }
+        // Single tree lookup: an unknown name reports UNKNOWN_COMMAND, while a KNOWN
+        // subcommand typed by an unauthorized source reports NO_PERMISSION (the root command
+        // is registered WITHOUT a Velocity-level permission, see VeloChatX#registerCommands),
+        // never the misleading UNKNOWN_COMMAND.
+        CommandNode command = root.getChild(subCommand);
+        if (command == null) {
+            helper.sendError(source, VeloChatXCustomMessage.UNKNOWN_COMMAND);
+            return false;
         }
-        // Player commands (game only). Permission is enforced here because the registrar no longer
-        // gates the command: a denial must reach the player as a message, not vanish into a
-        // backend-forwarded "unknown command".
-        if (PLAYER_SUBCOMMANDS.contains(subCommand)) {
-            if (!source.hasPermission(PLAYER_PERMISSION)) {
-                helper.sendError(source, VeloChatXCustomMessage.NO_PERMISSION);
-                return false;
-            }
-            if (!source.isPlayer()) {
-                helper.sendError(source, VeloChatXCustomMessage.ONLY_IN_GAME);
-                return false;
-            }
+        if (!source.hasAnyPermission(command.getPermissions())) {
+            helper.sendError(source, VeloChatXCustomMessage.NO_PERMISSION);
+            return false;
+        }
+        // Player-only subcommands need an in-game source; checked once here so a denial
+        // reaches the sender as a message instead of vanishing into a backend-forwarded
+        // "unknown command" (the registrar no longer gates the command).
+        if (command.isPlayerOnly() && !source.isPlayer()) {
+            helper.sendError(source, VeloChatXCustomMessage.ONLY_IN_GAME);
+            return false;
+        }
+        if (command.getAccess() == CommandNode.Access.OPEN) {
+            // Only `help` is OPEN and it is dispatched before this lookup; anything else
+            // is not wired up yet.
+            helper.sendError(source, VeloChatXCustomMessage.UNKNOWN_COMMAND);
+            return false;
+        }
+        if (command.getAccess() == CommandNode.Access.PLAYER) {
             return handlePlayerCommand(source, subCommand, args);
         }
-
-        helper.sendError(source, VeloChatXCustomMessage.UNKNOWN_COMMAND);
-        return false;
+        // Administrative subcommands; `placeholder`'s player-only gate already ran above.
+        switch (subCommand) {
+            case "show-channel-info" -> {
+                helper.sendInfo(source, helper.getMessage(
+                        VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_TITLE, source));
+                serviceFactory.getChannelService().getAllChannels().forEach(channel ->
+                        helper.sendInfo(source, helper.getMessage(
+                                VeloChatXSystemMessage.SHOW_CHANNEL_INFO_COMMAND_ENTRY, source,
+                                channel.getName(), channel.getDisplayName(),
+                                channel.getOnlinePlayerCount())));
+                return true;
+            }
+            case "status" -> {
+                return handleStatus(source);
+            }
+            case "placeholder" -> {
+                // The whole tail is the template: `/vcx placeholder hello {player}` must not be
+                // truncated to its first token.
+                if (args.length >= 2) {
+                    String template = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+                    helper.toUPlayer(source).ifPresent(player -> {
+                        String resolved = serviceFactory.getKernel().getPlaceholderService()
+                                .resolve(template, PlaceholderContext.builder()
+                                        .player(player)
+                                        .build());
+                        helper.sendInfo(source, resolved);
+                    });
+                }
+                return true;
+            }
+            default -> {
+                // "config" / "reload" are kernel generic subcommands, handled above. Reaching
+                // this branch means the kernel command manager is unavailable.
+                helper.sendError(source, VeloChatXCustomMessage.UNKNOWN_COMMAND);
+                return false;
+            }
+        }
     }
 
     @Override
@@ -394,7 +385,9 @@ public class ControlCommandHandler implements CommandHandler {
 
         String subCommand = args[0].toLowerCase(Locale.ROOT);
         // /<cmd> config <reload|update|diff|migration> [name|all] [--dry-run]
-        if (subCommand.equals("config") && source.hasPermission(ADMIN_PERMISSION)) {
+        CommandNode configNode = root.getChild("config");
+        if (subCommand.equals("config")
+                && configNode != null && source.hasAnyPermission(configNode.getPermissions())) {
             return switch (args.length) {
                 case 2 -> CONFIG_ACTIONS;
                 case 3 -> CONFIG_TARGETS;
@@ -407,9 +400,15 @@ public class ControlCommandHandler implements CommandHandler {
                 default -> List.of();
             };
         }
-        if (args.length == 2 && BLOCK_ACTIONS.contains(subCommand)
-                && source.isPlayer() && source.hasPermission(PLAYER_PERMISSION)) {
+        CommandNode blockNode = BLOCK_ACTIONS.contains(subCommand) ? root.getChild(subCommand) : null;
+        if (args.length == 2 && blockNode != null
+                && source.isPlayer() && source.hasAnyPermission(blockNode.getPermissions())) {
             return helper.getPlayerNamesExcluding(source);
+        }
+
+        // /<cmd> list <action> — only `block` exists for now
+        if (args.length == 2 && subCommand.equals("list")) {
+            return List.of("block");
         }
 
         return List.of();

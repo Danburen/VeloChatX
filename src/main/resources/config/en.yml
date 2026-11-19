@@ -1,10 +1,5 @@
-# VelochatX 2.0.0
-# build java version: JE 17
-# author: danburen
-# Available language zh,en
-
 # This version of the file, usually does not need to be changed, the update check uses it
-config-version: 2.1.1
+config-version: 2.1.0
 # Auto update / Auto download
 check-update:
   enable: true

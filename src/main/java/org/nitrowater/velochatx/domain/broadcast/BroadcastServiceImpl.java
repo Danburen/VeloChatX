@@ -226,7 +226,8 @@ public class BroadcastServiceImpl implements BroadcastService {
             String resolved = resolveMessage(message, player, currentServer.getName());
             logToConsole(resolved);
             // A JOIN goes to the channel being entered (the current one).
-            broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.CHANNEL_SCOPE), player, currentChannelName);
+            broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.CHANNEL_SCOPE),
+                    currentServer.getName());
             if (overlay) return;
         }
         // Level 2 (lowest): Player joins backend
@@ -234,14 +235,24 @@ public class BroadcastServiceImpl implements BroadcastService {
         String message = getConfig().get(BroadcastConfigKey.BACKEND_JOIN_MESSAGE);
         String resolved = resolveMessage(message, player, currentServer.getName());
         logToConsole(resolved);
-        broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.BACKEND_SCOPE), player, currentChannelName);
+        broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.BACKEND_SCOPE),
+                currentServer.getName());
     }
 
     @Override
     public void broadcastProxyJoin(UPlayer player) {
+        broadcastProxy(BroadcastConfigKey.PROXY_JOIN_MESSAGE, player);
+    }
+
+    @Override
+    public void broadcastProxyLeave(UPlayer player) {
+        broadcastProxy(BroadcastConfigKey.PROXY_LEAVE_MESSAGE, player);
+    }
+
+    /** Shared proxy-scope entry/exit broadcast: resolve the template and send proxy-wide. */
+    private void broadcastProxy(BroadcastConfigKey messageKey, UPlayer player) {
         if (!getConfig().getBoolean(BroadcastConfigKey.PROXY_ENABLED)) return;
-        String message = getConfig().get(BroadcastConfigKey.PROXY_JOIN_MESSAGE);
-        String resolved = resolveMessage(message, player,
+        String resolved = resolveMessage(getConfig().get(messageKey), player,
                 player.getCurrentServer().map(UServer::getName).orElse(null));
         logToConsole(resolved);
         actionService.broadcastToAll(resolved);
@@ -266,7 +277,8 @@ public class BroadcastServiceImpl implements BroadcastService {
             String resolved = resolveMessage(message, player, previousServer.getName());
             logToConsole(resolved);
             // A LEAVE goes to the channel being left (the previous one).
-            broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.CHANNEL_SCOPE), player, previousChannelName);
+            broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.CHANNEL_SCOPE),
+                    previousServer.getName());
             if (overlay) return;
         }
         // Level 2 (lowest): Player leaves backend
@@ -274,52 +286,36 @@ public class BroadcastServiceImpl implements BroadcastService {
         String message = getConfig().get(BroadcastConfigKey.BACKEND_LEAVE_MESSAGE);
         String resolved = resolveMessage(message, player, previousServer.getName());
         logToConsole(resolved);
-        broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.BACKEND_SCOPE), player, previousChannelName);
+        broadcastByScope(resolved, getConfig().get(BroadcastConfigKey.BACKEND_SCOPE),
+                previousServer.getName());
     }
 
-    @Override
-    public void broadcastProxyLeave(UPlayer player) {
-        if (!getConfig().getBoolean(BroadcastConfigKey.PROXY_ENABLED)) return;
-        String message = getConfig().get(BroadcastConfigKey.PROXY_LEAVE_MESSAGE);
-        String resolved = resolveMessage(message, player,
-                player.getCurrentServer().map(UServer::getName).orElse(null));
-        logToConsole(resolved);
-        actionService.broadcastToAll(resolved);
-    }
-
-    private void broadcastByScope(String message, String scope, UPlayer player, String channelName) {
+    /**
+     * Deliver a join/leave message according to the configured scope.
+     *
+     * @param targetServerName server to target: the channel/server being joined for a JOIN,
+     *                         the one being left for a LEAVE (never resolved from the player,
+     *                         whose current server already changed by the time a LEAVE is
+     *                         emitted); for {@code scope} {@code "channel"} it selects the
+     *                         channel containing that server
+     */
+    private void broadcastByScope(String message, String scope, String targetServerName) {
         switch (scope) {
             case "proxy":
                 actionService.broadcastToAll(message);
                 break;
             case "channel":
-                if (channelName != null) {
-                    broadcastToChannel(channelName, message);
-                } else {
-                    // Fallback: broadcast to current server's channel
-                    player.getCurrentServer().ifPresent(server ->
-                            channelService.getChannelForServer(server.getName())
-                                    .map(Channel::getName)
-                                    .ifPresent(channel -> broadcastToChannel(channel, message))
-                    );
-                }
+                channelService.getChannelForServer(targetServerName)
+                        .ifPresent(channel -> channel.getServers().forEach(server ->
+                                actionService.broadcastToServer(server, message)));
                 break;
             case "server":
             default:
-                // Broadcast to current server only
-                player.getCurrentServer().ifPresent(server -> {
-                    actionService.broadcastToServer(server, message);
-                });
+                // Broadcast to the target server only (join destination / leave origin)
+                serverService.getServer(targetServerName)
+                        .ifPresent(server -> actionService.broadcastToServer(server, message));
                 break;
         }
-    }
-
-    private void broadcastToChannel(String channelName, String message) {
-        channelService.getChannel(channelName).ifPresent(channel -> {
-            channel.getServers().forEach(server -> {
-                actionService.broadcastToServer(server, message);
-            });
-        });
     }
 
     private String resolveMessage(String template, UPlayer player, String serverName) {
@@ -419,8 +415,27 @@ public class BroadcastServiceImpl implements BroadcastService {
 
         if (!globalEnabled && !localeEnabled) return;
 
+        // scheduleAtFixedRate rejects non-positive periods; skip instead of crashing the reload.
+        if (interval <= 0) {
+            loggerService.warning("Broadcast interval must be positive, timed broadcast disabled. (got " + interval + ")");
+            return;
+        }
+
         broadcastTaskHandle = scheduler.scheduleAtFixedRate(
-                this::executeTimedBroadcast,
+                () -> {
+                    // Broadcast once per server (not per online player) to avoid duplicate messages.
+                    serverService.getAllServers().forEach(server -> {
+                        String serverName = server.getName();
+                        List<String> messages = getMessages(serverName);
+                        if (messages.isEmpty()) return;
+
+                        String prefix = getPrefix(serverName);
+                        String message = messages.get((int) (Math.random() * messages.size()));
+                        PlaceholderContext context = PlaceholderContext.builder().serverName(serverName).build();
+                        String resolved = prefix + placeholderService.resolve(message, context);
+                        actionService.broadcastToServer(server, resolved);
+                    });
+                },
                 interval,
                 interval,
                 TimeUnit.SECONDS
@@ -436,17 +451,8 @@ public class BroadcastServiceImpl implements BroadcastService {
     }
 
     private void executeTimedBroadcast() {
-        // Broadcast once per server (not per online player) to avoid duplicate messages.
-        serverService.getAllServers().forEach(server -> {
-            String serverName = server.getName();
-            List<String> messages = getMessages(serverName);
-            if (messages.isEmpty()) return;
+        // A scheduled task that throws is cancelled permanently by the scheduler, so a bad
+        // message must not take the whole timer down: log it and stay alive.
 
-            String prefix = getPrefix(serverName);
-            String message = messages.get((int) (Math.random() * messages.size()));
-            PlaceholderContext context = PlaceholderContext.builder().serverName(serverName).build();
-            String resolved = prefix + placeholderService.resolve(message, context);
-            actionService.broadcastToServer(server, resolved);
-        });
     }
 }

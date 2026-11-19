@@ -28,7 +28,8 @@ public class ChatServiceImpl implements ChatService {
     private final PlaceholderService placeholderService;
     private final MessageLoggerService messageLoggerService;
 
-    private String chatFormat = "{server}{player}: {message}";
+    // Volatile: written on config-reload threads, read on chat event threads.
+    private volatile String chatFormat = "{server}{player}: {message}";
 
     /**
      * Create a new ChatServiceImpl.
@@ -40,13 +41,7 @@ public class ChatServiceImpl implements ChatService {
         this.config = config;
         this.placeholderService = placeholderService;
         this.messageLoggerService = messageLoggerService;
-        this.chatFormat = getConfig().get(ChatConfigKey.CHAT_FORMAT, "{server} {player}: {message}");
-        // Placeholder keys are case-insensitive ({Server}/{server}), so compare in lower case.
-        String lowerFormat = chatFormat.toLowerCase(Locale.ROOT);
-        if(!(lowerFormat.contains("{server}") && lowerFormat.contains("{player}") && lowerFormat.contains("{message}"))) {
-            chatFormat = "{server} {player}: {message}";
-            messageLoggerService.warn(VeloChatXSystemMessage.FAIL_PARSING_CHAT_FORMAT);
-        }
+        refreshChatFormat();
         applyLogColorMode();
     }
 
@@ -58,7 +53,24 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public void onEvent(KernelConfigUpdateEvent event) {
         this.config = event.getConfig();
+        refreshChatFormat();
         applyLogColorMode();
+    }
+
+    /**
+     * Re-read {@code chat-format} from config, falling back to the default when the
+     * required placeholders are missing. Called on construction and on every config
+     * reload so format changes apply without a restart.
+     */
+    private void refreshChatFormat() {
+        String format = getConfig().get(ChatConfigKey.CHAT_FORMAT, "{server} {player}: {message}");
+        // Placeholder keys are case-insensitive ({Server}/{server}), so compare in lower case.
+        String lowerFormat = format.toLowerCase(Locale.ROOT);
+        if (!(lowerFormat.contains("{server}") && lowerFormat.contains("{player}") && lowerFormat.contains("{message}"))) {
+            format = "{server} {player}: {message}";
+            messageLoggerService.warn(VeloChatXSystemMessage.FAIL_PARSING_CHAT_FORMAT);
+        }
+        this.chatFormat = format;
     }
 
     /**
@@ -119,9 +131,12 @@ public class ChatServiceImpl implements ChatService {
             return false;
         }
 
-        Set<String> bannedWords = new HashSet<>(Arrays.asList(banWords.split(",")));
-        for (String bannedWord : bannedWords) {
-            if (message.contains(bannedWord)) {
+        // Lower-case both sides so filtering is case-insensitive; trim and drop blank
+        // entries so " spam" matches and a stray ",," cannot match every message.
+        String lowerMessage = message.toLowerCase(Locale.ROOT);
+        for (String bannedWord : banWords.split(",")) {
+            String word = bannedWord.trim().toLowerCase(Locale.ROOT);
+            if (!word.isEmpty() && lowerMessage.contains(word)) {
                 return true;
             }
         }

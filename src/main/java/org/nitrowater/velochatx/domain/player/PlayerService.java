@@ -64,6 +64,15 @@ public interface PlayerService extends Service, PlaceholdersContributor {
      */
     void removePlayer(UUID uuid);
 
+    /**
+     * Stored name by UUID (works for offline players); empty when unknown or the DB is
+     * unavailable — callers degrade to a placeholder instead of failing.
+     *
+     * @param uuid the player's UUID
+     * @return the stored name, or empty
+     */
+    Optional<String> getPlayerName(UUID uuid);
+
     // === Block operations ===
 
     /**

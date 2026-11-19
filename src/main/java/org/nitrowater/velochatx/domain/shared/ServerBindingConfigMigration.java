@@ -28,10 +28,9 @@ import java.util.Map;
 public final class ServerBindingConfigMigration implements ConfigMigration {
 
     /**
-     * Target: {@code server.list} + {@code server.display-enable} (plugin config-version 2.1.1).
-     * Bumped from 2.1.0 so files already stamped 2.1.0 re-run and pick up the enable move.
+     * Target: {@code server.list} + {@code server.display-enable} (plugin config-version 2.1.0).
      */
-    public static final SemVer VERSION = new SemVer(2, 1, 1);
+    public static final SemVer VERSION = new SemVer(2, 1, 0);
 
     @Override
     public SemVer version() {

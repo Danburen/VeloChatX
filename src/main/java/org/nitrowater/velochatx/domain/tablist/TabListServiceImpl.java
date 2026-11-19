@@ -3,6 +3,7 @@ package org.nitrowater.velochatx.domain.tablist;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.nitrowater.waterapi.domain.kernel.application.KernelConfigUpdateEvent;
+import org.nitrowater.waterapi.domain.logger.LoggerService;
 import org.nitrowater.waterapi.domain.model.UPlayer;
 import org.nitrowater.waterapi.domain.model.UServer;
 import org.nitrowater.waterapi.domain.model.WProxyServer;
@@ -50,10 +51,12 @@ public class TabListServiceImpl implements TabListService {
     private final PlaceholderService placeholderService;
     private final TabListProvider tabListProvider;
     private final SchedulerService scheduler;
+    private final LoggerService loggerService;
 
     private final Queue<TabListUpdateTask> updateQueue = new ConcurrentLinkedQueue<>();
     private volatile SchedulerService.TaskHandle consumerHandle;
     private volatile SchedulerService.TaskHandle fullRefreshHandle;
+    private volatile SchedulerService.TaskHandle ratioHandle;
     @Getter
     private volatile long currentRefreshInterval;
     private volatile boolean consumerRunning = false;
@@ -66,14 +69,17 @@ public class TabListServiceImpl implements TabListService {
      * @param placeholderService the placeholder service for template resolution
      * @param tabListProvider    the platform-specific TabList provider
      * @param scheduler          the scheduler service for task scheduling
+     * @param loggerService      used to report a failed full refresh without killing its timer
      */
     public TabListServiceImpl(Config config, WProxyServer wProxyServer, PlaceholderService placeholderService,
-                              TabListProvider tabListProvider, SchedulerService scheduler) {
+                              TabListProvider tabListProvider, SchedulerService scheduler,
+                              LoggerService loggerService) {
         this.config = config;
         this.wProxyServer = wProxyServer;
         this.placeholderService = placeholderService;
         this.tabListProvider = tabListProvider;
         this.scheduler = scheduler;
+        this.loggerService = loggerService;
     }
 
     @Override
@@ -141,20 +147,25 @@ public class TabListServiceImpl implements TabListService {
     }
 
     @Override
-    public void removePlayerFromTabList(UPlayer sourcePlayer, UPlayer targetPlayer) {
+    public void removePlayerFromTabList(UUID sourceUuid, UPlayer targetPlayer) {
         if (!isEnabled()) return;
 
-        tabListProvider.removeEntry(sourcePlayer, targetPlayer);
+        tabListProvider.removeEntry(sourceUuid, targetPlayer);
     }
 
     @Override
     public void refreshAllTabLists() {
         if (!isEnabled()) return;
-
-        wProxyServer.getAllOnlinePlayers().forEach(player -> {
-            updateHeaderAndFooter(player);
-            updateTabListEntry(player);
-        });
+        // A scheduled task that throws is cancelled permanently: one broken entry must not
+        // kill the 5-minute full refresh.
+        try {
+            wProxyServer.getAllOnlinePlayers().forEach(player -> {
+                updateHeaderAndFooter(player);
+                updateTabListEntry(player);
+            });
+        } catch (RuntimeException e) {
+            loggerService.warning("Tab list full refresh failed, skipped this round: " + e);
+        }
     }
     @Override
     public void queueUpdate(TabListUpdateTask task) {
@@ -207,7 +218,7 @@ public class TabListServiceImpl implements TabListService {
         // start consumer task
         consumerHandle = adjustRefreshInterval(interval, ratio);
         if (ratio > 0) {
-            scheduler.scheduleAtFixedRate(
+            ratioHandle = scheduler.scheduleAtFixedRate(
                     () -> adjustRefreshInterval(interval, ratio),
                     10,
                     60,
@@ -228,6 +239,10 @@ public class TabListServiceImpl implements TabListService {
             fullRefreshHandle.cancel();
             fullRefreshHandle = null;
         }
+        if (ratioHandle != null) {
+            ratioHandle.cancel();
+            ratioHandle = null;
+        }
         updateQueue.clear();
         consumerRunning = false;
     }
@@ -241,7 +256,9 @@ public class TabListServiceImpl implements TabListService {
     private SchedulerService.TaskHandle adjustRefreshInterval(long baseInterval, double ratio) {
         int playerCount = wProxyServer.getAllOnlinePlayers().size();
         long newInterval = (long) (baseInterval * (1 + (playerCount / 20.0) * ratio));
-        if (newInterval != currentRefreshInterval) {
+        // consumerHandle == null covers a reload: stopConsumer() left currentRefreshInterval
+        // unchanged, so the interval alone would never trigger a reschedule.
+        if (newInterval != currentRefreshInterval || consumerHandle == null) {
             currentRefreshInterval = newInterval;
             // Restart consumer with new interval
             if (consumerHandle != null) {
@@ -275,51 +292,46 @@ public class TabListServiceImpl implements TabListService {
      */
     private void processUpdates() {
         if (updateQueue.isEmpty()) return;
-        // Collect all updates
         List<TabListUpdateTask> tasks = new ArrayList<>();
-        while (!updateQueue.isEmpty()) {
-            tasks.add(updateQueue.poll());
+        for (TabListUpdateTask task = updateQueue.poll(); task != null; task = updateQueue.poll()) {
+            tasks.add(task);
         }
-        // Deduplicate: keep the latest update per (type, player, target) so that a single
-        // player's ADD/REMOVE operations against different targets are all applied.
+
         Map<String, TabListUpdateTask> latestTasks = new LinkedHashMap<>();
         for (TabListUpdateTask task : tasks) {
             String key = task.getType() + ":" + task.getPlayerUuid() + ":" + task.getTargetPlayerUuid();
             latestTasks.put(key, task);
         }
         // Apply updates
-        latestTasks.values().forEach(this::applyUpdate);
-    }
-
-    /**
-     * Apply a single update task.
-     *
-     * @param task the update task to apply
-     */
-    private void applyUpdate(TabListUpdateTask task) {
-        wProxyServer.getPlayer(task.getPlayerUuid()).ifPresent(player -> {
-            switch (task.getType()) {
-                case HEADER_FOOTER:
-                    updateHeaderAndFooter(player);
-                    break;
-                case ENTRY:
-                    updateTabListEntry(player);
-                    break;
-                case ADD:
-                    if (task.getTargetPlayerUuid() != null) {
-                        wProxyServer.getPlayer(task.getTargetPlayerUuid()).ifPresent(target -> {
-                            addPlayerToTabList(player, target);
-                        });
-                    }
-                    break;
-                case REMOVE:
-                    if (task.getTargetPlayerUuid() != null) {
-                        wProxyServer.getPlayer(task.getTargetPlayerUuid()).ifPresent(target -> {
-                            removePlayerFromTabList(player, target);
-                        });
-                    }
-                    break;
+        latestTasks.values().forEach(task -> {
+            // REMOVE must not depend on the source player still being online: the entry of a
+            // player who just left the proxy has to disappear from everyone else's list.
+            if (task.getType() == TabListUpdateTask.UpdateType.REMOVE) {
+                if (task.getTargetPlayerUuid() != null) {
+                    wProxyServer.getPlayer(task.getTargetPlayerUuid()).ifPresent(target ->
+                            removePlayerFromTabList(task.getPlayerUuid(), target));
+                }
+                return;
             }
+            wProxyServer.getPlayer(task.getPlayerUuid()).ifPresent(player -> {
+                switch (task.getType()) {
+                    case HEADER_FOOTER:
+                        updateHeaderAndFooter(player);
+                        break;
+                    case ENTRY:
+                        updateTabListEntry(player);
+                        break;
+                    case ADD:
+                        if (task.getTargetPlayerUuid() != null) {
+                            wProxyServer.getPlayer(task.getTargetPlayerUuid()).ifPresent(target -> {
+                                addPlayerToTabList(player, target);
+                            });
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            });
         });
     }
 

@@ -4,14 +4,14 @@
 config-version: 2.1.0
 
 # 频道信息
-show-channel-info-command-title: "当前所有频道如下： 频道ID | 频道名称(总在线人数) | 所含子服(在线人数)"
-show-channel-info-command-entry: "%s | %s : %d 名玩家"
+show-channel-info-command-title: "§6当前所有频道如下：§7 频道ID | 频道名称(总在线人数) | 所含子服(在线人数)§r"
+show-channel-info-command-entry: "§f%s§7 | §f%s§7 : §a%d 名玩家§r"
 
 # 运行统计（/velochatx status）
-status-command-title: "VeloChatX 运行统计："
-status-server-line: "服务器：已声明 %d 个（Velocity 已注册 %d / 未注册 %d）；Velocity 实际注册 %d 个"
-status-channel-line: "频道：%d"
-status-broadcast-line: "广播消息：%d（全局 %d / 分区 %d）"
+status-command-title: "§6VeloChatX 运行统计：§r"
+status-server-line: "§7服务器：已声明 §f%d 个§7（Velocity 已注册 §a%d §7/ 未注册 §c%d§7）；Velocity 实际注册 §f%d 个§r"
+status-channel-line: "§7频道：§f%d§r"
+status-broadcast-line: "§7广播消息：§f%d §7（全局 %d / 分区 %d）§r"
 
 # 日志格式
 ban-words-log-message: "{Player} §c 的发言中存在敏感/违禁词汇:§r {Message}"
@@ -29,22 +29,22 @@ on-command-format-message: "§6/velochatx on§r - §4开启当前你对跨服聊
 off-command-format-message: "§6/velochatx off§r - §4关闭当前你对跨服聊天的支持§r"
 control-command-format-message: "§6/velochatx block|unblock <玩家名字>§r - §4屏蔽/取消屏蔽某位玩家§r"
 show-channel-info-command-format-message: "§6/velochatx show-channel-info§r - §4显示所有频道的信息§r"
-list-command-format-message: "§6/velochatx list §r - §4显示你所屏蔽的其他玩家§r"
-placeholder-command-format-message: "§6/velochatx placeholder {placeholder} §r - §4显示服务器某个指定的占位符"
+list-command-format-message: "§6/velochatx list [block]§r - §4显示你所屏蔽的其他玩家§r"
+placeholder-command-format-message: "§6/velochatx placeholder \"<带占位符的文本>\"§r - §4解析并显示文本中的占位符（整段作为模板，可含多个占位符）§r"
 status-command-format-message: "§6/velochatx status§r - §4显示运行统计信息§r"
 migrate-command-format-message: "§6/velochatx config migration [name|all] [--dry-run]§r - §4把旧版配置键（如服务器绑定）迁移到当前结构§r"
 
-# 服务器/频道绑定诊断
-binding-unbound-server: "后端服务器 '%s' 未在 server-display.display / server.list 中声明 -> 将输出原始名且 {channel} 为空。请声明它并加入某个频道。"
-binding-phantom-server: "配置声明了 '%s' 但 Velocity 无此后端 -> 该条目永不匹配。请检查 velocity.toml 的 [servers]（id 区分大小写）。"
-binding-channel-unknown-server: "频道 '%s' 引用了 Velocity 不存在的服务器 '%s' -> 该条目已被丢弃。请检查 velocity.toml 的 [servers]。"
-binding-channel-empty: "频道 '%s' 校验后没有任何有效服务器 -> {channel} 将解析为空。"
-binding-channel-empty-dropped: "频道 '%s' 校验后没有任何有效服务器（引用不存在: %s） -> {channel} 将解析为空。"
-binding-server-without-channel: "服务器 '%s' 不属于任何频道。在 channels.global=false 时它无法与其他服务器通信。"
-binding-check-ok: "服务器/频道绑定检查：正常。"
-binding-summary-warning: "共 %d 条绑定问题（%d 条警告 / %d 条提示；提示见 debug 或 /velochatx status）。"
-binding-summary-info: "共 %d 条绑定提示。运行 /velochatx status 查看明细。"
-binding-legacy-hint: "检测到旧版服务器绑定配置（server-display.display / channels.*.servers），建议运行 /velochatx config migration 迁移到 server.list。"
-status-binding-title: "服务器绑定（%d）："
+# 服务器/频道绑定诊断（只用 §0-f/§r 颜色码：启动期 logger 的 §→ANSI 只识别这些）
+binding-unbound-server: "§e后端服务器 '%s' 未在 server-display.display / server.list 中声明 -> 将输出原始名且 {channel} 为空。请声明它并加入某个频道。§r"
+binding-phantom-server: "§e配置声明了 '%s' 但 Velocity 无此后端 -> 该条目永不匹配。请检查 velocity.toml 的 [servers]（id 区分大小写）。§r"
+binding-channel-unknown-server: "§e频道 '%s' 引用了 Velocity 不存在的服务器 '%s' -> 该条目已被丢弃。请检查 velocity.toml 的 [servers]。§r"
+binding-channel-empty: "§e频道 '%s' 校验后没有任何有效服务器 -> {channel} 将解析为空。§r"
+binding-channel-empty-dropped: "§e频道 '%s' 校验后没有任何有效服务器（引用不存在: %s） -> {channel} 将解析为空。§r"
+binding-server-without-channel: "§e服务器 '%s' 不属于任何频道。在 channels.global=false 时它无法与其他服务器通信。§r"
+binding-check-ok: "§a服务器/频道绑定检查：正常。§r"
+binding-summary-warning: "§e共 %d 条绑定问题（%d 条警告 / %d 条提示；提示见 debug 或 /velochatx status）。§r"
+binding-summary-info: "§7共 %d 条绑定提示。运行 /velochatx status 查看明细。§r"
+binding-legacy-hint: "§e检测到旧版服务器绑定配置（server-display.display / channels.*.servers），建议运行 /velochatx config migration 迁移到 server.list。§r"
+status-binding-title: "§7服务器绑定（§f%d§7）：§r"
 status-binding-entry: "  %s : %s"
-status-binding-issues: "绑定问题：%d（%d 条警告）"
+status-binding-issues: "§7绑定问题：§f%d §7（§c%d 条警告§7）§r"

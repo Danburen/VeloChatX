@@ -76,17 +76,31 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
         String finalMessage = chatService.formatMessage(message, player);
         if(chatService.getBooleanConfig(ChatConfigKey.BAN_WORDS_ENABLED)) {
             if (chatService.hasBannedWords(message)) {
-                String lang = player.getEffectiveLocale().map(java.util.Locale::getLanguage).orElse("en");
+                // Locale is resolved live: the cached UPlayer is created at login, before the
+                // client sends its settings, so an early snapshot may still be null.
+                String banWordsMessage = player.getEffectiveLocale()
+                        .map(locale -> messageService.getMessage(
+                                VeloChatXCustomMessage.BAN_WORDS.getKey(), locale.getLanguage()))
+                        .orElseGet(() -> messageService.getMessage(VeloChatXCustomMessage.BAN_WORDS.getKey()));
                 playerActionService.sendMessage(
                         player,
-                        messageService.getMessage(VeloChatXCustomMessage.BAN_WORDS.getKey(), lang),
+                        banWordsMessage,
                         WColor.RED
                 );
                 if (chatService.getBooleanConfig(ChatConfigKey.BAN_WORDS_LOG)) {
+                    // The player must be part of the context: the log template starts with
+                    // {Player}, and a context without it rendered an empty name.
                     PlaceholderContext ctx = PlaceholderContext.builder()
+                            .player(player)
+                            .serverName(player.getCurrentServer().map(UServer::getName).orElse(null))
                             .dynamicParams(Map.of("message", finalMessage))
                             .build();
-                    messageLoggerService.auto(VeloChatXSystemMessage.BAN_WORDS_LOG, ctx);
+                    // Ban-word log lines are system messages (system-message/*.yml), not kernel
+                    // plugin messages - resolving them through the plugin message service only
+                    // produced PLUGIN_MESSAGE_MISSING<ban-words-log-message ...>.
+                    messageLoggerService.auto(
+                            messageService.getSystemMessage(VeloChatXSystemMessage.BAN_WORDS_LOG.getKey()),
+                            ctx);
                 }
                 return;
             }
@@ -170,25 +184,40 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
                     );
             playerActionService.sendMessage(player, welcomeMessage);
         });
-        // Update tab-list
-        tabListService.queueUpdate(new TabListUpdateTask(
-                player.getUuid(),
-                TabListUpdateTask.UpdateType.HEADER_FOOTER,
-                System.currentTimeMillis()
-        ));
-        tabListService.queueUpdate(new TabListUpdateTask(
-                player.getUuid(),
-                TabListUpdateTask.UpdateType.ENTRY,
-                System.currentTimeMillis()
-        ));
-        wProxyServer.getAllOnlinePlayers().forEach(p -> {
-            if (!p.getUuid().equals(player.getUuid())) {
-                tabListService.queueUpdate(new TabListUpdateTask(
-                        p.getUuid(),
-                        TabListUpdateTask.UpdateType.HEADER_FOOTER,
-                        System.currentTimeMillis()
-                ));
-            }
+        // Update tab-list: a backend switch makes the client and the other players drop
+        // entries (each side removes the player info of the server it left), so both
+        // directions are re-added: every proxy player in the joiner's list, and the joiner
+        // in every other proxy player's list. Entries must only disappear on proxy leave.
+        long now = System.currentTimeMillis();
+        UUID joinerUuid = player.getUuid();
+        wProxyServer.getAllOnlinePlayers().forEach(viewer -> {
+            UUID viewerUuid = viewer.getUuid();
+            // Ensure the joining player's tab list owns an entry for this proxy player.
+            tabListService.queueUpdate(new TabListUpdateTask(
+                    viewerUuid,
+                    joinerUuid,
+                    TabListUpdateTask.UpdateType.ADD,
+                    now
+            ));
+            // Ensure this viewer's tab list still owns the joining player's entry.
+            tabListService.queueUpdate(new TabListUpdateTask(
+                    joinerUuid,
+                    viewerUuid,
+                    TabListUpdateTask.UpdateType.ADD,
+                    now
+            ));
+            // Re-apply the formatted display name in every viewer's tab list.
+            tabListService.queueUpdate(new TabListUpdateTask(
+                    viewerUuid,
+                    TabListUpdateTask.UpdateType.ENTRY,
+                    now
+            ));
+            // The online counts in the header/footer changed for everyone.
+            tabListService.queueUpdate(new TabListUpdateTask(
+                    viewerUuid,
+                    TabListUpdateTask.UpdateType.HEADER_FOOTER,
+                    now
+            ));
         });
     }
 
@@ -222,12 +251,22 @@ public class VCXEventHandler implements VeloChatXGameEventHandler {
         broadcastService.broadcastProxyLeave(player);
         playerService.updateLeaveTime(player.getUuid(), System.currentTimeMillis());
         UUID uuid = player.getUuid();
+        long now = System.currentTimeMillis();
+        // The leaving player is already gone from the proxy: remove by UUID (the entry must
+        // disappear even though no UPlayer handle can be resolved any more) and refresh the
+        // online counts for everyone, so {total_online} does not wait for the 5-minute
+        // fallback refresh.
         wProxyServer.getAllOnlinePlayers().forEach(onlinePlayer -> {
             tabListService.queueUpdate(new TabListUpdateTask(
                     uuid,
                     onlinePlayer.getUuid(),
                     TabListUpdateTask.UpdateType.REMOVE,
-                    System.currentTimeMillis()
+                    now
+            ));
+            tabListService.queueUpdate(new TabListUpdateTask(
+                    onlinePlayer.getUuid(),
+                    TabListUpdateTask.UpdateType.HEADER_FOOTER,
+                    now
             ));
         });
         // Drop the in-memory attribution (reloaded from DB on next join)

@@ -38,7 +38,7 @@ public class MentionCommandHandler implements CommandHandler {
 
     @Override
     public boolean execute(CommandSource source, String[] args) {
-        if (!helper.checkPermission(source, VeloChatXPermissions.PLAYER)) {
+        if (!helper.checkPermission(source, VeloChatXPermissions.playerNodes("mention"))) {
             return false;
         }
 
@@ -124,16 +124,7 @@ public class MentionCommandHandler implements CommandHandler {
 
     @Override
     public List<String> tabComplete(CommandSource source, String[] args) {
-        // Never enumerate online player names for sources without the player permission.
-        if (!source.hasPermission(VeloChatXPermissions.PLAYER)) {
-            return List.of();
-        }
-        if (args.length <= 1) {
-            String prefix = args.length == 1 ? args[0].toLowerCase() : "";
-            return helper.getPlayerNamesExcluding(source).stream()
-                    .filter(name -> name.toLowerCase().startsWith(prefix))
-                    .toList();
-        }
-        return List.of();
+        // Never enumerate online player names for sources without the mention permission.
+        return helper.playerNameTabComplete(source, args, VeloChatXPermissions.playerNodes("mention"));
     }
 }

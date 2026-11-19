@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 class ConfigKeysTest {
 
-    /** Runtime-only compat reads: absent from shipped config after the 2.1.1 migration. */
+    /** Runtime-only compat reads: absent from shipped config after the 2.1.0 migration. */
     private static final java.util.Set<String> LEGACY_ONLY_KEYS = java.util.Set.of(
             "server-display.enable",
             "server-display.proxy",
