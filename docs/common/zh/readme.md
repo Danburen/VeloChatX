@@ -1,12 +1,14 @@
 # VeloChatX
 
+<img src="https://danburen.github.io/nitrowater-plugin-docs/velochatx/logo.svg" width="480" height="480" alt="VeloChatX">
+
+![GitHub Release](https://img.shields.io/github/v/release/Danburen/VeloChatX?label=Latest%20Release)
+![GitHub License](https://img.shields.io/github/license/danburen/VeloChatX?label=License)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/danburen/VeloChatX/total)
+![bStats Servers](https://img.shields.io/bstats/servers/23273)
 ### 📖 Document
 
-EN： https://danburen.github.io/nitrowater-plugin-docs/velochatx/en
-中国大陆(ZH_CN)： https://docs.nitrowater.cn/plugin/velochatx/
-
-![icon_middle_2](https://github.com/user-attachments/assets/2ce8ffa3-19b9-4905-aa50-5bd1a4386ad3)
-
+**[EN]( https://danburen.github.io/nitrowater-plugin-docs/velochatx/en/)**/**[中国大陆(ZH_CN)](https://docs.nitrowater.cn/plugin/velochatx/)**
 
 ### 🧐 插件简介
 VeloChatX是一款专为Minecraft Velocity服务器设计的现代聊天解决方案，专注于在您的代理网络中提供快速、简洁且可靠的实时通信。
