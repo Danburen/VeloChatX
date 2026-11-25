@@ -1,5 +1,11 @@
-# VeloChatX [Docs](https://danburen.github.io/VeloChatX-Docs/)
-<img src="https://danburen.github.io/VeloChatX-Docs/favicon.svg" width="480" height="480" alt="VeloChatX">
+# VeloChatX
+
+### 📖 Document
+
+EN： https://danburen.github.io/nitrowater-plugin-docs/velochatx/en/
+中国大陆(ZH_CN)： https://docs.nitrowater.cn/plugin/velochatx/
+
+<img src="https://danburen.github.io/nitrowater-plugin-docs/velochatx/logo.svg" width="480" height="480" alt="VeloChatX">
 
 ![GitHub Release](https://img.shields.io/github/v/release/Danburen/VeloChatX?label=Latest%20Release)
 ![GitHub License](https://img.shields.io/github/license/danburen/VeloChatX?label=License)

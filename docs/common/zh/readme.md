@@ -1,5 +1,10 @@
 # VeloChatX
 
+### 📖 Document
+
+EN： https://danburen.github.io/nitrowater-plugin-docs/velochatx/en
+中国大陆(ZH_CN)： https://docs.nitrowater.cn/plugin/velochatx/
+
 ![icon_middle_2](https://github.com/user-attachments/assets/2ce8ffa3-19b9-4905-aa50-5bd1a4386ad3)
 
 
