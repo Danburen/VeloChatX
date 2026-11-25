@@ -1,10 +1,5 @@
 # VeloChatX
 
-### 📖 Document
-
-EN： https://danburen.github.io/nitrowater-plugin-docs/velochatx/en/
-中国大陆(ZH_CN)： https://docs.nitrowater.cn/plugin/velochatx/
-
 <img src="https://danburen.github.io/nitrowater-plugin-docs/velochatx/logo.svg" width="480" height="480" alt="VeloChatX">
 
 ![GitHub Release](https://img.shields.io/github/v/release/Danburen/VeloChatX?label=Latest%20Release)
@@ -13,6 +8,11 @@ EN： https://danburen.github.io/nitrowater-plugin-docs/velochatx/en/
 ![bStats Servers](https://img.shields.io/bstats/servers/23273)
 
 ## [zh](https://github.com/Danburen/VeloChatX/tree/main/docs/zh)
+
+### 📖 Document
+
+**[EN]( https://danburen.github.io/nitrowater-plugin-docs/velochatx/en/)**/**[中国大陆(ZH_CN)](https://docs.nitrowater.cn/plugin/velochatx/)**
+
 ### 🧐 Introduction
 VeloChatX is a modern chat solution designed for Minecraft Velocity servers, focused on delivering fast, clean, and reliable real-time communication across your proxy network.
   
